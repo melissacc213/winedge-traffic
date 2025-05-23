@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+}
+
+/* Fix notification z-index to appear above header */
+.mantine-Notifications-root {
+  z-index: 9999 !important;
+}
+
+/* Ensure modals also appear above everything */
+.mantine-Modal-root {
+  z-index: 9998 !important;
+}

@@ -1,0 +1,68 @@
+{
+  "title": "任務",
+  "description": "監控和管理您的交通分析任務",
+  "list": {
+    "title": "任務列表",
+    "columns": {
+      "name": "名稱",
+      "description": "描述",
+      "status": "狀態",
+      "progress": "進度",
+      "type": "類型",
+      "recipe": "配方",
+      "createdAt": "建立時間",
+      "actions": "操作"
+    }
+  },
+  "status": {
+    "queued": "等待中",
+    "running": "執行中",
+    "completed": "已完成",
+    "failed": "失敗",
+    "cancelled": "已取消"
+  },
+  "taskType": {
+    "trafficStatistics": "交通量統計",
+    "trainDetection": "列車偵測"
+  },
+  "noTasks": "沒有找到任務",
+  "noDescription": "無描述",
+  "action": {
+    "view": "查看任務",
+    "cancel": "取消任務",
+    "delete": "刪除任務",
+    "viewMetrics": "查看指標"
+  },
+  "details": {
+    "title": "任務詳情",
+    "id": "任務ID",
+    "name": "任務名稱",
+    "description": "描述",
+    "status": "狀態",
+    "progress": "進度",
+    "type": "任務類型",
+    "recipe": "配方",
+    "createdAt": "建立時間",
+    "updatedAt": "更新時間",
+    "duration": "持續時間",
+    "results": "結果"
+  },
+  "metrics": {
+    "title": "任務指標",
+    "totalFrames": "總幀數",
+    "processedFrames": "已處理幀數",
+    "objectsDetected": "已檢測物體",
+    "averageConfidence": "平均置信度",
+    "processingTime": "處理時間"
+  },
+  "table": {
+    "title": "任務",
+    "name": "名稱",
+    "status": "狀態",
+    "progress": "進度",
+    "type": "類型",
+    "recipe": "配方",
+    "createdAt": "建立時間",
+    "search": "搜尋任務..."
+  }
+}

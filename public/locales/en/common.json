@@ -1,0 +1,84 @@
+{
+  "label": {
+    "email": "Email",
+    "password": "Password",
+    "user_profile": "Profile",
+    "demo_accounts": "Demo Accounts"
+  },
+  "button": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "confirm": "Confirm",
+    "search": "Search",
+    "reset": "Reset",
+    "apply": "Apply",
+    "back": "Back",
+    "use": "Use",
+    "change": "Change",
+    "play": "Play",
+    "pause": "Pause",
+    "capture": "Capture",
+    "next": "Next"
+  },
+  "action": {
+    "search": "Search...",
+    "filter": "Filter",
+    "sort": "Sort",
+    "download": "Download",
+    "upload": "Upload",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "view": "View"
+  },
+  "pagination": {
+    "showing": "Showing",
+    "of": "of",
+    "per_page": "per page",
+    "next": "Next",
+    "previous": "Previous",
+    "first": "First",
+    "last": "Last"
+  },
+  "status": {
+    "loading": "Loading",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "completed": "Completed",
+    "running": "Running",
+    "queued": "Queued",
+    "failed": "Failed",
+    "cancelled": "Cancelled"
+  },
+  "taskStatus": "Task Status",
+  "taskDashboard": "Tasks",
+  "taskDashboardDescription": "Monitor and manage your tasks",
+  "createTask": "Create Task",
+  "view": {
+    "list": "List View",
+    "metrics": "Metrics View"
+  },
+  "confirm": {
+    "deleteTask": "Are you sure you want to delete this task?",
+    "cancelTask": "Are you sure you want to cancel this task?"
+  },
+  "tasks": "Tasks",
+  "noTasks": "No tasks available",
+  "noTasksDescription": "Create your first task to get started",
+  "table": {
+    "name": "Name",
+    "status": "Status",
+    "progress": "Progress",
+    "type": "Type",
+    "recipe": "Recipe",
+    "created": "Created"
+  },
+  "taskType": {
+    "trafficStatistics": "Traffic Statistics",
+    "trainDetection": "Train Detection"
+  },
+  "videos": "Videos"
+}

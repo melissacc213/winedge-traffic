@@ -1,0 +1,76 @@
+{
+  "layout": {
+    "nav": {
+      "main_menu": "Main Menu",
+      "tasks": "Tasks",
+      "recipes": "Recipes", 
+      "models": "Models",
+      "users": "Users",
+      "license": "License"
+    }
+  },
+  "theme": {
+    "switch_to_dark": "Switch to dark mode",
+    "switch_to_light": "Switch to light mode",
+    "dark": "Dark",
+    "light": "Light"
+  },
+  "users": {
+    "title": "User Management",
+    "description": "Manage system users and their permissions",
+    "create": "Create User",
+    "list": {
+      "id": "ID",
+      "username": "Username",
+      "email": "Email",
+      "status": "Status",
+      "role": "Role",
+      "created": "Created",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "disabled": "Disabled"
+    },
+    "role": {
+      "admin": "Administrator",
+      "user": "Regular User",
+      "viewer": "Viewer"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "enable": "Enable",
+      "disable": "Disable"
+    }
+  },
+  "license": {
+    "title": "License Management",
+    "description": "View and manage system license information",
+    "info": {
+      "title": "License Information",
+      "key": "License Key",
+      "status": "Status",
+      "product": "Product",
+      "customer": "Customer",
+      "issued": "Issued Date",
+      "expiry": "Expiry Date",
+      "features": "Enabled Features",
+      "deviceUsage": "Device Usage",
+      "devices": "Maximum Devices",
+      "devicesActive": "devices active",
+      "usage": "usage"
+    },
+    "status": {
+      "active": "Active",
+      "expired": "Expired",
+      "trial": "Trial"
+    },
+    "renewal": {
+      "title": "License Renewal",
+      "description": "To renew your license, please contact our sales team",
+      "contact": "Contact Sales",
+      "remaining": "{{days}} days remaining"
+    }
+  }
+}

@@ -1,0 +1,179 @@
+{
+  "title": "配方",
+  "description": "配置和管理交通分析配方",
+  "create": "創建配方",
+  "noRecipes": "未找到配方",
+  "noRecipesDescription": "創建您的第一個配方開始使用",
+  "noDescription": "未提供描述",
+  "runTask": "運行任務",
+  "view": {
+    "grid": "網格視圖",
+    "list": "列表視圖"
+  },
+  "list": {
+    "title": "配方列表",
+    "empty": "沒有可用的配方。在上方創建您的第一個配方。",
+    "columns": {
+      "name": "名稱",
+      "taskType": "任務類型",
+      "status": "狀態",
+      "regions": "區域",
+      "date": "日期",
+      "actions": "操作"
+    }
+  },
+  "table": {
+    "title": "所有配方",
+    "name": "名稱",
+    "description": "描述",
+    "taskType": "任務類型",
+    "status": "狀態",
+    "regions": "區域",
+    "createdAt": "創建時間",
+    "search": "搜索配方..."
+  },
+  "status": {
+    "active": "活躍",
+    "inactive": "非活躍",
+    "error": "錯誤"
+  },
+  "delete": {
+    "confirm": "確定要刪除此配方嗎？"
+  },
+  "actions": {
+    "create": "創建配方",
+    "view": "查看配方",
+    "edit": "編輯配方",
+    "delete": "刪除配方",
+    "run": "運行配方"
+  },
+  "roadType": {
+    "straight": "路段",
+    "tJunction": "T字路口",
+    "crossroads": "十字路口"
+  },
+  "direction": {
+    "title": "交通方向",
+    "northToSouth": "北到南",
+    "southToNorth": "南到北",
+    "eastToWest": "東到西",
+    "westToEast": "西到東",
+    "northEastToSouthWest": "東北到西南",
+    "southWestToNorthEast": "西南到東北",
+    "northWestToSouthEast": "西北到東南",
+    "southEastToNorthWest": "東南到西北"
+  },
+  "creation": {
+    "title": "創建新配方",
+    "stepper": {
+      "taskType": "任務類型",
+      "importVideo": "導入視頻",
+      "regionSetup": "設置區域",
+      "modelConfig": "模型配置",
+      "review": "審查與提交"
+    },
+    "taskType": {
+      "title": "選擇任務類型",
+      "description": "為此配方選擇分析任務類型",
+      "types": {
+        "trafficStatistics": "交通量統計",
+        "trainDetection": "列車偵測"
+      },
+      "descriptions": {
+        "trafficStatistics": "分析和收集交通流量統計數據",
+        "trainDetection": "在鐵路環境中檢測和追踪列車"
+      }
+    },
+    "importVideo": {
+      "title": "導入視頻",
+      "description": "上傳或選擇樣本視頻進行配方配置",
+      "upload": "上傳視頻",
+      "uploading": "上傳中...",
+      "uploadingDescription": "您的視頻正在處理中。依文件大小不同，這可能需要一些時間。",
+      "dragDrop": "將視頻文件拖放到此處",
+      "or": "或",
+      "browse": "瀏覽文件",
+      "sample": "樣本視頻",
+      "sampleDescription": "選擇其中一個樣本視頻快速開始",
+      "recent": "最近使用的視頻",
+      "selectFrameInstructions": "從視頻中選擇特定幀以設置檢測區域",
+      "selectFrameTooltip": "播放視頻並在想要捕獲的幀上暫停",
+      "captureFrame": "捕獲幀",
+      "capturedAt": "幀捕獲於",
+      "recapture": "選擇不同幀",
+      "continueToRegion": "繼續設置區域"
+    },
+    "regionSetup": {
+      "title": "設置分析區域",
+      "description": "定義交通分析區域",
+      "addRegion": "添加區域",
+      "deleteRegion": "刪除區域",
+      "regionName": "區域名稱",
+      "regionType": "區域類型",
+      "showConnections": "顯示交通流",
+      "types": {
+        "countLine": "計數線",
+        "areaOfInterest": "感興趣區域",
+        "exclusionZone": "排除區域"
+      },
+      "drawInstructions": "點擊視頻繪製多邊形點。通過連接到第一個點完成。",
+      "drawRegions": "繪製區域",
+      "importFromVideo": "從視頻導入",
+      "videoObjectsDetected": "已檢測到視頻對象",
+      "objectsDetectedDescription": "您的視頻幀中有 {{count}} 個對象。您可以將它們導入為區域。",
+      "importObjectsAsRegions": "將對象導入為區域",
+      "noRegionsDefinedDescription": "未定義區域。使用添加區域按鈕創建一個。",
+      "regions": "區域 ({{count}})",
+      "actions": "操作",
+      "pointsCount": "點數",
+      "connectionInstructions": "點擊箭頭選擇交通流方向",
+      "selectedFlows": "已選擇的交通流",
+      "source": "來源",
+      "destination": "目的地"
+    },
+    "modelConfig": {
+      "title": "配置模型",
+      "description": "選擇並配置要使用的AI模型",
+      "selectModel": "選擇模型",
+      "confidence": "置信度閾值",
+      "classFilter": "對象類別",
+      "advanced": "高級設置",
+      "noModels": "沒有可用的模型。請先上傳模型。"
+    },
+    "review": {
+      "title": "審查與提交",
+      "description": "審查您的配方配置",
+      "summary": "配方摘要",
+      "name": "配方名稱",
+      "description": "描述",
+      "taskType": "任務類型",
+      "video": "樣本視頻",
+      "regions": "分析區域",
+      "model": "模型",
+      "submit": "提交配方"
+    }
+  },
+  "validation": {
+    "required": "此字段為必填項",
+    "videoRequired": "請上傳或選擇視頻",
+    "regionRequired": "至少需要一個分析區域",
+    "modelRequired": "請選擇模型",
+    "nameRequired": "配方名稱為必填項",
+    "nameLength": "名稱必須在3到50個字符之間",
+    "confidenceRange": "置信度必須在0.1到1.0之間"
+  },
+  "success": {
+    "created": "配方創建成功"
+  },
+  "errors": {
+    "creation": "創建配方失敗",
+    "upload": "上傳視頻失敗",
+    "invalidRegion": "無效的區域配置"
+  },
+  "common": {
+    "next": "下一步",
+    "previous": "上一步",
+    "save": "保存",
+    "cancel": "取消"
+  }
+}

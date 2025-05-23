@@ -1,0 +1,186 @@
+{
+  "title": "Recipes",
+  "description": "Configure and manage traffic analysis recipes",
+  "create": "Create Recipe",
+  "noRecipes": "No Recipes Found",
+  "noRecipesDescription": "Get started by creating your first recipe",
+  "noDescription": "No description provided",
+  "runTask": "Run Task",
+  "view": {
+    "grid": "Grid View",
+    "list": "List View"
+  },
+  "list": {
+    "title": "Recipes List",
+    "empty": "No recipes available. Create your first recipe above.",
+    "columns": {
+      "name": "Name",
+      "taskType": "Task Type",
+      "status": "Status",
+      "regions": "Regions",
+      "date": "Date",
+      "actions": "Actions"
+    }
+  },
+  "table": {
+    "title": "All Recipes",
+    "name": "Name",
+    "description": "Description",
+    "taskType": "Task Type",
+    "status": "Status",
+    "regions": "Regions",
+    "createdAt": "Created",
+    "search": "Search recipes..."
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "error": "Error"
+  },
+  "delete": {
+    "confirm": "Are you sure you want to delete this recipe?"
+  },
+  "actions": {
+    "create": "Create Recipe",
+    "view": "View Recipe",
+    "edit": "Edit Recipe",
+    "delete": "Delete Recipe",
+    "run": "Run Recipe"
+  },
+  "roadType": {
+    "straight": "Straight Road",
+    "tJunction": "T-Junction",
+    "crossroads": "Crossroads"
+  },
+  "direction": {
+    "title": "Traffic Direction",
+    "northToSouth": "North to South",
+    "southToNorth": "South to North",
+    "eastToWest": "East to West",
+    "westToEast": "West to East",
+    "northEastToSouthWest": "Northeast to Southwest",
+    "southWestToNorthEast": "Southwest to Northeast",
+    "northWestToSouthEast": "Northwest to Southeast",
+    "southEastToNorthWest": "Southeast to Northwest"
+  },
+  "creation": {
+    "title": "Create New Recipe",
+    "stepper": {
+      "taskType": "Task Type",
+      "taskWithVideo": "Task & Video",
+      "taskWithVideoDesc": "Select task type and import video",
+      "importVideo": "Import Video",
+      "regionSetup": "Region Setup",
+      "regionSetupDesc": "Define analysis regions",
+      "modelConfig": "Model Config",
+      "modelConfigDesc": "Select and configure AI model",
+      "review": "Review & Submit",
+      "reviewDesc": "Verify and submit recipe"
+    },
+    "taskType": {
+      "title": "Select Task Type",
+      "description": "Choose the type of analysis task for this recipe",
+      "types": {
+        "trafficStatistics": "Traffic Statistics",
+        "trainDetection": "Train Detection"
+      },
+      "descriptions": {
+        "trafficStatistics": "Analyze and collect traffic flow statistics",
+        "trainDetection": "Detect and track trains in railway environments"
+      }
+    },
+    "importVideo": {
+      "title": "Import Video",
+      "description": "Upload or select a sample video for recipe configuration",
+      "upload": "Upload Video",
+      "uploading": "Uploading...",
+      "uploadingDescription": "Your video is being processed. This may take a few moments depending on the size.",
+      "dragDrop": "Drag and drop video file here",
+      "or": "or",
+      "browse": "Browse files",
+      "sample": "Sample Videos",
+      "sampleDescription": "Select one of our sample videos to get started quickly",
+      "recent": "Recently Used Videos",
+      "selectFrameInstructions": "Select a specific frame from the video to use for setting up detection regions",
+      "selectFrameTooltip": "Play the video and pause at the frame you want to capture",
+      "captureFrame": "Capture Frame",
+      "capturedAt": "Frame captured at",
+      "recapture": "Select Different Frame",
+      "continueToRegion": "Continue to Region Setup",
+      "selectTaskFirst": "Select Task Type First",
+      "selectTaskFirstDescription": "Please select a task type on the left to enable video upload"
+    },
+    "regionSetup": {
+      "title": "Setup Analysis Regions",
+      "description": "Define areas for traffic analysis",
+      "addRegion": "Add Region",
+      "deleteRegion": "Delete Region",
+      "regionName": "Region Name",
+      "regionType": "Region Type",
+      "showConnections": "Show Traffic Flows",
+      "types": {
+        "countLine": "Stright Road",
+        "areaOfInterest": "T-Junction",
+        "exclusionZone": "Crossroads"
+      },
+      "drawInstructions": "Click on the video to draw polygon points. Complete by connecting to the first point.",
+      "drawRegions": "Draw Regions",
+      "importFromVideo": "Import from Video",
+      "videoObjectsDetected": "Video objects detected",
+      "objectsDetectedDescription": "You have {{count}} objects from your video frame. You can import them as regions.",
+      "importObjectsAsRegions": "Import Objects as Regions",
+      "noRegionsDefinedDescription": "No regions defined. Use the Add Region button to create one.",
+      "regions": "Regions ({{count}})",
+      "actions": "Actions",
+      "pointsCount": "Points",
+      "connectionInstructions": "Click on arrows to select traffic flow directions",
+      "selectedFlows": "Selected Traffic Flows",
+      "source": "Source",
+      "destination": "Destination"
+    },
+    "modelConfig": {
+      "title": "Configure Model",
+      "description": "Select and configure the AI model to use",
+      "selectModel": "Select Model",
+      "confidence": "Confidence Threshold",
+      "classFilter": "Object Classes",
+      "advanced": "Advanced Settings",
+      "noModels": "No models available. Please upload a model first."
+    },
+    "review": {
+      "title": "Review & Submit",
+      "description": "Review your recipe configuration",
+      "summary": "Recipe Summary",
+      "name": "Recipe Name",
+      "description": "Description",
+      "taskType": "Task Type",
+      "video": "Sample Video",
+      "regions": "Analysis Regions",
+      "model": "Model",
+      "submit": "Submit Recipe"
+    }
+  },
+  "validation": {
+    "required": "This field is required",
+    "videoRequired": "Please upload or select a video",
+    "regionRequired": "At least one analysis region is required",
+    "modelRequired": "Please select a model",
+    "nameRequired": "Recipe name is required",
+    "nameLength": "Name must be between 3 and 50 characters",
+    "confidenceRange": "Confidence must be between 0.1 and 1.0"
+  },
+  "success": {
+    "created": "Recipe created successfully"
+  },
+  "errors": {
+    "creation": "Failed to create recipe",
+    "upload": "Failed to upload video",
+    "invalidRegion": "Invalid region configuration"
+  },
+  "common": {
+    "next": "Next",
+    "previous": "Previous",
+    "save": "Save",
+    "cancel": "Cancel"
+  }
+}

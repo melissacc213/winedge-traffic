@@ -1,0 +1,110 @@
+{
+  "page": {
+    "title": "Models",
+    "description": "Manage and upload AI models for analysis"
+  },
+  "uploader": {
+    "title": "Upload Model",
+    "dragFile": "Drag a model file here or click to browse",
+    "dropFileHere": "Supported formats: .onnx, .pb, and other machine learning model files",
+    "selectFile": "Select File",
+    "supportedFormats": "Supported formats: ONNX, Protocol Buffer",
+    "currentUploads": "Current Uploads"
+  },
+  "upload": {
+    "title": "Upload Model",
+    "description": "Upload your ONNX or other model files",
+    "dropzone_text": "Drag and drop model file here",
+    "dropzone_hint": "or click to select file",
+    "supported_formats": "Supported formats: {{formats}}",
+    "processing": "Processing model...",
+    "upload_button": "Upload Model"
+  },
+  "list": {
+    "title": "Available Models",
+    "empty": "No models available. Upload your first model above.",
+    "columns": {
+      "name": "Name",
+      "type": "Type",
+      "size": "Size",
+      "status": "Status",
+      "date": "Date",
+      "actions": "Actions"
+    },
+    "name": "Name",
+    "size": "Size",
+    "uploadedAt": "Uploaded At",
+    "status": "Status",
+    "actions": "Actions",
+    "refresh": "Refresh",
+    "download": "Download",
+    "delete": "Delete"
+  },
+  "tabs": {
+    "list": "Model List",
+    "upload": "Upload Model"
+  },
+  "actions": {
+    "upload": "Upload Model",
+    "create": "Create Model",
+    "delete": "Delete",
+    "edit": "Edit Model",
+    "view_details": "View Details",
+    "download": "Download"
+  },
+  "delete": {
+    "confirm": "Are you sure you want to delete this model?"
+  },
+  "status": {
+    "active": "Active",
+    "available": "Available",
+    "processing": "Processing",
+    "error": "Error",
+    "failed": "Failed",
+    "uploading": "Uploading",
+    "pending": "Pending",
+    "completed": "Completed",
+    "errorGeneric": "An error occurred"
+  },
+  "validation": {
+    "fileSize": "File size must be less than {{max}}",
+    "fileType": "Unsupported file type. Please upload an ONNX or Protocol Buffer model file.",
+    "genericError": "There was an error with the file."
+  },
+  "create": {
+    "title": "Create New Model",
+    "upload_model": "Upload Model File",
+    "model_name": "Model Name",
+    "model_name_placeholder": "Enter model name",
+    "parameters": "Model Parameters",
+    "parameter_key": "Key",
+    "parameter_name": "Name",
+    "parameter_value": "Value",
+    "actions": "Actions",
+    "create_model": "Create Model",
+    "uploading": "Uploading...",
+    "extracting_parameters": "Extracting parameters from model file..."
+  },
+  "errors": {
+    "loadFailed": "Failed to load models",
+    "uploadFailed": "Upload failed",
+    "deleteFailed": "Delete failed"
+  },
+  "notification": {
+    "upload_error": "Upload failed",
+    "upload_success": "Upload successful",
+    "upload_success_message": "Model {{name}} has been uploaded successfully",
+    "delete_error": "Delete failed",
+    "delete_success": "Model deleted",
+    "delete_success_message": "The model has been successfully deleted",
+    "download_error": "Download failed",
+    "download_success": "Download started",
+    "download_started": "Download started",
+    "download_started_message": "Downloading model {{name}}",
+    "no_file_selected": "Please select a model file to upload",
+    "parameter_extracted": "Parameters extracted",
+    "parameter_extracted_message": "Model parameters were successfully extracted from the file",
+    "parameter_extraction_failed": "Parameter extraction failed",
+    "parameter_extraction_failed_message": "Failed to extract parameters from the model file"
+  }
+}

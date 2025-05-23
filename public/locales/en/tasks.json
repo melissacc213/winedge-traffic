@@ -1,0 +1,68 @@
+{
+  "title": "Tasks",
+  "description": "Monitor and manage your traffic analysis tasks",
+  "list": {
+    "title": "Tasks List",
+    "columns": {
+      "name": "Name",
+      "description": "Description",
+      "status": "Status",
+      "progress": "Progress",
+      "type": "Type",
+      "recipe": "Recipe",
+      "createdAt": "Created",
+      "actions": "Actions"
+    }
+  },
+  "status": {
+    "queued": "Queued",
+    "running": "Running",
+    "completed": "Completed",
+    "failed": "Failed",
+    "cancelled": "Cancelled"
+  },
+  "taskType": {
+    "trafficStatistics": "Traffic Statistics",
+    "trainDetection": "Train Detection"
+  },
+  "noTasks": "No tasks found",
+  "noDescription": "No description",
+  "action": {
+    "view": "View Task",
+    "cancel": "Cancel Task",
+    "delete": "Delete Task",
+    "viewMetrics": "View Metrics"
+  },
+  "details": {
+    "title": "Task Details",
+    "id": "Task ID",
+    "name": "Task Name",
+    "description": "Description",
+    "status": "Status",
+    "progress": "Progress",
+    "type": "Task Type",
+    "recipe": "Recipe",
+    "createdAt": "Created At",
+    "updatedAt": "Updated At",
+    "duration": "Duration",
+    "results": "Results"
+  },
+  "metrics": {
+    "title": "Task Metrics",
+    "totalFrames": "Total Frames",
+    "processedFrames": "Processed Frames",
+    "objectsDetected": "Objects Detected",
+    "averageConfidence": "Average Confidence",
+    "processingTime": "Processing Time"
+  },
+  "table": {
+    "title": "Tasks",
+    "name": "Name",
+    "status": "Status",
+    "progress": "Progress",
+    "type": "Type",
+    "recipe": "Recipe",
+    "createdAt": "Created At",
+    "search": "Search tasks..."
+  }
+}

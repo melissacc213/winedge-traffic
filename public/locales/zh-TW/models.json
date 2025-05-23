@@ -1,0 +1,100 @@
+{
+  "page": {
+    "title": "模型"
+  },
+  "uploader": {
+    "title": "上傳模型",
+    "dragFile": "將模型文件拖到此處或單擊瀏覽",
+    "dropFileHere": "支持的格式：.onnx、.pb 和其他機器學習模型文件",
+    "selectFile": "選擇文件",
+    "supportedFormats": "支持的格式：ONNX、Protocol Buffer",
+    "currentUploads": "當前上傳"
+  },
+  "list": {
+    "title": "可用模型",
+    "empty": "沒有可用的模型。請在上方上傳您的第一個模型。",
+    "columns": {
+      "name": "名稱",
+      "type": "類型",
+      "size": "大小",
+      "status": "狀態",
+      "date": "日期",
+      "actions": "操作"
+    },
+    "name": "名稱",
+    "size": "大小",
+    "uploadedAt": "上傳時間",
+    "status": "狀態",
+    "actions": "操作",
+    "refresh": "刷新",
+    "download": "下載",
+    "delete": "刪除"
+  },
+  "tabs": {
+    "list": "模型列表",
+    "upload": "上傳模型"
+  },
+  "actions": {
+    "upload": "上傳模型",
+    "create": "創建模型",
+    "delete": "刪除",
+    "edit": "編輯模型",
+    "view_details": "查看詳情",
+    "download": "下載"
+  },
+  "delete": {
+    "confirm": "您確定要刪除此模型嗎？"
+  },
+  "status": {
+    "active": "活躍",
+    "available": "可用",
+    "processing": "處理中",
+    "error": "錯誤",
+    "failed": "失敗",
+    "uploading": "上傳中",
+    "pending": "待處理",
+    "completed": "已完成",
+    "errorGeneric": "發生錯誤"
+  },
+  "validation": {
+    "fileSize": "文件大小必須小於 {{max}}",
+    "fileType": "不支持的文件類型。請上傳 ONNX 或 Protocol Buffer 模型文件。",
+    "genericError": "文件有錯誤。"
+  },
+  "errors": {
+    "loadFailed": "加載模型失敗",
+    "uploadFailed": "上傳失敗",
+    "deleteFailed": "刪除失敗"
+  },
+  "create": {
+    "title": "創建新模型",
+    "upload_model": "上傳模型文件",
+    "model_name": "模型名稱",
+    "model_name_placeholder": "輸入模型名稱",
+    "parameters": "模型參數",
+    "parameter_key": "參數鍵",
+    "parameter_name": "參數名稱",
+    "parameter_value": "參數值",
+    "actions": "操作",
+    "create_model": "創建模型",
+    "uploading": "上傳中...",
+    "extracting_parameters": "正在從模型文件中提取參數..."
+  },
+  "notification": {
+    "upload_error": "上傳失敗",
+    "upload_success": "上傳成功",
+    "upload_success_message": "模型 {{name}} 已成功上傳",
+    "delete_error": "刪除失敗",
+    "delete_success": "模型已刪除",
+    "delete_success_message": "模型已成功刪除",
+    "download_error": "下載失敗",
+    "download_success": "下載已開始",
+    "download_started": "下載已開始",
+    "download_started_message": "正在下載模型 {{name}}",
+    "no_file_selected": "請選擇要上傳的模型文件",
+    "parameter_extracted": "參數已提取",
+    "parameter_extracted_message": "已成功從文件中提取模型參數",
+    "parameter_extraction_failed": "參數提取失敗",
+    "parameter_extraction_failed_message": "無法從模型文件中提取參數"
+  }
+}

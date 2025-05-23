@@ -1,0 +1,84 @@
+{
+  "label": {
+    "email": "電子郵件",
+    "password": "密碼",
+    "user_profile": "個人資料",
+    "demo_accounts": "示範帳號"
+  },
+  "button": {
+    "save": "儲存",
+    "cancel": "取消",
+    "delete": "刪除",
+    "edit": "編輯",
+    "add": "新增",
+    "confirm": "確認",
+    "search": "搜尋",
+    "reset": "重設",
+    "apply": "套用",
+    "back": "返回",
+    "use": "使用",
+    "change": "變更",
+    "play": "播放",
+    "pause": "暫停",
+    "capture": "捕獲",
+    "next": "下一步"
+  },
+  "action": {
+    "search": "搜尋...",
+    "filter": "篩選",
+    "sort": "排序",
+    "download": "下載",
+    "upload": "上傳",
+    "delete": "刪除",
+    "cancel": "取消",
+    "view": "查看"
+  },
+  "pagination": {
+    "showing": "顯示",
+    "of": "共",
+    "per_page": "每頁",
+    "next": "下一頁",
+    "previous": "上一頁",
+    "first": "第一頁",
+    "last": "最後一頁"
+  },
+  "status": {
+    "loading": "載入中",
+    "success": "成功",
+    "error": "錯誤",
+    "warning": "警告",
+    "completed": "已完成",
+    "running": "執行中",
+    "queued": "等待中",
+    "failed": "失敗",
+    "cancelled": "已取消"
+  },
+  "taskStatus": "任務狀態",
+  "taskDashboard": "任務儀表板",
+  "taskDashboardDescription": "監控和管理您的任務",
+  "createTask": "創建任務",
+  "view": {
+    "list": "列表視圖",
+    "metrics": "指標視圖"
+  },
+  "confirm": {
+    "deleteTask": "您確定要刪除此任務嗎？",
+    "cancelTask": "您確定要取消此任務嗎？"
+  },
+  "tasks": "任務",
+  "noTasks": "沒有可用的任務",
+  "noTasksDescription": "創建您的第一個任務開始使用",
+  "table": {
+    "name": "名稱",
+    "status": "狀態",
+    "progress": "進度",
+    "type": "類型",
+    "recipe": "配方",
+    "created": "創建時間"
+  },
+  "taskType": {
+    "trafficStatistics": "交通量統計",
+    "trainDetection": "列車偵測"
+  },
+  "videos": "影片"
+}
