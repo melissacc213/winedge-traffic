@@ -96,5 +96,58 @@
     "parameter_extracted_message": "已成功從文件中提取模型參數",
     "parameter_extraction_failed": "參數提取失敗",
     "parameter_extraction_failed_message": "無法從模型文件中提取參數"
+  },
+  "details": {
+    "overview": "概覽",
+    "description": "描述",
+    "no_description": "無可用描述",
+    "file_size": "文件大小",
+    "created_date": "創建日期",
+    "uploaded_date": "上傳日期",
+    "configuration": "配置",
+    "task_type": "任務類型",
+    "labels": "標籤",
+    "technical_info": "技術信息",
+    "model_type": "模型類型",
+    "storage_size": "存儲大小",
+    "file_format": "文件格式",
+    "version": "版本",
+    "activity": "活動時間線",
+    "model_created": "模型已創建",
+    "model_validated": "模型已驗證",
+    "ready_for_use": "可供使用",
+    "error": {
+      "title": "加載模型錯誤",
+      "not_found": "未找到模型"
+    },
+    "delete": {
+      "title": "刪除模型",
+      "message": "您確定要刪除 {{name}} 嗎？此操作無法撤銷。",
+      "success": "模型已刪除",
+      "success_message": "模型已成功刪除",
+      "error": "刪除失敗"
+    }
+  },
+  "edit": {
+    "title": "編輯模型配置",
+    "unsaved_changes": {
+      "title": "未保存的更改",
+      "message": "您有未保存的更改。是否要丟棄它們？",
+      "alert": "未保存的更改",
+      "alert_message": "如果您離開此頁面而不保存，您的更改將丟失"
+    },
+    "save": {
+      "success": "配置已保存",
+      "success_message": "模型配置已成功更新",
+      "error": "保存失敗"
+    },
+    "export": {
+      "success": "配置已導出",
+      "success_message": "模型配置已成功導出"
+    },
+    "error": {
+      "title": "加載模型錯誤",
+      "not_found": "未找到模型"
+    }
   }
 }

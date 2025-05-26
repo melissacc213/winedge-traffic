@@ -95,6 +95,24 @@ const router = createBrowserRouter([
         element: <ModelsPage />
       },
       {
+        path: 'models/:modelId',
+        async lazy() {
+          const { ModelDetailsPage } = await import('../pages/models-page/model-details-page');
+          return {
+            Component: ModelDetailsPage,
+          };
+        },
+      },
+      {
+        path: 'models/:modelId/edit',
+        async lazy() {
+          const { ModelEditPage } = await import('../pages/models-page/model-edit-page');
+          return {
+            Component: ModelEditPage,
+          };
+        },
+      },
+      {
         path: 'profile',
         element: <div className="p-4">Profile Page</div>
       }

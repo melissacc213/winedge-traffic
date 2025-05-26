@@ -1,56 +1,85 @@
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   Stack, 
   Text, 
   Group, 
   Paper,
-  Select,
   Card,
   Badge,
   Slider,
-  Checkbox,
   Collapse,
   Button,
   SimpleGrid,
-  ThemeIcon
+  ThemeIcon,
+  ScrollArea,
+  TextInput,
+  ActionIcon,
+  Divider,
+  Alert,
+  Loader,
+  Center
 } from '@mantine/core';
 import { 
   IconBrain, 
   IconChevronDown,
   IconChevronUp,
-  IconStar
+  IconSearch,
+  IconCheck,
+  IconAlertCircle
 } from '@tabler/icons-react';
 import { useRecipeStore } from '../../../lib/store/recipe-store';
-import { useRecommendedModels } from '../../../lib/queries/recipe';
-import { MOCK_CLASS_CATEGORIES } from '../../../lib/queries/recipe';
+import { useModels } from '../../../lib/queries/model';
+import { LabelEditor } from '../../model-config-editor/label-editor';
+import type { ModelLabel } from '../../../types/model';
+
+// Mock data for model labels - in a real app this would come from the selected model's config
+const MOCK_LABELS: ModelLabel[] = [
+  { id: '1', name: 'Person', color: '#FF6B6B', confidence: 0.7, enabled: true },
+  { id: '2', name: 'Vehicle', color: '#4ECDC4', confidence: 0.75, enabled: true },
+  { id: '3', name: 'Truck', color: '#45B7D1', confidence: 0.8, enabled: true },
+  { id: '4', name: 'Motorcycle', color: '#FFA07A', confidence: 0.65, enabled: false },
+  { id: '5', name: 'Bicycle', color: '#98D8C8', confidence: 0.6, enabled: true },
+];
 
 export function ModelConfigStep() {
   const { t } = useTranslation(['recipes']);
-  const { formValues, setModel, setConfidenceThreshold, setClassFilter } = useRecipeStore();
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [selectedClasses, setSelectedClasses] = useState<string[]>(formValues.classFilter || []);
+  const { formValues, setModel, setModelConfig } = useRecipeStore();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [labels, setLabels] = useState<ModelLabel[]>(formValues.modelConfig?.labels || MOCK_LABELS);
+  const [globalConfidence, setGlobalConfidence] = useState(formValues.modelConfig?.confidence || 0.7);
   
-  // Get recommended models based on task type
-  const { data: recommendedModels = [] } = useRecommendedModels(formValues.taskType);
+  // Get available models
+  const { data: models = [], isLoading } = useModels();
   
-  // Update store when selected classes change
+  // Filter models based on search
+  const filteredModels = useMemo(() => {
+    return models.filter(model => 
+      model.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [models, searchQuery]);
+  
+  // Update store when configuration changes
   useEffect(() => {
-    setClassFilter(selectedClasses);
-  }, [selectedClasses, setClassFilter]);
+    if (formValues.modelId) {
+      setModelConfig({
+        modelId: formValues.modelId,
+        confidence: globalConfidence,
+        labels: labels
+      });
+    }
+  }, [formValues.modelId, globalConfidence, labels, setModelConfig]);
   
-  const handleClassToggle = (classId: string) => {
-    setSelectedClasses((prev) => {
-      if (prev.includes(classId)) {
-        return prev.filter(id => id !== classId);
-      } else {
-        return [...prev, classId];
-      }
-    });
+  const handleLabelUpdate = (labelId: string, updates: Partial<ModelLabel>) => {
+    setLabels(prev => prev.map(label => 
+      label.id === labelId ? { ...label, ...updates } : label
+    ));
   };
   
-  const handleSliderChange = (value: number) => {
-    setConfidenceThreshold(value);
+  const handleGlobalConfidenceChange = (value: number) => {
+    setGlobalConfidence(value);
+    // Optionally update all labels with the global confidence
+    setLabels(prev => prev.map(label => ({ ...label, confidence: value })));
   };
   
   return (
@@ -61,106 +90,160 @@ export function ModelConfigStep() {
       </Stack>
       
       {/* Model Selection */}
-      <Paper withBorder p="lg" radius="md" className="mt-4">
-        <Text fw={500} mb="md">{t('recipes:creation.modelConfig.selectModel')}</Text>
-        
-        {recommendedModels.length === 0 ? (
-          <Text c="dimmed" size="sm">{t('recipes:creation.modelConfig.noModels')}</Text>
-        ) : (
-          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-            {recommendedModels.map((model) => (
-              <Card
-                key={model.id}
-                withBorder
-                p="md"
-                radius="md"
-                className={`cursor-pointer transition-all ${
-                  formValues.modelId === model.id 
-                    ? 'border-2 border-blue-500' 
-                    : 'hover:border-blue-300'
-                }`}
-                onClick={() => setModel(model.id)}
-              >
-                <Group align="center">
-                  <ThemeIcon size="lg" radius="md" variant="light" color="indigo">
-                    <IconBrain size={20} />
-                  </ThemeIcon>
-                  
-                  <div style={{ flex: 1 }}>
-                    <Group justify="space-between">
-                      <Text fw={500}>{model.name}</Text>
-                      {model.recommended && (
-                        <Badge color="yellow" leftSection={<IconStar size={12} />}>
-                          Recommended
-                        </Badge>
-                      )}
+      <Paper withBorder p="lg" radius="md">
+        <Stack>
+          <Group justify="space-between" align="center">
+            <Text fw={600} size="lg">Select AI Model</Text>
+            {formValues.modelId && (
+              <Badge color="green" leftSection={<IconCheck size={14} />}>
+                Model Selected
+              </Badge>
+            )}
+          </Group>
+          
+          <TextInput
+            placeholder="Search models..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.currentTarget.value)}
+            leftSection={<IconSearch size={16} />}
+            rightSection={
+              searchQuery && (
+                <ActionIcon size="sm" variant="subtle" onClick={() => setSearchQuery('')}>
+                  <IconAlertCircle size={16} />
+                </ActionIcon>
+              )
+            }
+          />
+          
+          {isLoading ? (
+            <Center py="xl">
+              <Loader size="sm" />
+            </Center>
+          ) : filteredModels.length === 0 ? (
+            <Alert variant="light" color="blue" icon={<IconAlertCircle size={16} />}>
+              No models found. Please upload a model first.
+            </Alert>
+          ) : (
+            <ScrollArea h={300} offsetScrollbars>
+              <Stack gap="sm">
+                {filteredModels.map((model) => (
+                  <Card
+                    key={model.id}
+                    withBorder
+                    p="md"
+                    radius="md"
+                    className={`cursor-pointer transition-all ${
+                      formValues.modelId === model.id 
+                        ? 'ring-2 ring-blue-500 border-blue-500' 
+                        : 'hover:shadow-md'
+                    }`}
+                    onClick={() => setModel(model.id)}
+                  >
+                    <Group>
+                      <ThemeIcon 
+                        size="lg" 
+                        radius="md" 
+                        variant={formValues.modelId === model.id ? 'filled' : 'light'}
+                        color="indigo"
+                      >
+                        <IconBrain size={20} />
+                      </ThemeIcon>
+                      
+                      <div style={{ flex: 1 }}>
+                        <Group justify="space-between" align="start">
+                          <div>
+                            <Text fw={500}>{model.name}</Text>
+                            <Text size="xs" c="dimmed">
+                              Type: {model.type} • Size: {(model.size / (1024 * 1024)).toFixed(1)} MB
+                            </Text>
+                          </div>
+                          <Badge 
+                            color={model.status === 'ready' ? 'green' : 'yellow'}
+                            variant="dot"
+                          >
+                            {model.status}
+                          </Badge>
+                        </Group>
+                      </div>
                     </Group>
-                    <Text size="xs" c="dimmed">Type: {model.type}</Text>
-                  </div>
-                </Group>
-              </Card>
-            ))}
-          </SimpleGrid>
-        )}
+                  </Card>
+                ))}
+              </Stack>
+            </ScrollArea>
+          )}
+        </Stack>
       </Paper>
       
-      {/* Confidence Threshold */}
-      <Paper withBorder p="lg" radius="md" className="mt-4">
-        <Text fw={500} mb="md">{t('recipes:creation.modelConfig.confidence')}</Text>
-        
-        <Slider
-          defaultValue={formValues.confidenceThreshold || 0.5}
-          value={formValues.confidenceThreshold || 0.5}
-          onChange={handleSliderChange}
-          step={0.05}
-          min={0.1}
-          max={1}
-          label={(value) => `${value * 100}%`}
-          marks={[
-            { value: 0.1, label: '10%' },
-            { value: 0.5, label: '50%' },
-            { value: 0.9, label: '90%' },
-          ]}
-        />
-      </Paper>
-      
-      {/* Class Filter */}
-      <Paper withBorder p="lg" radius="md" className="mt-4">
-        <Text fw={500} mb="md">{t('recipes:creation.modelConfig.classFilter')}</Text>
-        
-        <SimpleGrid cols={{ base: 2, md: 3 }} spacing="sm">
-          {MOCK_CLASS_CATEGORIES.map((category) => (
-            <Checkbox
-              key={category.id}
-              label={category.label}
-              checked={selectedClasses.includes(category.id)}
-              onChange={() => handleClassToggle(category.id)}
-            />
-          ))}
-        </SimpleGrid>
-      </Paper>
-      
-      {/* Advanced Settings */}
-      <Stack className="mt-4">
-        <Button
-          variant="subtle"
-          rightSection={showAdvanced ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
-          onClick={() => setShowAdvanced(!showAdvanced)}
-        >
-          {t('recipes:creation.modelConfig.advanced')}
-        </Button>
-        
-        <Collapse in={showAdvanced}>
-          <Paper withBorder p="lg" radius="md">
-            <Stack>
-              <Text fw={500} mb="xs">Advanced settings will go here</Text>
+      {/* Label Configuration - Only show if model is selected */}
+      {formValues.modelId && (
+        <Paper withBorder p="lg" radius="md">
+          <Stack>
+            <div>
+              <Text fw={600} size="lg" mb="xs">Label Configuration</Text>
               <Text size="sm" c="dimmed">
-                These could include model-specific parameters, processing options, etc.
+                Configure detection labels and their confidence thresholds
               </Text>
-            </Stack>
-          </Paper>
-        </Collapse>
-      </Stack>
+            </div>
+            
+            <Divider />
+            
+            {/* Global Confidence Threshold */}
+            <div>
+              <Group justify="space-between" mb="xs">
+                <Text fw={500}>Global Confidence Threshold</Text>
+                <Badge variant="light">{Math.round(globalConfidence * 100)}%</Badge>
+              </Group>
+              <Slider
+                value={globalConfidence}
+                onChange={handleGlobalConfidenceChange}
+                step={0.05}
+                min={0.1}
+                max={1}
+                label={(value) => `${Math.round(value * 100)}%`}
+                marks={[
+                  { value: 0.25, label: '25%' },
+                  { value: 0.5, label: '50%' },
+                  { value: 0.75, label: '75%' },
+                ]}
+                mb="md"
+              />
+              <Text size="xs" c="dimmed">
+                Set a global threshold that will be applied to all labels. You can customize individual labels below.
+              </Text>
+            </div>
+            
+            <Divider />
+            
+            {/* Individual Label Configuration */}
+            <div>
+              <Group justify="space-between" mb="md">
+                <Text fw={500}>Detection Labels</Text>
+                <Text size="sm" c="dimmed">
+                  {labels.filter(l => l.enabled).length} of {labels.length} enabled
+                </Text>
+              </Group>
+              
+              <Stack gap="xs">
+                {labels.map((label) => (
+                  <LabelEditor
+                    key={label.id}
+                    label={label}
+                    onUpdate={(updates) => handleLabelUpdate(label.id, updates)}
+                    onDelete={() => {}}
+                  />
+                ))}
+              </Stack>
+            </div>
+          </Stack>
+        </Paper>
+      )}
+      
+      {/* Info Alert */}
+      {!formValues.modelId && (
+        <Alert variant="light" color="blue" icon={<IconAlertCircle size={16} />}>
+          Please select a model to configure its detection labels.
+        </Alert>
+      )}
     </Stack>
   );
 }

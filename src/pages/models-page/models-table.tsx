@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import {
   createColumnHelper,
   flexRender,
@@ -41,6 +42,7 @@ export function ModelsTable({
   onDownload,
 }: ModelTableProps) {
   const { t } = useTranslation(["models", "common"]);
+  const navigate = useNavigate();
   const [sorting, setSorting] = useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -155,6 +157,7 @@ export function ModelsTable({
                     info.row.original.status !== "active" &&
                     info.row.original.status !== "available"
                   }
+                  onClick={() => navigate(`/models/${info.getValue()}`)}
                 >
                   {t("models:actions.view_details")}
                 </Menu.Item>
@@ -164,6 +167,7 @@ export function ModelsTable({
                     info.row.original.status !== "active" &&
                     info.row.original.status !== "available"
                   }
+                  onClick={() => navigate(`/models/${info.getValue()}/edit`)}
                 >
                   {t("models:actions.edit")}
                 </Menu.Item>

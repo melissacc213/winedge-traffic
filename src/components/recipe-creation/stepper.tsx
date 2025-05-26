@@ -31,15 +31,15 @@ export function RecipeStepper() {
   });
 
   useEffect(() => {
-    // setStepsValid((prev) => ({
-    //   ...prev,
-    //   0: !!(
-    //     formValues.taskType &&
-    //     (formValues.videoId || formValues.videoFile)
-    //   ),
-    //   1: formValues.regions?.length > 0,
-    //   2: !!formValues.modelId,
-    // }));
+    setStepsValid((prev) => ({
+      ...prev,
+      0: !!(
+        formValues.taskType &&
+        (formValues.videoId || formValues.videoFile)
+      ),
+      1: formValues.regions?.length > 0,
+      2: !!formValues.modelId,
+    }));
   }, [formValues]);
 
   const handleNext = () => {

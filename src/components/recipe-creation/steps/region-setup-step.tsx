@@ -8,30 +8,32 @@ import {
   Paper,
   TextInput,
   ActionIcon,
-  Table,
   ScrollArea,
   Box,
   Card,
   Title,
-  Switch,
   SimpleGrid,
   UnstyledButton,
   Center,
   Select,
   Modal,
-  Alert,
   Tabs,
   useMantineTheme,
+  Badge,
+  Flex,
+  Collapse,
+  Tooltip,
 } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { useTheme } from "../../../providers/theme-provider";
 import {
   IconPlus,
   IconTrash,
   IconEdit,
-  IconAlertTriangle,
-  IconCheck,
-  IconX,
   IconArrowRight,
+  IconPolygon,
+  IconChevronDown,
+  IconInfoCircle,
 } from "@tabler/icons-react";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -41,8 +43,6 @@ import {
   Circle,
   Rect,
   Image as KonvaImage,
-  Text as KonvaText,
-  Transformer,
 } from "react-konva";
 import { useRecipeStore } from "../../../lib/store/recipe-store";
 import type {
@@ -54,9 +54,6 @@ import type {
 } from "../../../types/recipe";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage as KonvaStage } from "konva/lib/Stage";
-import type { Line as KonvaLine } from "konva/lib/shapes/Line";
-import type { Circle as KonvaCircle } from "konva/lib/shapes/Circle";
-import type { Transformer as KonvaTransformer } from "konva/lib/shapes/Transformer";
 import useImage from "use-image";
 import { RoadTypeIcon } from "../../road-config/road-type-icon";
 
@@ -67,16 +64,24 @@ interface RoadTypeOption {
 
 export function RegionSetupStep() {
   const { t } = useTranslation(["recipes", "common"]);
-  const { formValues, addRegion, updateRegion, deleteRegion } =
-    useRecipeStore();
+  const {
+    formValues,
+    addRegion,
+    updateRegion,
+    deleteRegion,
+    updateConnections,
+  } = useRecipeStore();
   const mantineTheme = useMantineTheme();
   const { theme, colorScheme } = useTheme();
-  
-  // Primary color from theme
-  const PRIMARY_COLOR = mantineTheme.colors[mantineTheme.primaryColor][5];
 
-  const [videoSize, setVideoSize] = useState({ width: 640, height: 450 });
-  const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
+  // Use the same dimensions as task-type-with-video-step
+  const STAGE_WIDTH = 600;
+  const STAGE_HEIGHT = 400;
+
+  const [videoSize] = useState({ width: STAGE_WIDTH, height: STAGE_HEIGHT });
+
+  // State management
+  const [, setSelectedRegion] = useState<Region | null>(null);
   const [regionName, setRegionName] = useState("");
   const [roadType, setRoadType] = useState<RoadType>("straight");
   const [editingRegion, setEditingRegion] = useState<string | null>(null);
@@ -92,6 +97,11 @@ export function RegionSetupStep() {
     null
   );
 
+  // UI state
+  const [roadTypeSelectorOpened, { toggle: toggleRoadTypeSelector }] =
+    useDisclosure(false);
+  const [activeTab, setActiveTab] = useState<string>("regions");
+
   // Mouse position for hover label
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [showHoverLabel, setShowHoverLabel] = useState(false);
@@ -100,20 +110,16 @@ export function RegionSetupStep() {
   // Edit mode states
   const [isEditMode, setIsEditMode] = useState(false);
   const [editablePoints, setEditablePoints] = useState<RegionPoint[]>([]);
-  const [selectedPointIndex, setSelectedPointIndex] = useState<number | null>(
-    null
-  );
+  const [, setSelectedPointIndex] = useState<number | null>(null);
 
   // Region dragging states
   const [isDraggingRegion, setIsDraggingRegion] = useState(false);
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
   const [originalPoints, setOriginalPoints] = useState<RegionPoint[]>([]);
 
-  // Road type change confirmation
+  // Modal states
   const [showRoadTypeModal, setShowRoadTypeModal] = useState(false);
   const [pendingRoadType, setPendingRoadType] = useState<RoadType | null>(null);
-
-  // Region deletion confirmation
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [regionToDelete, setRegionToDelete] = useState<{
     id: string;
@@ -122,49 +128,50 @@ export function RegionSetupStep() {
   } | null>(null);
 
   const stageRef = useRef<KonvaStage>(null);
-  const transformerRef = useRef<KonvaTransformer>(null);
 
-  // Use theme colors instead of hardcoded values
-  // These functions help us get colors from the theme
+  // Constants for consistent sizing
+  const POINT_RADIUS = 5;
+  const POINT_HOVER_RADIUS = 7;
+  const STROKE_WIDTH = 2;
+  const STROKE_WIDTH_HOVER = 3;
+
+  // Canvas size is fixed, no need to update on viewport changes
+
+  // Initialize connections from formValues on mount
+  useEffect(() => {
+    if (formValues.connections) {
+      setConnections(formValues.connections);
+    }
+  }, []); // Only run once on mount
   const getThemeColor = (colorPath: string): string => {
-    // Parse the color path (e.g., "blue.5" -> theme.colors.blue[5])
-    const [colorName, index] = colorPath.split('.');
-    
-    // Special handling for theme's other properties
-    if (colorName === 'ui') {
+    const [colorName, index] = colorPath.split(".");
+    if (colorName === "ui") {
       return theme.other?.ui?.[index] || colorPath;
     }
-    
-    if (colorName === 'backgrounds') {
+    if (colorName === "backgrounds") {
       return theme.other?.backgrounds?.[index] || colorPath;
     }
-    
-    if (colorName === 'regionColors') {
+    if (colorName === "regionColors") {
       const path = theme.other?.regionColors?.[index];
       if (path) {
-        // If we have a nested path like "blue.5", recursively resolve it
         return getThemeColor(path);
       }
       return colorPath;
     }
-    
-    // Standard color from theme colors
     return theme.colors?.[colorName]?.[Number(index)] || colorPath;
   };
-  
-  // Use the extended color palette from theme for region variety
+
+  // Region colors
   const REGION_COLORS = theme.other?.regionPalette || [
-    "red.5",    // Primary red
-    "green.5",  // Primary green
-    "yellow.7", // Dark yellow
-    "indigo.5", // Primary indigo
+    "red.5",
+    "green.5",
+    "yellow.7",
+    "indigo.5",
   ];
 
   const getRegionColor = (regionId: string) => {
-    // Use region ID to consistently assign the same color
     const regionIndex = regions.findIndex((r) => r.id === regionId);
     if (regionIndex === -1) {
-      // For new regions being created, use the next available color
       const colorPath = REGION_COLORS[regions.length % REGION_COLORS.length];
       return getThemeColor(colorPath);
     }
@@ -184,10 +191,7 @@ export function RegionSetupStep() {
 
   // Road type options
   const roadTypeOptions: RoadTypeOption[] = [
-    {
-      value: "straight",
-      label: t("recipes:roadType.straight", "Straight"),
-    },
+    { value: "straight", label: t("recipes:roadType.straight", "Straight") },
     {
       value: "tJunction",
       label: t("recipes:roadType.tJunction", "T-Junction"),
@@ -198,44 +202,7 @@ export function RegionSetupStep() {
     },
   ];
 
-  // Helper function to move all points of a region
-  const moveRegionPoints = (
-    points: RegionPoint[],
-    deltaX: number,
-    deltaY: number
-  ): RegionPoint[] => {
-    return points.map((point) => ({
-      x: point.x + deltaX,
-      y: point.y + deltaY,
-    }));
-  };
-
-  // Reset drawing when selected region changes
-  useEffect(() => {
-    setIsDrawing(false);
-    setCurrentPoints([]);
-    setSelectedPointIndex(null);
-  }, [selectedRegion]);
-
-  // Force re-render when theme changes
-  useEffect(() => {
-    // Force a redraw of the canvas when theme changes
-    const stage = stageRef.current;
-    if (stage) {
-      stage.draw();
-      
-      // Also update background and border colors of stage container
-      const container = stage.container();
-      if (container) {
-        container.style.backgroundColor = colorScheme === 'dark' ? getThemeColor("gray.9") : getThemeColor("gray.0");
-        container.style.borderColor = colorScheme === 'dark' ? getThemeColor("gray.7") : getThemeColor("gray.2");
-      }
-    }
-    
-    // Trigger state update to force re-render of all components
-    setVideoSize({...videoSize});
-  }, [colorScheme]);
-
+  // Event handlers
   const handleRoadTypeChange = (newRoadType: RoadType) => {
     if (regions.length > 0 || connections.length > 0) {
       setPendingRoadType(newRoadType);
@@ -250,6 +217,7 @@ export function RegionSetupStep() {
       setRoadType(pendingRoadType);
       regions.forEach((region) => deleteRegion(region.id));
       setConnections([]);
+      updateConnections([]);
       setIsDrawing(false);
       setCurrentPoints([]);
       setEditingRegion(null);
@@ -262,12 +230,7 @@ export function RegionSetupStep() {
     setPendingRoadType(null);
   };
 
-  const cancelRoadTypeChange = () => {
-    setShowRoadTypeModal(false);
-    setPendingRoadType(null);
-  };
-
-  const handleStageMouseMove = (e: KonvaEventObject<MouseEvent>) => {
+  const handleStageMouseMove = () => {
     const stage = stageRef.current;
     if (!stage) return;
 
@@ -275,15 +238,15 @@ export function RegionSetupStep() {
     if (pointer) {
       setMousePos({ x: pointer.x, y: pointer.y });
     }
+
+    if (isDraggingRegion) {
+      handleStageMouseMoveForDrag(e);
+    }
   };
 
   const handleStageClick = (e: KonvaEventObject<MouseEvent>) => {
-    // If we're dragging, don't add points
     if (isDraggingRegion) return;
-
-    // If we're in edit mode, don't add new points
     if (isEditMode) return;
-
     if (!isDrawing) return;
 
     const stage = stageRef.current;
@@ -334,22 +297,16 @@ export function RegionSetupStep() {
   };
 
   const handleEditRegion = (region: Region) => {
-    console.log("Starting edit for region:", region.name);
-
-    // Clear conflicting states first
     setIsDrawing(false);
     setCurrentPoints([]);
     setSelectedPointIndex(null);
     setIsDraggingRegion(false);
 
-    // Set edit states immediately
     setIsEditMode(true);
     setEditingRegion(region.id);
     setSelectedRegion(region);
     setRegionName(region.name);
     setEditablePoints([...region.points]);
-
-    console.log("Edit mode should be active now");
   };
 
   const handleSaveEdit = () => {
@@ -387,13 +344,11 @@ export function RegionSetupStep() {
   };
 
   const handleDeleteRegion = (regionId: string) => {
-    // Check if region has connections
     const regionConnections = connections.filter(
       (conn) => conn.sourceId === regionId || conn.destinationId === regionId
     );
 
     if (regionConnections.length > 0) {
-      // Show confirmation modal for regions with connections
       const regionName =
         regions.find((r) => r.id === regionId)?.name || "Unknown Region";
       setRegionToDelete({
@@ -403,37 +358,16 @@ export function RegionSetupStep() {
       });
       setShowDeleteModal(true);
     } else {
-      // Safe to delete immediately
       performRegionDeletion(regionId);
     }
   };
 
   const performRegionDeletion = (regionId: string) => {
     deleteRegion(regionId);
-
-    // Remove any connections involving this region
-    setConnections((prev) =>
-      prev.filter(
-        (conn) => conn.sourceId !== regionId && conn.destinationId !== regionId
-      )
-    );
-
+    // Connections are now handled in the store when deleting a region
     if (editingRegion === regionId) {
       handleCancelEdit();
     }
-  };
-
-  const confirmDeleteRegion = () => {
-    if (regionToDelete) {
-      performRegionDeletion(regionToDelete.id);
-      setShowDeleteModal(false);
-      setRegionToDelete(null);
-    }
-  };
-
-  const cancelDeleteRegion = () => {
-    setShowDeleteModal(false);
-    setRegionToDelete(null);
   };
 
   const handlePointDrag = (
@@ -445,8 +379,7 @@ export function RegionSetupStep() {
     setEditablePoints(newPoints);
   };
 
-  // Region drag handlers - completely rewritten
-  const handleRegionMouseDown = (e: KonvaEventObject<MouseEvent>) => {
+  const handleRegionMouseDown = () => {
     const stage = stageRef.current;
     if (!stage) return;
 
@@ -457,15 +390,10 @@ export function RegionSetupStep() {
     setDragStartPos({ x: pointer.x, y: pointer.y });
     setOriginalPoints([...editablePoints]);
 
-    // Change cursor immediately
     stage.container().style.cursor = "grabbing";
   };
 
-  const handleStageMouseMoveForDrag = (e: KonvaEventObject<MouseEvent>) => {
-    // Handle normal mouse move for hover labels
-    handleStageMouseMove(e);
-
-    // Handle region dragging
+  const handleStageMouseMoveForDrag = () => {
     if (!isDraggingRegion) return;
 
     const stage = stageRef.current;
@@ -491,7 +419,6 @@ export function RegionSetupStep() {
       setDragStartPos({ x: 0, y: 0 });
       setOriginalPoints([]);
 
-      // Reset cursor
       const stage = stageRef.current;
       if (stage) {
         stage.container().style.cursor = "default";
@@ -524,14 +451,16 @@ export function RegionSetupStep() {
       );
 
       if (!alreadyExists) {
-        setConnections([
+        const newConnections = [
           ...connections,
           {
             id: uuidv4(),
             sourceId: sourceRegionId,
             destinationId: destinationRegionId,
           },
-        ]);
+        ];
+        setConnections(newConnections);
+        updateConnections(newConnections);
       }
 
       setSourceRegionId(null);
@@ -540,773 +469,919 @@ export function RegionSetupStep() {
   };
 
   return (
-    <Paper 
-      withBorder 
-      p="md" 
-      radius="md" 
+    <Box
       style={{
-        backgroundColor: colorScheme === 'dark' ? getThemeColor("gray.9") : "white"
+        backgroundColor:
+          colorScheme === "dark"
+            ? getThemeColor("gray.9")
+            : getThemeColor("gray.0"),
+        minHeight: "100vh",
+        padding: "0.5rem",
       }}
     >
-      <Stack gap="md">
-        <Group justify="space-between">
-          <Title order={3}>{t("recipes:creation.regionSetup.title")}</Title>
-        </Group>
+      {/* Compact Header */}
+      <Box px="md" pb="sm">
+        <Group justify="space-between" align="center">
+          <Group gap="sm">
+            <IconPolygon
+              size={20}
+              color={getThemeColor(`${mantineTheme.primaryColor}.6`)}
+            />
+            <Title order={4}>{t("recipes:creation.regionSetup.title")}</Title>
+            <Badge
+              size="sm"
+              variant={colorScheme === "dark" ? "filled" : "light"}
+            >
+              {regions.length} regions • {connections.length} connections
+            </Badge>
+          </Group>
 
-        <Text c={colorScheme === 'dark' ? "gray.4" : "dimmed"} size="sm">
-          {t("recipes:creation.regionSetup.description")}
-        </Text>
-
-        {/* Road Type Selector */}
-        <Card
-          withBorder
-          p="md"
-          radius="md"
-          style={{
-            backgroundColor: colorScheme === 'dark' ? getThemeColor("gray.9") : getThemeColor("backgrounds.cardLight"),
-            borderColor: colorScheme === 'dark' ? getThemeColor("gray.7") : undefined
-          }}
-        >
-          <Stack gap="sm">
-            <Group justify="space-between" align="center">
-              <Text size="sm" fw={600} c={colorScheme === 'dark' ? getThemeColor(`${mantineTheme.primaryColor}.3`) : mantineTheme.primaryColor}>
-                {t(
-                  "recipes:creation.regionSetup.selectRoadType",
-                  "Select Road Type"
-                )}
-              </Text>
-              <Text size="xs" c={colorScheme === 'dark' ? "gray.4" : "dimmed"}>
-                All regions will use this road type
+          {/* Road Type Selector Button */}
+          <Button
+            variant="subtle"
+            size="sm"
+            rightSection={
+              <IconChevronDown
+                size={16}
+                style={{
+                  transform: roadTypeSelectorOpened ? "rotate(180deg)" : "none",
+                  transition: "transform 0.2s",
+                }}
+              />
+            }
+            onClick={toggleRoadTypeSelector}
+          >
+            <Group gap="xs">
+              <RoadTypeIcon type={roadType} size={20} />
+              <Text size="sm">
+                {roadTypeOptions.find((opt) => opt.value === roadType)?.label}
               </Text>
             </Group>
+          </Button>
+        </Group>
+      </Box>
 
-            <SimpleGrid cols={3} spacing="md">
+      {/* Collapsible Road Type Selector */}
+      <Collapse in={roadTypeSelectorOpened}>
+        <Box px="md" pb="md">
+          <Card
+            withBorder
+            p="sm"
+            radius="md"
+            style={{
+              backgroundColor:
+                colorScheme === "dark" ? getThemeColor("gray.8") : "white",
+            }}
+          >
+            <SimpleGrid cols={{ base: 3 }} spacing="sm">
               {roadTypeOptions.map((option) => (
                 <UnstyledButton
                   key={option.value}
-                  p="md"
+                  p="sm"
                   style={{
-                    border: `2px solid ${
-                      roadType === option.value 
-                        ? getThemeColor(`${mantineTheme.primaryColor}.5`) 
-                        : getThemeColor("ui.border")
-                    }`,
+                    border: `2px solid ${roadType === option.value ? getThemeColor(`${mantineTheme.primaryColor}.5`) : getThemeColor("ui.border")}`,
                     borderRadius: getThemeColor("ui.borderRadius"),
                     backgroundColor:
                       roadType === option.value
-                        ? colorScheme === 'dark' 
-                          ? `${getThemeColor(`${mantineTheme.primaryColor}.8`)}40` 
+                        ? colorScheme === "dark"
+                          ? `${getThemeColor(`${mantineTheme.primaryColor}.8`)}40`
                           : `${getThemeColor(`${mantineTheme.primaryColor}.5`)}15`
-                        : colorScheme === 'dark' ? getThemeColor("gray.8") : "white",
+                        : "transparent",
                     transition: "all 0.2s ease",
-                    transform:
-                      roadType === option.value ? "scale(1.02)" : "scale(1)",
-                    boxShadow:
-                      roadType === option.value
-                        ? `0 4px 12px ${getThemeColor(`${mantineTheme.primaryColor}.5`)}25`
-                        : `0 2px 4px ${getThemeColor("ui.shadow")}`,
                   }}
                   onClick={() => handleRoadTypeChange(option.value)}
                 >
                   <Center>
-                    <Stack gap="sm" align="center">
-                      <Box
-                        style={{
-                          color:
-                            roadType === option.value 
-                              ? getThemeColor(`${mantineTheme.primaryColor}.5`) 
-                              : getThemeColor("gray.5"),
-                          fontSize: "28px",
-                        }}
-                      >
-                        <RoadTypeIcon type={option.value} size={160} />
-                      </Box>
+                    <Stack gap="xs" align="center">
+                      <RoadTypeIcon type={option.value} size={60} />
+                      <Text size="xs" fw={500}>
+                        {option.label}
+                      </Text>
                     </Stack>
                   </Center>
                 </UnstyledButton>
               ))}
             </SimpleGrid>
-          </Stack>
-        </Card>
+          </Card>
+        </Box>
+      </Collapse>
 
-        <SimpleGrid cols={2} breakpoints={[{ maxWidth: 'md', cols: 1 }]} spacing="md">
-          {/* Video Canvas */}
-          <Box style={{ position: "relative" }}>
-            <Box>
-              <Stage
-                ref={stageRef}
-                width={videoSize.width}
-                height={videoSize.height}
-                onClick={handleStageClick}
-                onMouseMove={handleStageMouseMoveForDrag}
-                onMouseUp={handleStageMouseUp}
+      {/* Main Content - Side by side layout */}
+      <Flex
+        gap="md"
+        px="md"
+        style={{
+          height: `calc(100vh - ${roadTypeSelectorOpened ? "200px" : "80px"})`,
+        }}
+      >
+        {/* Left Panel - Canvas */}
+        <Box style={{ flex: 1, minWidth: 0 }}>
+          <Card
+            withBorder
+            p="sm"
+            radius="md"
+            style={{
+              backgroundColor:
+                colorScheme === "dark" ? getThemeColor("gray.8") : "white",
+              height: "100%",
+            }}
+          >
+            <Stack gap="sm" style={{ height: "100%" }}>
+              {/* Canvas Header */}
+              <Group justify="space-between" align="center">
+                <Text size="sm" fw={500}>
+                  Canvas
+                </Text>
+                <Group gap="xs">
+                  {!isDrawing && !isEditMode && (
+                    <Button
+                      leftSection={<IconPlus size={14} />}
+                      onClick={handleAddRegion}
+                      size="xs"
+                      variant="filled"
+                    >
+                      Add Region
+                    </Button>
+                  )}
+                  {isDrawing && !isEditMode && (
+                    <>
+                      <Button
+                        variant="subtle"
+                        color="red"
+                        onClick={handleCancelEdit}
+                        size="xs"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        disabled={currentPoints.length < 3}
+                        onClick={handleSaveRegion}
+                        size="xs"
+                      >
+                        Save
+                      </Button>
+                    </>
+                  )}
+                  {isEditMode && (
+                    <>
+                      <Button
+                        variant="subtle"
+                        color="red"
+                        onClick={handleCancelEdit}
+                        size="xs"
+                      >
+                        Cancel
+                      </Button>
+                      <Button onClick={handleSaveEdit} size="xs">
+                        Save Changes
+                      </Button>
+                    </>
+                  )}
+                </Group>
+              </Group>
+
+              {/* Canvas */}
+              <Box
                 style={{
-                  width: "100%",
-                  height: "100%",
-                  backgroundColor: colorScheme === 'dark' ? getThemeColor("gray.9") : getThemeColor("gray.0"),
+                  flex: 1,
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  backgroundColor:
+                    colorScheme === "dark"
+                      ? getThemeColor("gray.9")
+                      : getThemeColor("gray.1"),
                   borderRadius: getThemeColor("ui.borderRadius"),
-                  border: `2px solid ${colorScheme === 'dark' ? getThemeColor("gray.7") : getThemeColor("gray.2")}`,
+                  position: "relative",
+                  minHeight: "400px",
+                  overflow: "hidden",
                 }}
               >
-                <Layer>
-                  {frameImage ? (
-                    <KonvaImage
-                      image={frameImage}
-                      width={videoSize.width}
-                      height={videoSize.height}
-                      x={0}
-                      y={0}
-                    />
-                  ) : (
-                    <Rect
-                      width={videoSize.width}
-                      height={videoSize.height}
-                      fill={colorScheme === 'dark' ? getThemeColor("gray.9") : getThemeColor("gray.0")}
-                    />
-                  )}
-
-                  {/* Draw existing regions */}
-                  {regions.map((region, index) => {
-                    const isHighlighted = hoveredRegion === region.id;
-                    const regionColor = getRegionColor(region.id);
-                    const isBeingEdited =
-                      editingRegion === region.id && isEditMode;
-
-                    return (
-                      <React.Fragment key={region.id}>
-                        <Line
-                          points={region.points.flatMap((p) => [p.x, p.y])}
-                          closed={true}
-                          fill={regionColor + (isHighlighted ? "30" : "20")}
-                          stroke={regionColor}
-                          strokeWidth={isHighlighted ? 3 : 2}
-                          onMouseEnter={() => handleRegionHover(region, true)}
-                          onMouseLeave={() => handleRegionHover(region, false)}
-                          visible={!isBeingEdited}
-                        />
-                      </React.Fragment>
-                    );
-                  })}
-
-                  {/* Draw editable region in edit mode */}
-                  {isEditMode && editingRegion && (
-                    <>
-                      <Line
-                        points={editablePoints.flatMap((p) => [p.x, p.y])}
-                        closed={true}
-                        fill={getRegionColor(editingRegion) + "30"}
-                        stroke={getRegionColor(editingRegion)}
-                        strokeWidth={2}
-                        strokeDasharray={[5, 5]}
-                        onMouseDown={handleRegionMouseDown}
-                        onMouseEnter={(e) => {
-                          const stage = e.target.getStage();
-                          if (stage && !isDraggingRegion) {
-                            stage.container().style.cursor = "grab";
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          const stage = e.target.getStage();
-                          if (stage && !isDraggingRegion) {
-                            stage.container().style.cursor = "default";
-                          }
-                        }}
+                <Stage
+                  ref={stageRef}
+                  width={videoSize.width}
+                  height={videoSize.height}
+                  onClick={handleStageClick}
+                  onMouseMove={handleStageMouseMove}
+                  onMouseUp={handleStageMouseUp}
+                  style={{
+                    backgroundColor:
+                      colorScheme === "dark"
+                        ? getThemeColor("gray.9")
+                        : "white",
+                    borderRadius: getThemeColor("ui.borderRadius"),
+                  }}
+                >
+                  <Layer>
+                    {frameImage ? (
+                      <KonvaImage
+                        image={frameImage}
+                        width={videoSize.width}
+                        height={videoSize.height}
+                        x={0}
+                        y={0}
                       />
+                    ) : (
+                      <Rect
+                        width={videoSize.width}
+                        height={videoSize.height}
+                        fill={
+                          colorScheme === "dark"
+                            ? getThemeColor("gray.8")
+                            : "white"
+                        }
+                      />
+                    )}
 
-                      {/* Editable points */}
-                      {editablePoints.map((point, i) => (
-                        <Circle
-                          key={`edit-point-${i}`}
-                          x={point.x}
-                          y={point.y}
-                          radius={6}
-                          fill={colorScheme === 'dark' ? getThemeColor("gray.4") : "white"}
+                    {/* Draw connections first (below regions) */}
+                    {connections.map((conn) => {
+                      const sourceRegion = regions.find(
+                        (r) => r.id === conn.sourceId
+                      );
+                      const destRegion = regions.find(
+                        (r) => r.id === conn.destinationId
+                      );
+
+                      if (!sourceRegion || !destRegion) return null;
+
+                      // Calculate center points of regions
+                      const sourceCenter = {
+                        x:
+                          sourceRegion.points.reduce((sum, p) => sum + p.x, 0) /
+                          sourceRegion.points.length,
+                        y:
+                          sourceRegion.points.reduce((sum, p) => sum + p.y, 0) /
+                          sourceRegion.points.length,
+                      };
+                      const destCenter = {
+                        x:
+                          destRegion.points.reduce((sum, p) => sum + p.x, 0) /
+                          destRegion.points.length,
+                        y:
+                          destRegion.points.reduce((sum, p) => sum + p.y, 0) /
+                          destRegion.points.length,
+                      };
+
+                      // Calculate arrow angle
+                      const angle = Math.atan2(
+                        destCenter.y - sourceCenter.y,
+                        destCenter.x - sourceCenter.x
+                      );
+                      const arrowLength = 15;
+                      const arrowAngle = Math.PI / 6;
+
+                      const isHovered = hoveredConnection === conn.id;
+
+                      return (
+                        <React.Fragment key={conn.id}>
+                          {/* Connection line */}
+                          <Line
+                            points={[
+                              sourceCenter.x,
+                              sourceCenter.y,
+                              destCenter.x,
+                              destCenter.y,
+                            ]}
+                            stroke={
+                              isHovered
+                                ? getThemeColor("green.5")
+                                : getThemeColor("green.7")
+                            }
+                            strokeWidth={isHovered ? 3 : 2}
+                            opacity={0.6}
+                            dash={[10, 5]}
+                          />
+                          {/* Arrowhead */}
+                          <Line
+                            points={[
+                              destCenter.x -
+                                arrowLength * Math.cos(angle - arrowAngle),
+                              destCenter.y -
+                                arrowLength * Math.sin(angle - arrowAngle),
+                              destCenter.x,
+                              destCenter.y,
+                              destCenter.x -
+                                arrowLength * Math.cos(angle + arrowAngle),
+                              destCenter.y -
+                                arrowLength * Math.sin(angle + arrowAngle),
+                            ]}
+                            stroke={
+                              isHovered
+                                ? getThemeColor("green.5")
+                                : getThemeColor("green.7")
+                            }
+                            strokeWidth={isHovered ? 3 : 2}
+                            lineCap="round"
+                            lineJoin="round"
+                            opacity={0.6}
+                          />
+                        </React.Fragment>
+                      );
+                    })}
+
+                    {/* Draw existing regions */}
+                    {regions.map((region) => {
+                      const isHighlighted = hoveredRegion === region.id;
+                      const regionColor = getRegionColor(region.id);
+                      const isBeingEdited =
+                        editingRegion === region.id && isEditMode;
+
+                      return (
+                        <React.Fragment key={region.id}>
+                          <Line
+                            points={region.points.flatMap((p) => [p.x, p.y])}
+                            closed={true}
+                            fill={regionColor + (isHighlighted ? "30" : "20")}
+                            stroke={regionColor}
+                            strokeWidth={
+                              isHighlighted ? STROKE_WIDTH_HOVER : STROKE_WIDTH
+                            }
+                            onMouseEnter={() => handleRegionHover(region, true)}
+                            onMouseLeave={() =>
+                              handleRegionHover(region, false)
+                            }
+                            visible={!isBeingEdited}
+                          />
+                          {/* Draw points for saved regions - THIS WAS MISSING */}
+                          {!isBeingEdited &&
+                            region.points.map((point, i) => (
+                              <Circle
+                                key={`${region.id}-point-${i}`}
+                                x={point.x}
+                                y={point.y}
+                                radius={POINT_RADIUS}
+                                fill={
+                                  colorScheme === "dark"
+                                    ? getThemeColor("gray.4")
+                                    : "white"
+                                }
+                                stroke={regionColor}
+                                strokeWidth={2}
+                                visible={!isBeingEdited}
+                              />
+                            ))}
+                        </React.Fragment>
+                      );
+                    })}
+
+                    {/* Draw editable region in edit mode */}
+                    {isEditMode && editingRegion && (
+                      <>
+                        <Line
+                          points={editablePoints.flatMap((p) => [p.x, p.y])}
+                          closed={true}
+                          fill={getRegionColor(editingRegion) + "30"}
                           stroke={getRegionColor(editingRegion)}
-                          strokeWidth={2}
-                          draggable
-                          onDragMove={(e) => {
-                            handlePointDrag(i, {
-                              x: e.target.x(),
-                              y: e.target.y(),
-                            });
-                          }}
+                          strokeWidth={STROKE_WIDTH}
+                          strokeDasharray={[5, 5]}
+                          onMouseDown={handleRegionMouseDown}
                           onMouseEnter={(e) => {
                             const stage = e.target.getStage();
-                            if (stage) {
-                              stage.container().style.cursor = "crosshair";
+                            if (stage && !isDraggingRegion) {
+                              stage.container().style.cursor = "grab";
                             }
                           }}
                           onMouseLeave={(e) => {
                             const stage = e.target.getStage();
-                            if (stage) {
+                            if (stage && !isDraggingRegion) {
                               stage.container().style.cursor = "default";
                             }
                           }}
                         />
-                      ))}
-                    </>
-                  )}
-
-                  {/* Draw current region being created */}
-                  {currentPoints.length > 0 && !isEditMode && (
-                    <Line
-                      points={currentPoints.flatMap((p) => [p.x, p.y])}
-                      closed={currentPoints.length > 2}
-                      fill={getRegionColor("new-region") + "25"}
-                      stroke={getRegionColor("new-region")}
-                      strokeWidth={2}
-                      strokeDasharray={[8, 4]}
-                    />
-                  )}
-
-                  {/* Draw points for current region */}
-                  {currentPoints.map((point, i) => (
-                    <Circle
-                      key={i}
-                      x={point.x}
-                      y={point.y}
-                      radius={4}
-                      fill={colorScheme === 'dark' ? getThemeColor("gray.4") : "white"}
-                      stroke={getRegionColor("new-region")}
-                      strokeWidth={2}
-                    />
-                  ))}
-                </Layer>
-              </Stage>
-            </Box>
-
-            {/* Hover label */}
-            {showHoverLabel && (
-              <Box
-                style={{
-                  position: "absolute",
-                  left: mousePos.x + 10,
-                  top: mousePos.y - 10,
-                  backgroundColor: colorScheme === 'dark' ? getThemeColor("gray.9") + "cc" : getThemeColor("gray.7") + "cc", // cc = 80% opacity
-                  color: "white",
-                  padding: "4px 8px",
-                  borderRadius: getThemeColor("ui.borderRadius"),
-                  fontSize: "12px",
-                  fontWeight: 500,
-                  pointerEvents: "none",
-                  zIndex: 1000,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {hoverLabelText}
-              </Box>
-            )}
-
-            {isDrawing && !isEditMode && (
-              <Alert color={mantineTheme.primaryColor} mt="sm" radius="md" variant={colorScheme === 'dark' ? "filled" : "light"} styles={{ root: { opacity: colorScheme === 'dark' ? 0.8 : 1 } }}>
-                <Text size="sm">
-                  {t(
-                    "recipes:creation.regionSetup.drawInstructions",
-                    "Click on the canvas to add points. You need at least 3 points to create a region."
-                  )}
-                </Text>
-              </Alert>
-            )}
-
-            {isEditMode && (
-              <Alert color="yellow" mt="sm" radius="md" variant={colorScheme === 'dark' ? "filled" : "light"} styles={{ root: { opacity: colorScheme === 'dark' ? 0.8 : 1 } }}>
-                <Text size="sm">
-                  Drag the region outline to move the entire region, or drag the
-                  circular handles to adjust individual points.
-                </Text>
-              </Alert>
-            )}
-
-            {/* Drawing Controls */}
-            <Group position="right" mt="sm">
-              {!isDrawing && !isEditMode && (
-                <Button
-                  leftSection={<IconPlus size={16} />}
-                  disabled={isDrawing}
-                  onClick={handleAddRegion}
-                  color={mantineTheme.primaryColor}
-                  variant="filled"
-                >
-                  {t("recipes:creation.regionSetup.addRegion", "Add Region")}
-                </Button>
-              )}
-
-              {isDrawing && !isEditMode && (
-                <>
-                  <Button
-                    variant="outline"
-                    color="red"
-                    onClick={handleCancelEdit}
-                    leftSection={<IconX size={16} />}
-                  >
-                    {t("common:button.cancel", "Cancel")}
-                  </Button>
-
-                  <Button
-                    disabled={currentPoints.length < 3}
-                    onClick={handleSaveRegion}
-                    color={mantineTheme.primaryColor}
-                    leftSection={<IconCheck size={16} />}
-                  >
-                    {t("common:button.save", "Save")}
-                  </Button>
-                </>
-              )}
-
-              {isEditMode && (
-                <>
-                  <Button
-                    variant="outline"
-                    color="red"
-                    onClick={handleCancelEdit}
-                    leftSection={<IconX size={16} />}
-                  >
-                    Cancel Edit
-                  </Button>
-
-                  <Button
-                    onClick={handleSaveEdit}
-                    color={mantineTheme.primaryColor}
-                    leftSection={<IconCheck size={16} />}
-                  >
-                    Save Changes
-                  </Button>
-                </>
-              )}
-            </Group>
-
-            {(isDrawing || isEditMode) && (
-              <TextInput
-                label={t(
-                  "recipes:creation.regionSetup.regionName",
-                  "Region Name"
-                )}
-                value={regionName}
-                onChange={(e) => setRegionName(e.currentTarget.value)}
-                placeholder={`Region ${regions.length + 1}`}
-                radius="md"
-                mt="md"
-              />
-            )}
-          </Box>
-
-          {/* Region Management Panel */}
-          <Card 
-            withBorder 
-            p="md" 
-            radius="md" 
-            style={{
-              backgroundColor: colorScheme === 'dark' ? getThemeColor("gray.9") : "white",
-              borderColor: colorScheme === 'dark' ? getThemeColor("gray.7") : getThemeColor("gray.3"),
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column'
-            }}
-          >
-              {!isDrawing && !isEditMode && (
-                <Box>
-                  <Tabs defaultValue="regions">
-                    <Tabs.List>
-                      <Tabs.Tab 
-                        value="regions" 
-                        leftSection={<Box style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: getThemeColor(`${mantineTheme.primaryColor}.5`) }} />}
-                      >
-                        Regions ({regions.length})
-                      </Tabs.Tab>
-                      <Tabs.Tab 
-                        value="connections" 
-                        leftSection={<Box style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: getThemeColor(`${mantineTheme.primaryColor}.5`) }} />}
-                      >
-                        Connections ({connections.length})
-                      </Tabs.Tab>
-                    </Tabs.List>
-
-                    <Tabs.Panel value="regions" pt="xs">
-                      {regions.length === 0 ? (
-                        <Center p="md">
-                          <Stack align="center" spacing="xs">
-                            <IconPlus 
-                              size={40} 
-                              opacity={0.5} 
-                              color={colorScheme === 'dark' ? getThemeColor("gray.6") : getThemeColor("gray.5")}
-                              style={{ padding: 8 }}
-                            />
-                            <Text size="sm" c={colorScheme === 'dark' ? "gray.5" : "gray.6"} fw={500}>
-                              No regions defined yet
-                            </Text>
-                            <Text size="xs" c={colorScheme === 'dark' ? "gray.6" : "gray.5"} align="center">
-                              Click the "Add Region" button to start creating regions
-                            </Text>
-                          </Stack>
-                        </Center>
-                      ) : (
-                        <ScrollArea h={200} offsetScrollbars>
-                          <Stack spacing="xs">
-                            {regions.map((region) => {
-                              const hasConnections = connections.some(
-                                conn => conn.sourceId === region.id || conn.destinationId === region.id
-                              );
-                              
-                              return (
-                                <Group 
-                                  key={region.id} 
-                                  position="apart"
-                                  p="xs"
-                                  style={{
-                                    backgroundColor: colorScheme === 'dark' ? 
-                                      getThemeColor("gray.8") : 
-                                      getThemeColor("gray.0"),
-                                    borderRadius: getThemeColor("ui.borderRadius"),
-                                    borderLeft: `3px solid ${getRegionColor(region.id)}`,
-                                  }}
-                                >
-                                  <Group spacing="xs">
-                                    <Box
-                                      style={{
-                                        width: 12,
-                                        height: 12,
-                                        borderRadius: "50%",
-                                        backgroundColor: getRegionColor(region.id),
-                                        border: `1px solid ${colorScheme === 'dark' ? getThemeColor("gray.7") : getThemeColor("gray.3")}`,
-                                      }}
-                                    />
-                                    <Box>
-                                      <Text size="sm" fw={500}>{region.name}</Text>
-                                      {hasConnections && (
-                                        <Text size="xs" c={colorScheme === 'dark' ? "gray.5" : "gray.6"}>
-                                          Connected
-                                        </Text>
-                                      )}
-                                    </Box>
-                                  </Group>
-                                  
-                                  <Group spacing={4}>
-                                    <ActionIcon
-                                      size="sm"
-                                      variant="subtle"
-                                      color={mantineTheme.primaryColor}
-                                      onClick={() => handleEditRegion(region)}
-                                    >
-                                      <IconEdit size={14} />
-                                    </ActionIcon>
-                                    <ActionIcon
-                                      size="sm"
-                                      variant="subtle"
-                                      color="red"
-                                      onClick={() => handleDeleteRegion(region.id)}
-                                    >
-                                      <IconTrash size={14} />
-                                    </ActionIcon>
-                                  </Group>
-                                </Group>
-                              );
-                            })}
-                          </Stack>
-                        </ScrollArea>
-                      )}
-                    </Tabs.Panel>
-
-                    <Tabs.Panel value="connections" pt="xs">
-                      {regions.length < 2 ? (
-                        <Center py="md">
-                          <Stack align="center" spacing="xs">
-                            <Text size="sm" fw={500} c={colorScheme === 'dark' ? "gray.5" : "gray.6"}>
-                              Need at least 2 regions
-                            </Text>
-                            <Text size="xs" c={colorScheme === 'dark' ? "gray.6" : "gray.5"} align="center">
-                              Create more regions to define connections
-                            </Text>
-                          </Stack>
-                        </Center>
-                      ) : (
-                        <Stack spacing="xs">
-                          {/* Connection creator */}
-                          <Card 
-                            withBorder 
-                            p="xs" 
-                            radius="sm" 
-                            style={{
-                              backgroundColor: colorScheme === 'dark' ? getThemeColor("gray.8") : getThemeColor("gray.0"),
+                        {/* Editable points */}
+                        {editablePoints.map((point, i) => (
+                          <Circle
+                            key={`edit-point-${i}`}
+                            x={point.x}
+                            y={point.y}
+                            radius={POINT_HOVER_RADIUS}
+                            fill={
+                              colorScheme === "dark"
+                                ? getThemeColor("gray.4")
+                                : "white"
+                            }
+                            stroke={getRegionColor(editingRegion)}
+                            strokeWidth={2}
+                            draggable
+                            onDragMove={(e) => {
+                              handlePointDrag(i, {
+                                x: e.target.x(),
+                                y: e.target.y(),
+                              });
                             }}
-                          >
-                            <Group spacing={8} noWrap>
-                              <Select
-                                placeholder="From"
-                                size="xs"
-                                value={sourceRegionId}
-                                onChange={setSourceRegionId}
-                                data={regions.map((r) => ({
-                                  value: r.id, 
-                                  label: r.name,
-                                  leftSection: (
-                                    <Box
-                                      style={{
-                                        width: 10,
-                                        height: 10,
-                                        borderRadius: '50%',
-                                        backgroundColor: getRegionColor(r.id),
-                                        border: `1px solid ${colorScheme === 'dark' ? getThemeColor("gray.7") : getThemeColor("gray.3")}`,
-                                      }}
-                                    />
-                                  ),
-                                }))}
-                                searchable
-                                styles={{
-                                  root: { flex: 1 },
-                                  input: {
-                                    fontSize: '12px',
-                                    '&:focus': {
-                                      borderColor: getThemeColor(`${mantineTheme.primaryColor}.5`)
-                                    },
-                                    backgroundColor: colorScheme === 'dark' ? getThemeColor("gray.8") : "white"
-                                  }
-                                }}
-                              />
+                            onMouseEnter={(e) => {
+                              const stage = e.target.getStage();
+                              if (stage) {
+                                stage.container().style.cursor = "crosshair";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              const stage = e.target.getStage();
+                              if (stage) {
+                                stage.container().style.cursor = "default";
+                              }
+                            }}
+                          />
+                        ))}
+                      </>
+                    )}
 
-                              <Center style={{ width: 30 }}>
-                                <IconArrowRight size={14} color={colorScheme === 'dark' ? getThemeColor("gray.6") : getThemeColor("gray.5")} />
-                              </Center>
-                              
-                              <Select
-                                placeholder={sourceRegionId ? "To" : "Select source first"}
-                                size="xs"
-                                value={destinationRegionId}
-                                onChange={setDestinationRegionId}
-                                data={regions
-                                  .filter((r) => r.id !== sourceRegionId)
-                                  .map((r) => ({
-                                    value: r.id, 
-                                    label: r.name,
-                                    leftSection: (
-                                      <Box
-                                        style={{
-                                          width: 10,
-                                          height: 10,
-                                          borderRadius: '50%',
-                                          backgroundColor: getRegionColor(r.id),
-                                          border: `1px solid ${colorScheme === 'dark' ? getThemeColor("gray.7") : getThemeColor("gray.3")}`,
-                                        }}
-                                      />
-                                    ),
-                                  }))}
-                                searchable
-                                disabled={!sourceRegionId}
-                                styles={{
-                                  root: { flex: 1 },
-                                  input: {
-                                    fontSize: '12px',
-                                    '&:focus': {
-                                      borderColor: getThemeColor(`${mantineTheme.primaryColor}.5`)
-                                    },
-                                    backgroundColor: colorScheme === 'dark' ? 
-                                      !sourceRegionId ? getThemeColor("gray.9") : getThemeColor("gray.8") : 
-                                      !sourceRegionId ? getThemeColor("gray.1") : "white"
-                                  }
-                                }}
-                              />
-                              
-                              <Button 
-                                size="xs"
-                                variant="light"
-                                color={mantineTheme.primaryColor}
-                                disabled={!sourceRegionId || !destinationRegionId}
-                                onClick={handleSaveDirection}
-                              >
-                                Add
-                              </Button>
-                            </Group>
-                          </Card>
-                          
-                          {/* Connections list */}
-                          <ScrollArea h={140} offsetScrollbars>
-                            {connections.length === 0 ? (
-                              <Center py="md">
-                                <Text size="xs" c={colorScheme === 'dark' ? "gray.6" : "gray.5"}>
-                                  No connections defined yet
-                                </Text>
-                              </Center>
-                            ) : (
-                              <SimpleGrid cols={connections.length > 8 ? 2 : 1} spacing="xs">
-                                {connections.map((conn) => {
-                                  const source = regions.find((r) => r.id === conn.sourceId);
-                                  const dest = regions.find((r) => r.id === conn.destinationId);
-                                  
-                                  return (
-                                    <Group 
-                                      key={conn.id} 
-                                      position="apart"
-                                      px="xs"
-                                      py="xs"
-                                      style={{
-                                        backgroundColor: colorScheme === 'dark' ? 
-                                          getThemeColor("gray.8") : 
-                                          getThemeColor("gray.0"),
-                                        borderRadius: getThemeColor("ui.borderRadius"),
-                                        border: `1px solid ${colorScheme === 'dark' ? getThemeColor("gray.7") : getThemeColor("gray.3")}`,
-                                      }}
-                                      onMouseEnter={() => setHoveredConnection(conn.id)}
-                                      onMouseLeave={() => setHoveredConnection(null)}
-                                    >
-                                      <Group spacing={6} noWrap>
-                                        <Box
-                                          style={{
-                                            width: 10,
-                                            height: 10,
-                                            borderRadius: '50%',
-                                            backgroundColor: getRegionColor(conn.sourceId),
-                                            border: `1px solid ${colorScheme === 'dark' ? getThemeColor("gray.7") : getThemeColor("gray.3")}`,
-                                          }}
-                                        />
-                                        <Text size="xs" fw={500}>{source?.name}</Text>
-                                        <IconArrowRight 
-                                          size={12} 
-                                          style={{ 
-                                            color: colorScheme === 'dark' ? 
-                                              getThemeColor(`${mantineTheme.primaryColor}.4`) : 
-                                              getThemeColor(`${mantineTheme.primaryColor}.5`) 
-                                          }}
-                                        />
-                                        <Box
-                                          style={{
-                                            width: 10,
-                                            height: 10,
-                                            borderRadius: '50%',
-                                            backgroundColor: getRegionColor(conn.destinationId),
-                                            border: `1px solid ${colorScheme === 'dark' ? getThemeColor("gray.7") : getThemeColor("gray.3")}`,
-                                          }}
-                                        />
-                                        <Text size="xs" fw={500}>{dest?.name}</Text>
-                                      </Group>
-                                      
-                                      <ActionIcon
-                                        size="xs"
-                                        variant="subtle"
-                                        color="red"
-                                        onClick={() => setConnections((prev) => 
-                                          prev.filter((c) => c.id !== conn.id)
-                                        )}
-                                      >
-                                        <IconTrash size={12} />
-                                      </ActionIcon>
-                                    </Group>
-                                  );
-                                })}
-                              </SimpleGrid>
-                            )}
-                          </ScrollArea>
-                        </Stack>
-                      )}
-                    </Tabs.Panel>
-                  </Tabs>
+                    {/* Draw current region being created */}
+                    {currentPoints.length > 0 && !isEditMode && (
+                      <>
+                        <Line
+                          points={currentPoints.flatMap((p) => [p.x, p.y])}
+                          closed={currentPoints.length > 2}
+                          fill={getRegionColor("new-region") + "25"}
+                          stroke={getRegionColor("new-region")}
+                          strokeWidth={STROKE_WIDTH}
+                          strokeDasharray={[8, 4]}
+                        />
+                        {/* Draw points for current region */}
+                        {currentPoints.map((point, i) => (
+                          <Circle
+                            key={i}
+                            x={point.x}
+                            y={point.y}
+                            radius={POINT_RADIUS}
+                            fill={
+                              colorScheme === "dark"
+                                ? getThemeColor("gray.4")
+                                : "white"
+                            }
+                            stroke={getRegionColor("new-region")}
+                            strokeWidth={2}
+                          />
+                        ))}
+                      </>
+                    )}
+                  </Layer>
+                </Stage>
+
+                {/* Hover label */}
+                {showHoverLabel && (
+                  <Box
+                    style={{
+                      position: "absolute",
+                      left: mousePos.x + 10,
+                      top: mousePos.y - 10,
+                      backgroundColor:
+                        colorScheme === "dark"
+                          ? getThemeColor("gray.9") + "cc"
+                          : getThemeColor("gray.7") + "cc",
+                      color: "white",
+                      padding: "4px 8px",
+                      borderRadius: getThemeColor("ui.borderRadius"),
+                      fontSize: "12px",
+                      fontWeight: 500,
+                      pointerEvents: "none",
+                      zIndex: 1000,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {hoverLabelText}
+                  </Box>
+                )}
+              </Box>
+
+              {/* Instructions */}
+              {(isDrawing || isEditMode) && (
+                <Box
+                  p="xs"
+                  style={{
+                    backgroundColor:
+                      colorScheme === "dark"
+                        ? getThemeColor("gray.9")
+                        : getThemeColor("gray.0"),
+                    borderRadius: getThemeColor("ui.borderRadius"),
+                  }}
+                >
+                  <Group gap="xs">
+                    <IconInfoCircle
+                      size={14}
+                      color={getThemeColor(`${mantineTheme.primaryColor}.5`)}
+                    />
+                    <Text
+                      size="xs"
+                      c={colorScheme === "dark" ? "gray.4" : "gray.6"}
+                    >
+                      {isDrawing
+                        ? "Click to add points (min 3)"
+                        : "Drag region to move, drag points to adjust"}
+                    </Text>
+                  </Group>
                 </Box>
               )}
+            </Stack>
           </Card>
-        </SimpleGrid>
-      </Stack>
+        </Box>
 
-      {/* Region Deletion Confirmation Modal */}
+        {/* Right Panel */}
+        <Box style={{ width: "350px", flexShrink: 0 }}>
+          {/* Region Name Input - Shows when drawing/editing */}
+          {(isDrawing || isEditMode) && (
+            <Card
+              withBorder
+              p="sm"
+              radius="md"
+              mb="sm"
+              style={{
+                backgroundColor:
+                  colorScheme === "dark" ? getThemeColor("gray.8") : "white",
+              }}
+            >
+              <Stack gap="sm">
+                <TextInput
+                  label="Region Name"
+                  value={regionName}
+                  onChange={(e) => setRegionName(e.currentTarget.value)}
+                  placeholder={`Region ${regions.length + 1}`}
+                  size="sm"
+                />
+                <Group justify="space-between">
+                  <Text size="xs" c="dimmed">
+                    Points:{" "}
+                    {isEditMode ? editablePoints.length : currentPoints.length}
+                  </Text>
+                  {isDrawing && currentPoints.length > 0 && (
+                    <Button
+                      variant="subtle"
+                      color="red"
+                      size="xs"
+                      onClick={() => setCurrentPoints([])}
+                    >
+                      Clear points
+                    </Button>
+                  )}
+                </Group>
+              </Stack>
+            </Card>
+          )}
+
+          {/* Tabs for Regions and Connections */}
+          <Card
+            withBorder
+            p="sm"
+            radius="md"
+            style={{
+              backgroundColor:
+                colorScheme === "dark" ? getThemeColor("gray.8") : "white",
+              height: `calc(100% - ${isDrawing || isEditMode ? "120px" : "0px"})`,
+            }}
+          >
+            <Tabs
+              value={activeTab}
+              onChange={(value) => setActiveTab(value || "regions")}
+              style={{ height: "100%" }}
+            >
+              <Tabs.List>
+                <Tabs.Tab
+                  value="regions"
+                  leftSection={
+                    <Badge size="xs" variant="filled">
+                      {regions.length}
+                    </Badge>
+                  }
+                >
+                  Regions
+                </Tabs.Tab>
+                <Tabs.Tab
+                  value="connections"
+                  leftSection={
+                    <Badge size="xs" variant="filled" color="green">
+                      {connections.length}
+                    </Badge>
+                  }
+                >
+                  Connections
+                </Tabs.Tab>
+              </Tabs.List>
+
+              <Tabs.Panel
+                value="regions"
+                pt="sm"
+                style={{ height: "calc(100% - 40px)" }}
+              >
+                <ScrollArea style={{ height: "100%" }}>
+                  {regions.length === 0 ? (
+                    <Center p="xl">
+                      <Stack align="center" gap="xs">
+                        <IconPolygon size={30} opacity={0.3} />
+                        <Text size="sm" c="dimmed">
+                          No regions yet
+                        </Text>
+                      </Stack>
+                    </Center>
+                  ) : (
+                    <Stack gap="xs">
+                      {regions.map((region) => {
+                        const hasConnections = connections.some(
+                          (conn) =>
+                            conn.sourceId === region.id ||
+                            conn.destinationId === region.id
+                        );
+
+                        return (
+                          <Paper
+                            key={region.id}
+                            p="xs"
+                            withBorder
+                            radius="sm"
+                            style={{
+                              borderLeft: `3px solid ${getRegionColor(region.id)}`,
+                            }}
+                          >
+                            <Group justify="space-between">
+                              <Group gap="xs">
+                                <Box
+                                  style={{
+                                    width: 12,
+                                    height: 12,
+                                    borderRadius: "50%",
+                                    backgroundColor: getRegionColor(region.id),
+                                  }}
+                                />
+                                <Text size="sm" fw={500}>
+                                  {region.name}
+                                </Text>
+                                {hasConnections && (
+                                  <Badge size="xs" color="green" variant="dot">
+                                    Connected
+                                  </Badge>
+                                )}
+                              </Group>
+                              <Group gap={4}>
+                                <Tooltip label="Edit">
+                                  <ActionIcon
+                                    size="xs"
+                                    variant="subtle"
+                                    onClick={() => handleEditRegion(region)}
+                                  >
+                                    <IconEdit size={14} />
+                                  </ActionIcon>
+                                </Tooltip>
+                                <Tooltip label="Delete">
+                                  <ActionIcon
+                                    size="xs"
+                                    variant="subtle"
+                                    color="red"
+                                    onClick={() =>
+                                      handleDeleteRegion(region.id)
+                                    }
+                                  >
+                                    <IconTrash size={14} />
+                                  </ActionIcon>
+                                </Tooltip>
+                              </Group>
+                            </Group>
+                          </Paper>
+                        );
+                      })}
+                    </Stack>
+                  )}
+                </ScrollArea>
+              </Tabs.Panel>
+
+              <Tabs.Panel
+                value="connections"
+                pt="sm"
+                style={{ height: "calc(100% - 40px)" }}
+              >
+                <Stack gap="sm" style={{ height: "100%" }}>
+                  {/* Connection creator */}
+                  {regions.length >= 2 && (
+                    <Card
+                      p="xs"
+                      withBorder
+                      radius="sm"
+                      style={{
+                        backgroundColor:
+                          colorScheme === "dark"
+                            ? getThemeColor("gray.9")
+                            : getThemeColor("gray.0"),
+                      }}
+                    >
+                      <Stack gap="xs">
+                        <Text
+                          size="xs"
+                          fw={600}
+                          c={colorScheme === "dark" ? "gray.4" : "gray.7"}
+                        >
+                          Create Connection
+                        </Text>
+                        <Group gap="xs" align="center">
+                          <Select
+                            placeholder="From"
+                            size="xs"
+                            value={sourceRegionId}
+                            onChange={setSourceRegionId}
+                            data={regions.map((r) => ({
+                              value: r.id,
+                              label: r.name,
+                            }))}
+                            style={{ flex: 1 }}
+                            searchable
+                            clearable
+                          />
+                          <IconArrowRight
+                            size={14}
+                            color={getThemeColor("green.5")}
+                          />
+                          <Select
+                            placeholder="To"
+                            size="xs"
+                            value={destinationRegionId}
+                            onChange={setDestinationRegionId}
+                            data={regions
+                              .filter((r) => r.id !== sourceRegionId)
+                              .map((r) => ({ value: r.id, label: r.name }))}
+                            disabled={!sourceRegionId}
+                            style={{ flex: 1 }}
+                            searchable
+                            clearable
+                          />
+                          <Button
+                            size="xs"
+                            disabled={!sourceRegionId || !destinationRegionId}
+                            onClick={handleSaveDirection}
+                            color="green"
+                          >
+                            Add
+                          </Button>
+                        </Group>
+                      </Stack>
+                    </Card>
+                  )}
+
+                  <ScrollArea style={{ flex: 1 }}>
+                    {connections.length === 0 ? (
+                      <Center p="xl">
+                        <Stack align="center" gap="xs">
+                          <IconArrowRight size={30} opacity={0.3} />
+                          <Text size="sm" c="dimmed">
+                            {regions.length < 2
+                              ? "Need 2+ regions"
+                              : "No connections yet"}
+                          </Text>
+                        </Stack>
+                      </Center>
+                    ) : (
+                      <Stack gap="xs">
+                        {connections.map((conn) => {
+                          const source = regions.find(
+                            (r) => r.id === conn.sourceId
+                          );
+                          const dest = regions.find(
+                            (r) => r.id === conn.destinationId
+                          );
+
+                          return (
+                            <Paper
+                              key={conn.id}
+                              p="xs"
+                              withBorder
+                              radius="sm"
+                              onMouseEnter={() => setHoveredConnection(conn.id)}
+                              onMouseLeave={() => setHoveredConnection(null)}
+                              style={{
+                                borderColor:
+                                  hoveredConnection === conn.id
+                                    ? getThemeColor("green.5")
+                                    : undefined,
+                                backgroundColor:
+                                  hoveredConnection === conn.id
+                                    ? colorScheme === "dark"
+                                      ? getThemeColor("green.9") + "20"
+                                      : getThemeColor("green.0")
+                                    : undefined,
+                                transition: "all 0.2s ease",
+                              }}
+                            >
+                              <Group justify="space-between">
+                                <Group gap="xs">
+                                  <Box
+                                    style={{
+                                      width: 10,
+                                      height: 10,
+                                      borderRadius: "50%",
+                                      backgroundColor: getRegionColor(
+                                        conn.sourceId
+                                      ),
+                                    }}
+                                  />
+                                  <Text size="xs" fw={500}>
+                                    {source?.name}
+                                  </Text>
+                                  <IconArrowRight
+                                    size={12}
+                                    color={getThemeColor("green.5")}
+                                  />
+                                  <Box
+                                    style={{
+                                      width: 10,
+                                      height: 10,
+                                      borderRadius: "50%",
+                                      backgroundColor: getRegionColor(
+                                        conn.destinationId
+                                      ),
+                                    }}
+                                  />
+                                  <Text size="xs" fw={500}>
+                                    {dest?.name}
+                                  </Text>
+                                </Group>
+                                <Tooltip label="Delete">
+                                  <ActionIcon
+                                    size="xs"
+                                    variant="subtle"
+                                    color="red"
+                                    onClick={() => {
+                                      const newConnections = connections.filter(
+                                        (c) => c.id !== conn.id
+                                      );
+                                      setConnections(newConnections);
+                                      updateConnections(newConnections);
+                                    }}
+                                  >
+                                    <IconTrash size={14} />
+                                  </ActionIcon>
+                                </Tooltip>
+                              </Group>
+                            </Paper>
+                          );
+                        })}
+                      </Stack>
+                    )}
+                  </ScrollArea>
+                </Stack>
+              </Tabs.Panel>
+            </Tabs>
+          </Card>
+        </Box>
+      </Flex>
+
+      {/* Modals */}
       <Modal
         opened={showDeleteModal}
-        onClose={cancelDeleteRegion}
+        onClose={() => setShowDeleteModal(false)}
         title="Delete Region"
         centered
-        radius="md"
-        overlayProps={{
-          backgroundOpacity: colorScheme === 'dark' ? 0.85 : 0.65,
-        }}
-        styles={{
-          content: {
-            background: colorScheme === 'dark' ? getThemeColor("gray.9") : 'white',
-          },
-        }}
+        size="sm"
       >
         <Stack gap="md">
-          <Group gap="sm">
-            <IconAlertTriangle size={20} color={colorScheme === 'dark' ? getThemeColor("yellow.4") : getThemeColor("yellow.8")} />
-            <Text fw={500}>Region has active connections</Text>
-          </Group>
-
-          <Text size="sm" c={colorScheme === 'dark' ? "gray.4" : "dimmed"}>
+          <Text size="sm">
             The region "<strong>{regionToDelete?.name}</strong>" has{" "}
             {regionToDelete?.connections.length} connection(s). Deleting this
             region will also remove all its connections.
           </Text>
-
-          {regionToDelete && regionToDelete.connections.length > 0 && (
-            <Box
-              p="sm"
-              style={{
-                backgroundColor: colorScheme === 'dark' ? getThemeColor("gray.8") : getThemeColor("red.0"),
-                borderRadius: getThemeColor("ui.borderRadius"),
-                border: `1px solid ${colorScheme === 'dark' ? getThemeColor("red.9") : getThemeColor("red.2")}`,
+          <Group justify="flex-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDeleteModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              color="red"
+              size="sm"
+              onClick={() => {
+                performRegionDeletion(regionToDelete!.id);
+                setShowDeleteModal(false);
               }}
             >
-              <Text size="xs" fw={500} c="red" mb="xs">
-                Connections to be removed:
-              </Text>
-              <Stack gap="xs">
-                {regionToDelete.connections.map((conn) => {
-                  const source = regions.find((r) => r.id === conn.sourceId);
-                  const dest = regions.find((r) => r.id === conn.destinationId);
-                  return (
-                    <Text key={conn.id} size="xs" c={colorScheme === 'dark' ? "gray.4" : "dimmed"}>
-                      • {source?.name} → {dest?.name}
-                    </Text>
-                  );
-                })}
-              </Stack>
-            </Box>
-          )}
-
-          <Group justify="flex-end" mt="md">
-            <Button variant="outline" onClick={cancelDeleteRegion}>
-              Cancel
-            </Button>
-            <Button color="red" onClick={confirmDeleteRegion}>
-              Delete Region & Connections
+              Delete
             </Button>
           </Group>
         </Stack>
       </Modal>
 
-      {/* Road Type Change Confirmation Modal */}
       <Modal
         opened={showRoadTypeModal}
-        onClose={cancelRoadTypeChange}
+        onClose={() => setShowRoadTypeModal(false)}
         title="Change Road Type"
         centered
-        radius="md"
-        overlayProps={{
-          backgroundOpacity: colorScheme === 'dark' ? 0.85 : 0.65,
-        }}
-        styles={{
-          content: {
-            background: colorScheme === 'dark' ? getThemeColor("gray.9") : 'white',
-          },
-        }}
+        size="sm"
       >
         <Stack gap="md">
-          <Group gap="sm">
-            <IconAlertTriangle size={20} color={getThemeColor("yellow.7")} />
-            <Text fw={500}>This will clear all existing data</Text>
-          </Group>
-
-          <Text size="sm" c={colorScheme === 'dark' ? "gray.4" : "dimmed"}>
+          <Text size="sm">
             Changing the road type will remove all existing regions (
-            {regions.length}) and connections ({connections.length}). This
-            action cannot be undone.
+            {regions.length}) and connections ({connections.length}).
           </Text>
-
-          <Group justify="flex-end" mt="md">
-            <Button variant="outline" onClick={cancelRoadTypeChange}>
+          <Group justify="flex-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowRoadTypeModal(false)}
+            >
               Cancel
             </Button>
-            <Button color="red" onClick={confirmRoadTypeChange}>
-              Change Road Type
+            <Button color="red" size="sm" onClick={confirmRoadTypeChange}>
+              Change
             </Button>
           </Group>
         </Stack>
       </Modal>
-    </Paper>
+    </Box>
   );
 }

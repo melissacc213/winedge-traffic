@@ -106,5 +106,58 @@
     "parameter_extracted_message": "Model parameters were successfully extracted from the file",
     "parameter_extraction_failed": "Parameter extraction failed",
     "parameter_extraction_failed_message": "Failed to extract parameters from the model file"
+  },
+  "details": {
+    "overview": "Overview",
+    "description": "Description",
+    "no_description": "No description available",
+    "file_size": "File Size",
+    "created_date": "Created Date",
+    "uploaded_date": "Uploaded Date",
+    "configuration": "Configuration",
+    "task_type": "Task Type",
+    "labels": "Labels",
+    "technical_info": "Technical Information",
+    "model_type": "Model Type",
+    "storage_size": "Storage Size",
+    "file_format": "File Format",
+    "version": "Version",
+    "activity": "Activity Timeline",
+    "model_created": "Model Created",
+    "model_validated": "Model Validated",
+    "ready_for_use": "Ready for Use",
+    "error": {
+      "title": "Error Loading Model",
+      "not_found": "Model not found"
+    },
+    "delete": {
+      "title": "Delete Model",
+      "message": "Are you sure you want to delete {{name}}? This action cannot be undone.",
+      "success": "Model Deleted",
+      "success_message": "The model has been successfully deleted",
+      "error": "Delete Failed"
+    }
+  },
+  "edit": {
+    "title": "Edit Model Configuration",
+    "unsaved_changes": {
+      "title": "Unsaved Changes",
+      "message": "You have unsaved changes. Do you want to discard them?",
+      "alert": "Unsaved Changes",
+      "alert_message": "Your changes will be lost if you leave this page without saving"
+    },
+    "save": {
+      "success": "Configuration Saved",
+      "success_message": "Model configuration has been updated successfully",
+      "error": "Save Failed"
+    },
+    "export": {
+      "success": "Configuration Exported",
+      "success_message": "Model configuration has been exported successfully"
+    },
+    "error": {
+      "title": "Error Loading Model",
+      "not_found": "Model not found"
+    }
   }
 }

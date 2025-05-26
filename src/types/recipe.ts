@@ -46,6 +46,7 @@ export interface RecipeFormValues {
 
   // Regions
   regions: Region[];
+  connections?: RegionConnection[];
 
   // Model config
   modelId: string;

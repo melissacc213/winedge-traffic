@@ -1,6 +1,7 @@
 import { create } from "zustand";
-import type { Region, TaskType, RecipeStatus } from "../../types/recipe";
+import type { Region, TaskType, RecipeStatus, RegionConnection } from "../../types/recipe";
 import type { RecipeResponse } from "../validator/recipe";
+import type { ModelLabel } from "../../types/model";
 
 // Recipe form values interface
 export interface RecipeFormValues {
@@ -22,6 +23,7 @@ export interface RecipeFormValues {
 
   // Regions
   regions: Region[];
+  connections?: RegionConnection[];
 
   // Model config
   modelId: string;
@@ -29,6 +31,13 @@ export interface RecipeFormValues {
   confidenceThreshold: number;
   classFilter?: string[];
   inferenceStep?: number;
+  
+  // Model configuration with labels
+  modelConfig?: {
+    modelId: string;
+    confidence: number;
+    labels: ModelLabel[];
+  };
 }
 
 // Initial form state
@@ -51,6 +60,7 @@ const initialFormState: RecipeFormValues = {
 
   // Regions
   regions: [] as Region[],
+  connections: [] as RegionConnection[],
 
   // Model config
   modelId: "",
@@ -58,6 +68,7 @@ const initialFormState: RecipeFormValues = {
   confidenceThreshold: 0.5,
   classFilter: ["car", "truck", "bus", "person"],
   inferenceStep: 3,
+  modelConfig: undefined,
 };
 
 // Recipe state interface
@@ -101,11 +112,13 @@ interface RecipeState {
   addRegion: (region: Region) => void;
   updateRegion: (region: Region) => void;
   deleteRegion: (regionId: string) => void;
+  updateConnections: (connections: RegionConnection[]) => void;
   
   // Model configuration
   setModel: (modelId: string, modelName?: string) => void;
   setConfidenceThreshold: (threshold: number) => void;
   setClassFilter: (classes: string[]) => void;
+  setModelConfig: (config: RecipeFormValues['modelConfig']) => void;
 }
 
 export const useRecipeStore = create<RecipeState>((set) => ({
@@ -212,6 +225,15 @@ export const useRecipeStore = create<RecipeState>((set) => ({
       },
       isDirty: true,
     })),
+    
+  setModelConfig: (config) =>
+    set((state) => ({
+      formValues: {
+        ...state.formValues,
+        modelConfig: config,
+      },
+      isDirty: true,
+    })),
 
   // Regions
   addRegion: (region) =>
@@ -239,6 +261,19 @@ export const useRecipeStore = create<RecipeState>((set) => ({
       formValues: {
         ...state.formValues,
         regions: state.formValues.regions.filter((r) => r.id !== regionId),
+        // Also remove connections related to this region
+        connections: state.formValues.connections?.filter(
+          (conn) => conn.sourceId !== regionId && conn.destinationId !== regionId
+        ) || [],
+      },
+      isDirty: true,
+    })),
+
+  updateConnections: (connections) =>
+    set((state) => ({
+      formValues: {
+        ...state.formValues,
+        connections,
       },
       isDirty: true,
     })),
