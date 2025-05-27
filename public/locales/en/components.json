@@ -38,6 +38,7 @@
       "viewer": "Viewer"
     },
     "actions": {
+      "view": "View Details",
       "edit": "Edit",
       "delete": "Delete",
       "enable": "Enable",

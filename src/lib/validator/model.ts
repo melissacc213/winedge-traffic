@@ -65,9 +65,11 @@ export const modelSchema = z.object({
   status: z.enum(['active', 'pending', 'failed']),
   createdAt: z.string().datetime(),
   description: z.string().optional(),
+  parameters: z.record(z.string()).optional(),
 });
 
 export type ModelValidationSchema = z.infer<typeof modelSchema>;
+export type Model = ModelValidationSchema;
 
 // Models list schema
 export const modelsListSchema = z.array(modelSchema);

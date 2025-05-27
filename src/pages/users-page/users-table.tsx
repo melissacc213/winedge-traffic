@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import {
   createColumnHelper,
   flexRender,
@@ -25,6 +26,7 @@ import {
 } from "@mantine/core";
 import { Icons } from "../../components/icons";
 import { TableLoading } from "../../components/ui";
+import { useTheme } from "../../providers/theme-provider";
 
 interface User {
   id: string;
@@ -51,6 +53,8 @@ export function UsersTable({
   onToggleStatus,
 }: UsersTableProps) {
   const { t } = useTranslation(["components", "common"]);
+  const { colorScheme } = useTheme();
+  const navigate = useNavigate();
   const [sorting, setSorting] = useState<SortingState>([
     { id: "created", desc: true },
   ]);
@@ -60,17 +64,34 @@ export function UsersTable({
     pageSize: 10,
   });
 
-  // Format date
+  // Format date with relative time
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    let relativeTime = "";
+    if (diffMins < 1) {
+      relativeTime = "just now";
+    } else if (diffMins < 60) {
+      relativeTime = `${diffMins} mins ago`;
+    } else if (diffHours < 24) {
+      relativeTime = `${diffHours} hours ago`;
+    } else if (diffDays < 7) {
+      relativeTime = `${diffDays} days ago`;
+    } else {
+      relativeTime = new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }).format(date);
+    }
+
+    return relativeTime;
   };
 
   // Get status badge color
@@ -129,7 +150,19 @@ export function UsersTable({
       }),
       columnHelper.accessor("created", {
         header: t("components:users.list.created"),
-        cell: (info) => <Text size="sm">{formatDate(info.getValue())}</Text>,
+        cell: (info) => (
+          <Box>
+            <Text size="sm" fw={500}>
+              {formatDate(info.getValue())}
+            </Text>
+            <Text size="xs" c="dimmed">
+              {info.getValue() ? new Intl.DateTimeFormat("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+              }).format(new Date(info.getValue())) : ""}
+            </Text>
+          </Box>
+        ),
       }),
       columnHelper.accessor("id", {
         header: t("components:users.list.actions"),
@@ -137,41 +170,60 @@ export function UsersTable({
           <Group gap={4} justify="flex-end" style={{ flexWrap: "nowrap" }}>
             <Menu position="bottom-end" withArrow withinPortal>
               <Menu.Target>
-                <ActionIcon>
-                  <Icons.Dots size="sm" />
+                <ActionIcon variant="subtle" color="gray">
+                  <Icons.Dots size={16} />
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
                 <Menu.Item
-                  leftSection={<Icons.Pencil size="xs" />}
-                  onClick={() => onEdit?.(info.getValue())}
+                  leftSection={<Icons.Eye size={16} />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/users/${info.getValue()}`);
+                  }}
+                >
+                  {t("components:users.actions.view")}
+                </Menu.Item>
+                <Menu.Item
+                  leftSection={<Icons.Pencil size={16} />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit?.(info.getValue());
+                  }}
                 >
                   {t("components:users.actions.edit")}
                 </Menu.Item>
                 {info.row.original.status === "active" ? (
                   <Menu.Item
-                    leftSection={<Icons.X size="xs" />}
+                    leftSection={<Icons.X size={16} />}
                     color="orange"
-                    onClick={() =>
-                      onToggleStatus?.(info.getValue(), "disabled")
-                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleStatus?.(info.getValue(), "disabled");
+                    }}
                   >
                     {t("components:users.actions.disable")}
                   </Menu.Item>
                 ) : (
                   <Menu.Item
-                    leftSection={<Icons.Check size="xs" />}
+                    leftSection={<Icons.Check size={16} />}
                     color="teal"
-                    onClick={() => onToggleStatus?.(info.getValue(), "active")}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleStatus?.(info.getValue(), "active");
+                    }}
                   >
                     {t("components:users.actions.enable")}
                   </Menu.Item>
                 )}
                 <Menu.Divider />
                 <Menu.Item
-                  leftSection={<Icons.Trash size="xs" />}
+                  leftSection={<Icons.Trash size={16} />}
                   color="red"
-                  onClick={() => onDelete?.(info.getValue())}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete?.(info.getValue());
+                  }}
                 >
                   {t("components:users.actions.delete")}
                 </Menu.Item>
@@ -237,7 +289,8 @@ export function UsersTable({
           placeholder={t("common:action.search")}
           value={globalFilter ?? ""}
           onChange={(e) => setGlobalFilter(e.target.value)}
-          leftSection={<Icons.Search size="xs" />}
+          leftSection={<Icons.Search size={16} />}
+          style={{ maxWidth: 300 }}
         />
       </Group>
 
@@ -268,11 +321,11 @@ export function UsersTable({
                     {header.column.getCanSort() && (
                       <Box style={{ display: "inline-block", width: 16 }}>
                         {header.column.getIsSorted() === "asc" ? (
-                          <Icons.ArrowUp size="xs" />
+                          <Icons.ArrowUp size={16} />
                         ) : header.column.getIsSorted() === "desc" ? (
-                          <Icons.ArrowDown size="xs" />
+                          <Icons.ArrowDown size={16} />
                         ) : (
-                          <Icons.Sort size="xs" style={{ opacity: 0.5 }} />
+                          <Icons.Sort size={16} style={{ opacity: 0.5 }} />
                         )}
                       </Box>
                     )}
@@ -284,9 +337,32 @@ export function UsersTable({
         </Table.Thead>
         <Table.Tbody>
           {table.getRowModel().rows.map((row) => (
-            <Table.Tr key={row.id}>
+            <Table.Tr 
+              key={row.id}
+              onClick={() => navigate(`/users/${row.original.id}`)}
+              style={{
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = colorScheme === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.05)' 
+                  : 'rgba(0, 0, 0, 0.02)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
               {row.getVisibleCells().map((cell) => (
-                <Table.Td key={cell.id}>
+                <Table.Td 
+                  key={cell.id}
+                  onClick={(e) => {
+                    // Prevent row click for action column
+                    if (cell.column.id === 'id') {
+                      e.stopPropagation();
+                    }
+                  }}
+                >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </Table.Td>
               ))}

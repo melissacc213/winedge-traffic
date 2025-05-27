@@ -10,6 +10,7 @@ export interface Model {
   description?: string;
   error?: string;
   uploadedAt?: string;
+  parameters?: Record<string, string>;
 }
 
 interface ModelState {

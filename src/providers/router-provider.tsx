@@ -3,7 +3,7 @@ import { Layout } from '@/components/layout/layout';
 import { LoginLayout } from '@/components/layout/login-layout';
 import { ErrorPage } from '@/pages/error-page/error-page';
 import { UsersPage } from '@/pages/users-page/users-page';
-import { LicensePage } from '@/pages/license-page/license-page';
+import { LicensesPage } from '@/pages/licenses-page/licenses-page';
 import { ModelsPage } from '@/pages/models-page';
 import { RecipesPage } from '@/pages/recipes-page';
 import { RecipeCreationPage } from '@/pages/recipe-creation-page';
@@ -64,10 +64,46 @@ const router = createBrowserRouter([
         path: 'users',
         element: <UsersPage />
       },
+      {
+        path: 'users/:userId',
+        async lazy() {
+          const { UserDetailView } = await import('../components/user/UserDetailView');
+          return {
+            Component: UserDetailView,
+          };
+        },
+      },
+      {
+        path: 'users/:userId/edit',
+        async lazy() {
+          const { UserEdit } = await import('../components/user/UserEdit');
+          return {
+            Component: UserEdit,
+          };
+        },
+      },
       // License page
       {
-        path: 'license',
-        element: <LicensePage />
+        path: 'licenses',
+        element: <LicensesPage />
+      },
+      {
+        path: 'licenses/:licenseId',
+        async lazy() {
+          const { LicenseDetailView } = await import('../components/license/LicenseDetailView');
+          return {
+            Component: LicenseDetailView,
+          };
+        },
+      },
+      {
+        path: 'licenses/:licenseId/edit',
+        async lazy() {
+          const { LicenseEdit } = await import('../components/license/LicenseEdit');
+          return {
+            Component: LicenseEdit,
+          };
+        },
       },
       // Tasks routes
       {

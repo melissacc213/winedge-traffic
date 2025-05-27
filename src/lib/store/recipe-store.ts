@@ -10,13 +10,12 @@ export interface RecipeFormValues {
   description: string;
 
   // Task type
-  taskType: TaskType;
+  taskType: TaskType | "";
   sceneType?: string;
 
   // Video
   videoId?: string;
   videoFile?: File | null;
-  videoUrl?: string;
   videoName?: string;
   extractedFrame?: string | null;
   extractedFrameTime?: number | null;
@@ -47,13 +46,12 @@ const initialFormState: RecipeFormValues = {
   description: "",
 
   // Task type
-  taskType: "" as TaskType,
+  taskType: "",
   sceneType: "",
 
   // Video
   videoId: "",
   videoFile: null,
-  videoUrl: "",
   videoName: "",
   extractedFrame: null,
   extractedFrameTime: null,
@@ -103,7 +101,7 @@ interface RecipeState {
   setIsSaving: (saving: boolean) => void;
   
   // Task type
-  setTaskType: (taskType: TaskType) => void;
+  setTaskType: (taskType: TaskType | "") => void;
   
   // Video
   setVideo: (videoId: string, file?: File | null) => void;

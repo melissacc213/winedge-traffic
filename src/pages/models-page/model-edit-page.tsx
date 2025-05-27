@@ -23,7 +23,7 @@ import { ModelConfigEditor } from "@/components/model-config-editor";
 import { useModelDetails } from "@/lib/queries/model";
 import { useModelStore } from "@/lib/store/model-store";
 import { useTheme } from "@/providers/theme-provider";
-import { ModelConfig } from "@/types/model";
+import type { ModelConfig } from "../../types/model";
 import { notifications } from "@mantine/notifications";
 import { modals } from "@mantine/modals";
 

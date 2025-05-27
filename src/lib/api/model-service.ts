@@ -1,6 +1,15 @@
 import type { AxiosRequestConfig } from "axios";
 import { clients } from "./index";
 import { modelSchema, modelsListSchema } from "../validator/model";
+import type { Model } from "../validator/model";
+
+interface CreateModelRequest {
+  name: string;
+  type: string;
+  size: number;
+  description: string;
+  parameters?: Record<string, string>;
+}
 
 export const modelService = {
   async getModels(config?: AxiosRequestConfig<unknown>) {
@@ -21,6 +30,29 @@ export const modelService = {
     const model = MOCK_MODELS.find((model) => model.id === id);
     if (!model) throw new Error("Model not found");
     return modelSchema.parse(model);
+  },
+
+  async createModel(data: CreateModelRequest, config?: AxiosRequestConfig<unknown>): Promise<Model> {
+    // In production, this would call the actual API
+    // const { data: responseData } = await clients.v1.private.post('/models', data, config);
+    // return modelSchema.parse(responseData);
+
+    // Mock implementation for development
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const newModel = {
+      id: `model_${Date.now()}`,
+      name: data.name,
+      type: data.type,
+      size: data.size,
+      status: "active" as const,
+      createdAt: new Date().toISOString(),
+      description: data.description,
+      parameters: data.parameters,
+    };
+
+    MOCK_MODELS.push(newModel);
+    return modelSchema.parse(newModel);
   },
 
   async deleteModel(id: string, config?: AxiosRequestConfig<unknown>) {

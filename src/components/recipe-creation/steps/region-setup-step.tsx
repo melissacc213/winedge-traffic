@@ -80,6 +80,9 @@ export function RegionSetupStep() {
 
   const [videoSize] = useState({ width: STAGE_WIDTH, height: STAGE_HEIGHT });
 
+  // Check if we're in rectangle-only mode (for train detection)
+  const isRectangleMode = formValues.taskType === "trainDetection";
+
   // State management
   const [, setSelectedRegion] = useState<Region | null>(null);
   const [regionName, setRegionName] = useState("");
@@ -96,6 +99,10 @@ export function RegionSetupStep() {
   const [destinationRegionId, setDestinationRegionId] = useState<string | null>(
     null
   );
+
+  // Rectangle drawing state
+  const [rectangleStart, setRectangleStart] = useState<RegionPoint | null>(null);
+  const [isDrawingRect, setIsDrawingRect] = useState(false);
 
   // UI state
   const [roadTypeSelectorOpened, { toggle: toggleRoadTypeSelector }] =
@@ -143,40 +150,36 @@ export function RegionSetupStep() {
       setConnections(formValues.connections);
     }
   }, []); // Only run once on mount
-  const getThemeColor = (colorPath: string): string => {
-    const [colorName, index] = colorPath.split(".");
-    if (colorName === "ui") {
-      return theme.other?.ui?.[index] || colorPath;
-    }
-    if (colorName === "backgrounds") {
-      return theme.other?.backgrounds?.[index] || colorPath;
-    }
-    if (colorName === "regionColors") {
-      const path = theme.other?.regionColors?.[index];
-      if (path) {
-        return getThemeColor(path);
-      }
-      return colorPath;
-    }
-    return theme.colors?.[colorName]?.[Number(index)] || colorPath;
-  };
-
-  // Region colors
-  const REGION_COLORS = theme.other?.regionPalette || [
-    "red.5",
-    "green.5",
-    "yellow.7",
-    "indigo.5",
+  // Define 20 distinct colors for regions
+  const REGION_PALETTE = [
+    theme.colors.blue[5],
+    theme.colors.red[5],
+    theme.colors.green[5],
+    theme.colors.yellow[7],
+    theme.colors.indigo[5],
+    theme.colors.teal[5],
+    theme.colors.orange[5],
+    theme.colors.cyan[6],
+    theme.colors.pink[5],
+    theme.colors.lime[6],
+    theme.colors.violet[5],
+    theme.colors.grape[5],
+    theme.colors.blue[7],
+    theme.colors.red[7],
+    theme.colors.green[7],
+    theme.colors.indigo[7],
+    theme.colors.teal[7],
+    theme.colors.orange[7],
+    theme.colors.pink[7],
+    theme.colors.violet[7],
   ];
 
   const getRegionColor = (regionId: string) => {
     const regionIndex = regions.findIndex((r) => r.id === regionId);
     if (regionIndex === -1) {
-      const colorPath = REGION_COLORS[regions.length % REGION_COLORS.length];
-      return getThemeColor(colorPath);
+      return REGION_PALETTE[regions.length % REGION_PALETTE.length];
     }
-    const colorPath = REGION_COLORS[regionIndex % REGION_COLORS.length];
-    return getThemeColor(colorPath);
+    return REGION_PALETTE[regionIndex % REGION_PALETTE.length];
   };
 
   // Get extracted frame data if available
@@ -230,7 +233,7 @@ export function RegionSetupStep() {
     setPendingRoadType(null);
   };
 
-  const handleStageMouseMove = () => {
+  const handleStageMouseMove = (e: KonvaEventObject<MouseEvent>) => {
     const stage = stageRef.current;
     if (!stage) return;
 
@@ -240,7 +243,7 @@ export function RegionSetupStep() {
     }
 
     if (isDraggingRegion) {
-      handleStageMouseMoveForDrag(e);
+      handleStageMouseMoveForDrag();
     }
   };
 
@@ -254,7 +257,32 @@ export function RegionSetupStep() {
     const point = stage.getPointerPosition();
 
     if (point) {
-      setCurrentPoints([...currentPoints, { x: point.x, y: point.y }]);
+      if (isRectangleMode) {
+        // Rectangle mode for train detection
+        if (!isDrawingRect) {
+          // First click - start drawing rectangle
+          setRectangleStart(point);
+          setIsDrawingRect(true);
+        } else {
+          // Second click - finish rectangle
+          const minX = Math.min(rectangleStart!.x, point.x);
+          const minY = Math.min(rectangleStart!.y, point.y);
+          const maxX = Math.max(rectangleStart!.x, point.x);
+          const maxY = Math.max(rectangleStart!.y, point.y);
+          
+          setCurrentPoints([
+            { x: minX, y: minY },
+            { x: maxX, y: minY },
+            { x: maxX, y: maxY },
+            { x: minX, y: maxY },
+          ]);
+          setIsDrawingRect(false);
+          setRectangleStart(null);
+        }
+      } else {
+        // Polygon mode for other task types
+        setCurrentPoints([...currentPoints, { x: point.x, y: point.y }]);
+      }
     }
   };
 
@@ -271,10 +299,25 @@ export function RegionSetupStep() {
       return;
     }
 
+    // Validate region name
+    const trimmedName = regionName.trim();
+    if (!trimmedName) {
+      // Don't save without a name
+      return;
+    }
+
+    // Check for duplicate names
+    const isDuplicate = regions.some(
+      (r) => r.name.toLowerCase() === trimmedName.toLowerCase() && r.id !== editingRegion
+    );
+    if (isDuplicate) {
+      return;
+    }
+
     if (editingRegion) {
       const updatedRegion: Region = {
         id: editingRegion,
-        name: regionName || `Region ${regions.length + 1}`,
+        name: trimmedName,
         points: currentPoints,
         roadType: roadType,
       };
@@ -282,7 +325,7 @@ export function RegionSetupStep() {
     } else {
       const newRegion: Region = {
         id: uuidv4(),
-        name: regionName || `Region ${regions.length + 1}`,
+        name: trimmedName,
         points: currentPoints,
         roadType: roadType,
       };
@@ -311,9 +354,23 @@ export function RegionSetupStep() {
 
   const handleSaveEdit = () => {
     if (editingRegion && editablePoints.length >= 3) {
+      // Validate region name
+      const trimmedName = regionName.trim();
+      if (!trimmedName) {
+        return;
+      }
+
+      // Check for duplicate names
+      const isDuplicate = regions.some(
+        (r) => r.name.toLowerCase() === trimmedName.toLowerCase() && r.id !== editingRegion
+      );
+      if (isDuplicate) {
+        return;
+      }
+
       const updatedRegion: Region = {
         id: editingRegion,
-        name: regionName || `Region ${regions.length + 1}`,
+        name: trimmedName,
         points: editablePoints,
         roadType: roadType,
       };
@@ -469,35 +526,27 @@ export function RegionSetupStep() {
   };
 
   return (
-    <Box
-      style={{
-        backgroundColor:
-          colorScheme === "dark"
-            ? getThemeColor("gray.9")
-            : getThemeColor("gray.0"),
-        minHeight: "100vh",
-        padding: "0.5rem",
-      }}
-    >
+    <Paper withBorder p="md" radius="md" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Compact Header */}
-      <Box px="md" pb="sm">
+      <Box pb="sm" style={{ flexShrink: 0 }}>
         <Group justify="space-between" align="center">
           <Group gap="sm">
             <IconPolygon
               size={20}
-              color={getThemeColor(`${mantineTheme.primaryColor}.6`)}
+              color={theme.colors[mantineTheme.primaryColor][6]}
             />
             <Title order={4}>{t("recipes:creation.regionSetup.title")}</Title>
             <Badge
               size="sm"
               variant={colorScheme === "dark" ? "filled" : "light"}
             >
-              {regions.length} regions • {connections.length} connections
+              {regions.length} regions{!isRectangleMode && ` • ${connections.length} connections`}
             </Badge>
           </Group>
 
-          {/* Road Type Selector Button */}
-          <Button
+          {/* Road Type Selector Button - hide for train detection */}
+          {!isRectangleMode && (
+            <Button
             variant="subtle"
             size="sm"
             rightSection={
@@ -517,12 +566,14 @@ export function RegionSetupStep() {
                 {roadTypeOptions.find((opt) => opt.value === roadType)?.label}
               </Text>
             </Group>
-          </Button>
+            </Button>
+          )}
         </Group>
       </Box>
 
-      {/* Collapsible Road Type Selector */}
-      <Collapse in={roadTypeSelectorOpened}>
+      {/* Collapsible Road Type Selector - hide for train detection */}
+      {!isRectangleMode && (
+        <Collapse in={roadTypeSelectorOpened}>
         <Box px="md" pb="md">
           <Card
             withBorder
@@ -530,7 +581,7 @@ export function RegionSetupStep() {
             radius="md"
             style={{
               backgroundColor:
-                colorScheme === "dark" ? getThemeColor("gray.8") : "white",
+                colorScheme === "dark" ? theme.colors.gray[8] : "white",
             }}
           >
             <SimpleGrid cols={{ base: 3 }} spacing="sm">
@@ -539,22 +590,40 @@ export function RegionSetupStep() {
                   key={option.value}
                   p="sm"
                   style={{
-                    border: `2px solid ${roadType === option.value ? getThemeColor(`${mantineTheme.primaryColor}.5`) : getThemeColor("ui.border")}`,
-                    borderRadius: getThemeColor("ui.borderRadius"),
+                    border: `2px solid ${roadType === option.value ? theme.colors[mantineTheme.primaryColor][5] : theme.colors.gray[colorScheme === "dark" ? 7 : 2]}`,
+                    borderRadius: mantineTheme.radius.md,
                     backgroundColor:
                       roadType === option.value
                         ? colorScheme === "dark"
-                          ? `${getThemeColor(`${mantineTheme.primaryColor}.8`)}40`
-                          : `${getThemeColor(`${mantineTheme.primaryColor}.5`)}15`
-                        : "transparent",
+                          ? `${theme.colors[mantineTheme.primaryColor][8]}40`
+                          : `${theme.colors[mantineTheme.primaryColor][0]}50`
+                        : colorScheme === "dark"
+                        ? theme.colors.gray[8]
+                        : theme.colors.gray[0],
                     transition: "all 0.2s ease",
                   }}
                   onClick={() => handleRoadTypeChange(option.value)}
+                  onMouseEnter={(e) => {
+                    if (roadType !== option.value) {
+                      e.currentTarget.style.backgroundColor = colorScheme === "dark"
+                        ? theme.colors.gray[7]
+                        : theme.colors.gray[1];
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (roadType !== option.value) {
+                      e.currentTarget.style.backgroundColor = colorScheme === "dark"
+                        ? theme.colors.gray[8]
+                        : theme.colors.gray[0];
+                    }
+                  }}
                 >
                   <Center>
                     <Stack gap="xs" align="center">
-                      <RoadTypeIcon type={option.value} size={60} />
-                      <Text size="xs" fw={500}>
+                      <Box style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 60 }}>
+                        <RoadTypeIcon type={option.value} size={50} />
+                      </Box>
+                      <Text size="sm" fw={roadType === option.value ? 600 : 500}>
                         {option.label}
                       </Text>
                     </Stack>
@@ -564,16 +633,14 @@ export function RegionSetupStep() {
             </SimpleGrid>
           </Card>
         </Box>
-      </Collapse>
+        </Collapse>
+      )}
 
       {/* Main Content - Side by side layout */}
-      <Flex
-        gap="md"
-        px="md"
-        style={{
-          height: `calc(100vh - ${roadTypeSelectorOpened ? "200px" : "80px"})`,
-        }}
-      >
+        <Flex
+          gap="md"
+          style={{ flex: 1 }}
+        >
         {/* Left Panel - Canvas */}
         <Box style={{ flex: 1, minWidth: 0 }}>
           <Card
@@ -582,11 +649,13 @@ export function RegionSetupStep() {
             radius="md"
             style={{
               backgroundColor:
-                colorScheme === "dark" ? getThemeColor("gray.8") : "white",
-              height: "100%",
+                colorScheme === "dark" ? theme.colors.gray[8] : "white",
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: 450,
             }}
           >
-            <Stack gap="sm" style={{ height: "100%" }}>
+            <Stack gap="sm" style={{ flex: 1 }}>
               {/* Canvas Header */}
               <Group justify="space-between" align="center">
                 <Text size="sm" fw={500}>
@@ -614,7 +683,14 @@ export function RegionSetupStep() {
                         Cancel
                       </Button>
                       <Button
-                        disabled={currentPoints.length < 3}
+                        disabled={
+                          currentPoints.length < 3 ||
+                          regionName.trim() === "" ||
+                          regions.some(
+                            (r) =>
+                              r.name.toLowerCase() === regionName.trim().toLowerCase()
+                          )
+                        }
                         onClick={handleSaveRegion}
                         size="xs"
                       >
@@ -643,17 +719,16 @@ export function RegionSetupStep() {
               {/* Canvas */}
               <Box
                 style={{
-                  flex: 1,
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
                   backgroundColor:
                     colorScheme === "dark"
-                      ? getThemeColor("gray.9")
-                      : getThemeColor("gray.1"),
-                  borderRadius: getThemeColor("ui.borderRadius"),
+                      ? theme.colors.gray[9]
+                      : theme.colors.gray[1],
+                  borderRadius: mantineTheme.radius.md,
                   position: "relative",
-                  minHeight: "400px",
+                  height: STAGE_HEIGHT,
                   overflow: "hidden",
                 }}
               >
@@ -667,9 +742,9 @@ export function RegionSetupStep() {
                   style={{
                     backgroundColor:
                       colorScheme === "dark"
-                        ? getThemeColor("gray.9")
+                        ? theme.colors.gray[9]
                         : "white",
-                    borderRadius: getThemeColor("ui.borderRadius"),
+                    borderRadius: mantineTheme.radius.md,
                   }}
                 >
                   <Layer>
@@ -687,7 +762,7 @@ export function RegionSetupStep() {
                         height={videoSize.height}
                         fill={
                           colorScheme === "dark"
-                            ? getThemeColor("gray.8")
+                            ? theme.colors.gray[8]
                             : "white"
                         }
                       />
@@ -744,8 +819,8 @@ export function RegionSetupStep() {
                             ]}
                             stroke={
                               isHovered
-                                ? getThemeColor("green.5")
-                                : getThemeColor("green.7")
+                                ? theme.colors.green[5]
+                                : theme.colors.green[7]
                             }
                             strokeWidth={isHovered ? 3 : 2}
                             opacity={0.6}
@@ -767,8 +842,8 @@ export function RegionSetupStep() {
                             ]}
                             stroke={
                               isHovered
-                                ? getThemeColor("green.5")
-                                : getThemeColor("green.7")
+                                ? theme.colors.green[5]
+                                : theme.colors.green[7]
                             }
                             strokeWidth={isHovered ? 3 : 2}
                             lineCap="round"
@@ -812,7 +887,7 @@ export function RegionSetupStep() {
                                 radius={POINT_RADIUS}
                                 fill={
                                   colorScheme === "dark"
-                                    ? getThemeColor("gray.4")
+                                    ? theme.colors.gray[4]
                                     : "white"
                                 }
                                 stroke={regionColor}
@@ -857,7 +932,7 @@ export function RegionSetupStep() {
                             radius={POINT_HOVER_RADIUS}
                             fill={
                               colorScheme === "dark"
-                                ? getThemeColor("gray.4")
+                                ? theme.colors.gray[4]
                                 : "white"
                             }
                             stroke={getRegionColor(editingRegion)}
@@ -897,8 +972,8 @@ export function RegionSetupStep() {
                           strokeWidth={STROKE_WIDTH}
                           strokeDasharray={[8, 4]}
                         />
-                        {/* Draw points for current region */}
-                        {currentPoints.map((point, i) => (
+                        {/* Draw points for current region (not in rectangle mode) */}
+                        {!isRectangleMode && currentPoints.map((point, i) => (
                           <Circle
                             key={i}
                             x={point.x}
@@ -906,7 +981,7 @@ export function RegionSetupStep() {
                             radius={POINT_RADIUS}
                             fill={
                               colorScheme === "dark"
-                                ? getThemeColor("gray.4")
+                                ? theme.colors.gray[4]
                                 : "white"
                             }
                             stroke={getRegionColor("new-region")}
@@ -914,6 +989,20 @@ export function RegionSetupStep() {
                           />
                         ))}
                       </>
+                    )}
+
+                    {/* Draw rectangle preview when in rectangle mode */}
+                    {isRectangleMode && isDrawingRect && rectangleStart && mousePos && (
+                      <Rect
+                        x={Math.min(rectangleStart.x, mousePos.x)}
+                        y={Math.min(rectangleStart.y, mousePos.y)}
+                        width={Math.abs(mousePos.x - rectangleStart.x)}
+                        height={Math.abs(mousePos.y - rectangleStart.y)}
+                        fill={getRegionColor("new-region") + "25"}
+                        stroke={getRegionColor("new-region")}
+                        strokeWidth={STROKE_WIDTH}
+                        strokeDasharray={[8, 4]}
+                      />
                     )}
                   </Layer>
                 </Stage>
@@ -927,11 +1016,11 @@ export function RegionSetupStep() {
                       top: mousePos.y - 10,
                       backgroundColor:
                         colorScheme === "dark"
-                          ? getThemeColor("gray.9") + "cc"
-                          : getThemeColor("gray.7") + "cc",
+                          ? theme.colors.gray[9] + "cc"
+                          : theme.colors.gray[7] + "cc",
                       color: "white",
                       padding: "4px 8px",
-                      borderRadius: getThemeColor("ui.borderRadius"),
+                      borderRadius: mantineTheme.radius.md,
                       fontSize: "12px",
                       fontWeight: 500,
                       pointerEvents: "none",
@@ -951,22 +1040,24 @@ export function RegionSetupStep() {
                   style={{
                     backgroundColor:
                       colorScheme === "dark"
-                        ? getThemeColor("gray.9")
-                        : getThemeColor("gray.0"),
-                    borderRadius: getThemeColor("ui.borderRadius"),
+                        ? theme.colors.gray[9]
+                        : theme.colors.gray[0],
+                    borderRadius: mantineTheme.radius.md,
                   }}
                 >
                   <Group gap="xs">
                     <IconInfoCircle
                       size={14}
-                      color={getThemeColor(`${mantineTheme.primaryColor}.5`)}
+                      color={theme.colors[mantineTheme.primaryColor][5]}
                     />
                     <Text
                       size="xs"
                       c={colorScheme === "dark" ? "gray.4" : "gray.6"}
                     >
                       {isDrawing
-                        ? "Click to add points (min 3)"
+                        ? isRectangleMode 
+                          ? "Click to set rectangle corners" 
+                          : "Click to add points (min 3)"
                         : "Drag region to move, drag points to adjust"}
                     </Text>
                   </Group>
@@ -987,7 +1078,7 @@ export function RegionSetupStep() {
               mb="sm"
               style={{
                 backgroundColor:
-                  colorScheme === "dark" ? getThemeColor("gray.8") : "white",
+                  colorScheme === "dark" ? theme.colors.gray[8] : "white",
               }}
             >
               <Stack gap="sm">
@@ -995,8 +1086,20 @@ export function RegionSetupStep() {
                   label="Region Name"
                   value={regionName}
                   onChange={(e) => setRegionName(e.currentTarget.value)}
-                  placeholder={`Region ${regions.length + 1}`}
+                  placeholder="Enter region name"
                   size="sm"
+                  required
+                  error={
+                    regionName.trim() === ""
+                      ? "Region name is required"
+                      : regions.some(
+                          (r) =>
+                            r.name.toLowerCase() === regionName.trim().toLowerCase() &&
+                            r.id !== editingRegion
+                        )
+                      ? "Region name already exists"
+                      : null
+                  }
                 />
                 <Group justify="space-between">
                   <Text size="xs" c="dimmed">
@@ -1025,8 +1128,11 @@ export function RegionSetupStep() {
             radius="md"
             style={{
               backgroundColor:
-                colorScheme === "dark" ? getThemeColor("gray.8") : "white",
-              height: `calc(100% - ${isDrawing || isEditMode ? "120px" : "0px"})`,
+                colorScheme === "dark" ? theme.colors.gray[8] : "white",
+              display: "flex",
+              flexDirection: "column",
+              minHeight: isDrawing || isEditMode ? 350 : 450,
+              maxHeight: '70vh',
             }}
           >
             <Tabs
@@ -1045,16 +1151,18 @@ export function RegionSetupStep() {
                 >
                   Regions
                 </Tabs.Tab>
-                <Tabs.Tab
-                  value="connections"
-                  leftSection={
-                    <Badge size="xs" variant="filled" color="green">
-                      {connections.length}
-                    </Badge>
-                  }
-                >
-                  Connections
-                </Tabs.Tab>
+                {!isRectangleMode && (
+                  <Tabs.Tab
+                    value="connections"
+                    leftSection={
+                      <Badge size="xs" variant="filled" color="green">
+                        {connections.length}
+                      </Badge>
+                    }
+                  >
+                    Connections
+                  </Tabs.Tab>
+                )}
               </Tabs.List>
 
               <Tabs.Panel
@@ -1062,7 +1170,7 @@ export function RegionSetupStep() {
                 pt="sm"
                 style={{ height: "calc(100% - 40px)" }}
               >
-                <ScrollArea style={{ height: "100%" }}>
+                <ScrollArea style={{ height: "100%" }} scrollbarSize={8} type="scroll">
                   {regions.length === 0 ? (
                     <Center p="xl">
                       <Stack align="center" gap="xs">
@@ -1142,11 +1250,12 @@ export function RegionSetupStep() {
                 </ScrollArea>
               </Tabs.Panel>
 
-              <Tabs.Panel
-                value="connections"
-                pt="sm"
-                style={{ height: "calc(100% - 40px)" }}
-              >
+              {!isRectangleMode && (
+                <Tabs.Panel
+                  value="connections"
+                  pt="sm"
+                  style={{ height: "calc(100% - 40px)" }}
+                >
                 <Stack gap="sm" style={{ height: "100%" }}>
                   {/* Connection creator */}
                   {regions.length >= 2 && (
@@ -1157,8 +1266,8 @@ export function RegionSetupStep() {
                       style={{
                         backgroundColor:
                           colorScheme === "dark"
-                            ? getThemeColor("gray.9")
-                            : getThemeColor("gray.0"),
+                            ? theme.colors.gray[9]
+                            : theme.colors.gray[0],
                       }}
                     >
                       <Stack gap="xs">
@@ -1185,7 +1294,7 @@ export function RegionSetupStep() {
                           />
                           <IconArrowRight
                             size={14}
-                            color={getThemeColor("green.5")}
+                            color={theme.colors.green[5]}
                           />
                           <Select
                             placeholder="To"
@@ -1213,7 +1322,7 @@ export function RegionSetupStep() {
                     </Card>
                   )}
 
-                  <ScrollArea style={{ flex: 1 }}>
+                  <ScrollArea style={{ flex: 1 }} scrollbarSize={8} type="scroll">
                     {connections.length === 0 ? (
                       <Center p="xl">
                         <Stack align="center" gap="xs">
@@ -1246,13 +1355,13 @@ export function RegionSetupStep() {
                               style={{
                                 borderColor:
                                   hoveredConnection === conn.id
-                                    ? getThemeColor("green.5")
+                                    ? theme.colors.green[5]
                                     : undefined,
                                 backgroundColor:
                                   hoveredConnection === conn.id
                                     ? colorScheme === "dark"
-                                      ? getThemeColor("green.9") + "20"
-                                      : getThemeColor("green.0")
+                                      ? theme.colors.green[9] + "20"
+                                      : theme.colors.green[0]
                                     : undefined,
                                 transition: "all 0.2s ease",
                               }}
@@ -1274,7 +1383,7 @@ export function RegionSetupStep() {
                                   </Text>
                                   <IconArrowRight
                                     size={12}
-                                    color={getThemeColor("green.5")}
+                                    color={theme.colors.green[5]}
                                   />
                                   <Box
                                     style={{
@@ -1314,7 +1423,8 @@ export function RegionSetupStep() {
                     )}
                   </ScrollArea>
                 </Stack>
-              </Tabs.Panel>
+                </Tabs.Panel>
+              )}
             </Tabs>
           </Card>
         </Box>
@@ -1382,6 +1492,6 @@ export function RegionSetupStep() {
           </Group>
         </Stack>
       </Modal>
-    </Box>
+    </Paper>
   );
 }

@@ -247,13 +247,13 @@ export function RecipesTable({
   // Show table with data
   return (
     <Paper withBorder p="md">
-      <Group justify="space-between" mb="md">
-        <Title order={3}>{t("recipes:table.title")}</Title>
+      <Group justify="flex-end" mb="md">
         <Input
-          placeholder={t("recipes:table.search")}
+          placeholder={t("common:action.search")}
           value={globalFilter ?? ""}
           onChange={(e) => setGlobalFilter(e.target.value)}
-          leftSection={<Icons.Search size="xs" />}
+          leftSection={<Icons.Search size={16} />}
+          style={{ maxWidth: 300 }}
         />
       </Group>
 

@@ -1,0 +1,101 @@
+{
+  "title": "License Management",
+  "description": "Manage system licenses",
+  
+  "status": {
+    "active": "Active",
+    "expired": "Expired",
+    "invalid": "Invalid"
+  },
+  
+  "form": {
+    "name": "License Name",
+    "namePlaceholder": "Enter license name",
+    "licenseFile": "License File",
+    "setAsDefault": "Set as Default License",
+    "setAsDefaultDescription": "Use this license as the system default",
+    "uploadLicense": "Upload License"
+  },
+  
+  "upload": {
+    "dragDrop": "Drag and drop license file here",
+    "acceptedFormats": "Accepted formats: .rsa, .pem, .key, .lic (max 5MB)",
+    "or": "or",
+    "browse": "Browse Files",
+    "setupProgress": "Setup Progress",
+    "licenseName": "License Name",
+    "licenseFile": "License File",
+    "licenseInformation": "License Information",
+    "licenseInformationDescription": "Enter a descriptive name for this license and configure its settings",
+    "uploadLicenseFile": "Upload License File",
+    "uploadDescription": "Select or drag a valid license file to upload",
+    "infoMessage": "The license file will be validated upon upload. Make sure it's a valid license file from your vendor."
+  },
+  
+  "table": {
+    "title": "License List",
+    "name": "Name",
+    "fileName": "File Name",
+    "fileSize": "Size",
+    "status": "Status",
+    "uploadedBy": "Uploaded By",
+    "uploadedAt": "Uploaded",
+    "expiresAt": "Expires",
+    "default": "Default",
+    "actions": "Actions",
+    "noExpiry": "No Expiry",
+    "defaultLicense": "Default License",
+    "setAsDefault": "Set as default"
+  },
+  
+  "createDialog": {
+    "title": "Upload New License",
+    "description": "Upload a new license file to the system"
+  },
+  
+  "detail": {
+    "title": "License Details",
+    "notFound": "License not found",
+    "licenseInfo": "License Information",
+    "name": "License Name",
+    "fileName": "File Name",
+    "fileSize": "File Size",
+    "uploadedBy": "Uploaded By",
+    "uploadedAt": "Upload Date",
+    "expiresAt": "Expiration Date",
+    "timeline": "Timeline",
+    "lastChecked": "Last Checked",
+    "uploaded": "Uploaded",
+    "uploadedByUser": "by {{user}}"
+  },
+  
+  "edit": {
+    "title": "Edit License",
+    "notFound": "License not found",
+    "notFoundDescription": "The license you are looking for does not exist.",
+    "licenseSettings": "License Settings",
+    "licenseSettingsDescription": "Modify license name and default status",
+    "nameDescription": "A descriptive name for this license",
+    "defaultLicense": "Default License",
+    "defaultLicenseDescription": "Use this license as the system default",
+    "warningTitle": "Important",
+    "warningMessage": "Setting a license as default will remove the default status from other licenses."
+  },
+  
+  "noLicenses": "No licenses found",
+  "page": {
+    "title": "License Management",
+    "description": "Manage and upload system licenses"
+  },
+  
+  "actions": {
+    "download": "Download",
+    "delete": "Delete",
+    "setAsDefault": "Set as Default"
+  },
+  
+  "delete": {
+    "title": "Delete License",
+    "message": "Are you sure you want to delete the license \"{{name}}\"? This action cannot be undone."
+  }
+}

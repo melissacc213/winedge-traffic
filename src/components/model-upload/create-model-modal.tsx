@@ -29,7 +29,7 @@ import {
   IconEdit,
   IconCloudUpload,
 } from "@tabler/icons-react";
-import { useModelStore } from "../../lib/store/model-store";
+import { useCreateModel } from "../../lib/queries/model";
 import { notifications } from "@mantine/notifications";
 import type { FileWithPath } from "@mantine/dropzone";
 
@@ -68,12 +68,10 @@ export function CreateModelModal({ opened, onClose }: CreateModelModalProps) {
   const { t } = useTranslation(["models", "common"]);
   const mantineTheme = useMantineTheme();
   const { theme, colorScheme } = useTheme();
-  const { addModel } = useModelStore();
+  const createModelMutation = useCreateModel();
   
   const [modelFile, setModelFile] = useState<FileWithPath | null>(null);
   const [modelName, setModelName] = useState("");
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [parameters, setParameters] = useState<ModelParameter[]>([
     { id: "1", key: "confidence", name: "Confidence", nameZh: "信心值", value: "0.8" },
     { id: "2", key: "width_threshold", name: "Width Threshold", nameZh: "寬度門檻值", value: "100" },
@@ -106,8 +104,6 @@ export function CreateModelModal({ opened, onClose }: CreateModelModalProps) {
     if (!opened) {
       setModelFile(null);
       setModelName("");
-      setIsUploading(false);
-      setUploadProgress(0);
       setParameters([]);
     }
   }, [opened]);
@@ -167,7 +163,7 @@ export function CreateModelModal({ opened, onClose }: CreateModelModalProps) {
     setEditValue("");
   };
   
-  const handleCreateModel = () => {
+  const handleCreateModel = async () => {
     if (!modelFile) {
       notifications.show({
         title: t("models:notification.upload_error"),
@@ -177,56 +173,46 @@ export function CreateModelModal({ opened, onClose }: CreateModelModalProps) {
       return;
     }
     
-    // Simulate upload progress
-    setIsUploading(true);
-    const interval = setInterval(() => {
-      setUploadProgress(prev => {
-        const newProgress = prev + Math.random() * 10;
-        return newProgress >= 100 ? 100 : newProgress;
-      });
-    }, 200);
+    // Create model object with parameters
+    const modelParams: Record<string, string> = {};
+    parameters.forEach(param => {
+      modelParams[param.key] = param.value;
+    });
     
-    // Simulate upload completion
-    setTimeout(() => {
-      clearInterval(interval);
-      setUploadProgress(100);
-      
-      // Create model object with parameters
-      const modelParams: Record<string, string> = {};
-      parameters.forEach(param => {
-        modelParams[param.key] = param.value;
-      });
-      
-      const newModel = {
-        id: `model_${Date.now()}`,
-        name: modelName || modelFile.name.split('.')[0],
-        type: modelFile.name.split('.').pop() || "unknown",
-        size: modelFile.size,
-        status: "active" as const,
-        createdAt: new Date().toISOString(),
-        description: "Custom model with parameters",
-        parameters: modelParams,
-      };
-      
-      // Add model to store
-      addModel(newModel);
+    const modelData = {
+      name: modelName || modelFile.name.split('.')[0],
+      type: modelFile.name.split('.').pop() || "unknown",
+      size: modelFile.size,
+      description: "Custom model with parameters",
+      parameters: modelParams,
+    };
+    
+    try {
+      // Call the mutation
+      await createModelMutation.mutateAsync(modelData);
       
       // Show success notification
       notifications.show({
         title: t("models:notification.upload_success"),
         message: t("models:notification.upload_success_message", {
-          name: newModel.name,
+          name: modelData.name,
         }),
         color: "green",
       });
       
-      // Close modal
-      setTimeout(() => {
-        setIsUploading(false);
-        setUploadProgress(0);
-        onClose();
-      }, 1000);
-    }, 3000);
+      // Reset form and close modal
+      setModelFile(null);
+      setModelName("");
+      setParameters([]);
+      onClose();
+    } catch (error) {
+      // Show error notification
+      notifications.show({
+        title: t("models:notification.upload_error"),
+        message: error instanceof Error ? error.message : t("models:notification.upload_failed"),
+        color: "red",
+      });
+    }
   };
   
   return (
@@ -272,7 +258,7 @@ export function CreateModelModal({ opened, onClose }: CreateModelModalProps) {
                 ],
                 "application/x-zip-compressed": [".zip"],
               }}
-              disabled={isUploading}
+              disabled={createModelMutation.isPending}
               p="lg"
               h={200}
               style={{
@@ -318,7 +304,7 @@ export function CreateModelModal({ opened, onClose }: CreateModelModalProps) {
                     setParameters([]);
                   }}
                   variant="subtle"
-                  disabled={isUploading}
+                  disabled={createModelMutation.isPending}
                 >
                   <IconX size={18} />
                 </ActionIcon>
@@ -336,7 +322,7 @@ export function CreateModelModal({ opened, onClose }: CreateModelModalProps) {
             placeholder={t("models:create.model_name_placeholder")}
             value={modelName}
             onChange={(e) => setModelName(e.currentTarget.value)}
-            disabled={isUploading}
+            disabled={createModelMutation.isPending}
             required
             styles={{
               input: {
@@ -410,7 +396,7 @@ export function CreateModelModal({ opened, onClose }: CreateModelModalProps) {
                           color={mantineTheme.primaryColor}
                           size="sm" 
                           onClick={() => handleEditParameter(param.id, param.value)}
-                          disabled={isUploading}
+                          disabled={createModelMutation.isPending}
                         >
                           <IconEdit size={16} />
                         </ActionIcon>
@@ -429,7 +415,7 @@ export function CreateModelModal({ opened, onClose }: CreateModelModalProps) {
           <Button 
             variant="outline" 
             onClick={onClose} 
-            disabled={isUploading}
+            disabled={createModelMutation.isPending}
             styles={{
               root: {
                 border: `1px solid ${getThemeColor('gray.2')}`,
@@ -441,7 +427,7 @@ export function CreateModelModal({ opened, onClose }: CreateModelModalProps) {
           </Button>
           <Button 
             onClick={handleCreateModel}
-            loading={isUploading} 
+            loading={createModelMutation.isPending} 
             disabled={!modelFile || modelName.trim() === ""}
             styles={{
               root: {
@@ -449,8 +435,8 @@ export function CreateModelModal({ opened, onClose }: CreateModelModalProps) {
               }
             }}
           >
-            {isUploading ? 
-              `${Math.round(uploadProgress)}% ${t("models:create.uploading")}` : 
+            {createModelMutation.isPending ? 
+              t("models:create.uploading") : 
               t("models:create.create_model")
             }
           </Button>

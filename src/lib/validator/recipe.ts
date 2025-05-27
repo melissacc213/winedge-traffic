@@ -102,10 +102,7 @@ export function createRecipeValidationSchema(t: TFunction) {
     classFilter: z.array(z.string()).optional(),
 
     // Recipe Information
-    name: z
-      .string()
-      .min(3, { message: t("recipes:validation.nameLength") })
-      .max(50, { message: t("recipes:validation.nameLength") }),
+    name: z.string(),
     description: z.string().optional(),
   });
 }

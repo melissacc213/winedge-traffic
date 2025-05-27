@@ -21,7 +21,9 @@
     "play": "Play",
     "pause": "Pause",
     "capture": "Capture",
-    "next": "Next"
+    "next": "Next",
+    "remove": "Remove",
+    "view": "View"
   },
   "action": {
     "search": "Search...",
@@ -33,6 +35,8 @@
     "cancel": "Cancel",
     "view": "View"
   },
+  "of": "of",
+  "stepsCompleted": "steps completed",
   "pagination": {
     "showing": "Showing",
     "of": "of",

@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import '@mantine/core/styles.css'; // Import Mantine styles
 import { Notifications } from '@mantine/notifications';
 import '@mantine/notifications/styles.css'; // Import Notifications styles
+import { ModalsProvider } from '@mantine/modals';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import '@/lib/i18n';
 import { RouterProvider } from '@/providers/router-provider';
@@ -39,8 +40,10 @@ function MantineWrapper() {
   return (
     <>
       <Notifications position="top-right" />
-      <ModalProvider />
-      <RouterProvider />
+      <ModalsProvider>
+        <ModalProvider />
+        <RouterProvider />
+      </ModalsProvider>
     </>
   );
 }

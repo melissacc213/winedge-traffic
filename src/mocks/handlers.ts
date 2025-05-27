@@ -1,6 +1,8 @@
 // Mock handlers for API endpoints
+import { getMockUsers, getMockUser, createMockUser, updateMockUser, deleteMockUser } from './data/users';
+import { getMockLicenses, getMockLicense, uploadMockLicense, updateMockLicense, deleteMockLicense } from './data/licenses';
 
-// Mock user data
+// Mock user data for authentication
 const mockUsers = [
   {
     id: "1",
@@ -35,6 +37,33 @@ function generateToken() {
   );
 }
 
+// Helper function to simulate network delay
+function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Helper function to parse URL search params
+function parseSearchParams(url: string) {
+  const urlObj = new URL(url);
+  const params: Record<string, string> = {};
+  urlObj.searchParams.forEach((value, key) => {
+    params[key] = value;
+  });
+  return params;
+}
+
+// Helper function to check authorization
+function checkAuth(headers: Headers | Record<string, string>): string | null {
+  const authHeader = headers instanceof Headers 
+    ? headers.get("Authorization")
+    : headers["Authorization"] || headers["authorization"];
+  
+  if (!authHeader) return null;
+  
+  const token = authHeader.replace("Token ", "");
+  return activeTokens.get(token) || null;
+}
+
 export async function setupMocks() {
   // Mock the login endpoint
   const originalFetch = window.fetch;
@@ -48,6 +77,7 @@ export async function setupMocks() {
 
     // Handle login API
     if (url.includes("/api/v1/auth/login") && init?.method === "POST") {
+      await delay(300);
       const body = JSON.parse(init.body as string);
       const { email, password } = body;
 
@@ -73,6 +103,7 @@ export async function setupMocks() {
 
     // Handle self endpoint
     if (url.includes("/api/v1/users/self") && init?.headers) {
+      await delay(200);
       const headers =
         (init.headers as Headers) ||
         new Headers(init.headers as Record<string, string>);
@@ -107,6 +138,7 @@ export async function setupMocks() {
       init?.method === "POST" &&
       init?.headers
     ) {
+      await delay(100);
       const headers =
         (init.headers as Headers) ||
         new Headers(init.headers as Record<string, string>);
@@ -118,6 +150,303 @@ export async function setupMocks() {
       }
 
       return new Response(null, { status: 200 });
+    }
+
+    // ===== USER MANAGEMENT ENDPOINTS =====
+    
+    // Get users list
+    if (url.includes("/api/v1/user") && !url.match(/\/user\/\d+/) && init?.method === "GET") {
+      await delay(500);
+      const userId = checkAuth(init.headers as any);
+      if (!userId) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      const params = parseSearchParams(url);
+      const page = parseInt(params.page || "1");
+      const size = parseInt(params.size || "10");
+      
+      const result = getMockUsers(page, size);
+      return new Response(JSON.stringify(result), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Get single user
+    if (url.match(/\/api\/v1\/user\/(\d+)$/) && init?.method === "GET") {
+      await delay(300);
+      const userId = checkAuth(init.headers as any);
+      if (!userId) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      const match = url.match(/\/user\/(\d+)$/);
+      const id = parseInt(match![1]);
+      const user = getMockUser(id);
+      
+      if (!user) {
+        return new Response(JSON.stringify({ error: "User not found" }), {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify(user), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Create user
+    if (url.includes("/api/v1/user") && init?.method === "POST") {
+      await delay(800);
+      const userId = checkAuth(init.headers as any);
+      if (!userId) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      try {
+        const body = JSON.parse(init.body as string);
+        const newUser = createMockUser(body);
+        return new Response(JSON.stringify(newUser), {
+          status: 201,
+          headers: { "Content-Type": "application/json" },
+        });
+      } catch (error) {
+        return new Response(JSON.stringify({ error: "Invalid request data" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // Update user
+    if (url.match(/\/api\/v1\/user\/(\d+)$/) && init?.method === "PATCH") {
+      await delay(600);
+      const userId = checkAuth(init.headers as any);
+      if (!userId) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      const match = url.match(/\/user\/(\d+)$/);
+      const id = parseInt(match![1]);
+      
+      try {
+        const body = JSON.parse(init.body as string);
+        const updatedUser = updateMockUser(id, body);
+        
+        if (!updatedUser) {
+          return new Response(JSON.stringify({ error: "User not found" }), {
+            status: 404,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
+        return new Response(JSON.stringify(updatedUser), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      } catch (error) {
+        return new Response(JSON.stringify({ error: "Invalid request data" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // Delete user
+    if (url.match(/\/api\/v1\/user\/(\d+)$/) && init?.method === "DELETE") {
+      await delay(500);
+      const userId = checkAuth(init.headers as any);
+      if (!userId) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      const match = url.match(/\/user\/(\d+)$/);
+      const id = parseInt(match![1]);
+      const success = deleteMockUser(id);
+      
+      if (!success) {
+        return new Response(JSON.stringify({ error: "User not found" }), {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(null, { status: 204 });
+    }
+
+    // ===== LICENSE MANAGEMENT ENDPOINTS =====
+    
+    // Get licenses list
+    if (url.includes("/api/v1/license") && !url.match(/\/license\/\d+/) && init?.method === "GET") {
+      await delay(500);
+      const userId = checkAuth(init.headers as any);
+      if (!userId) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      const params = parseSearchParams(url);
+      const page = parseInt(params.page || "1");
+      const size = parseInt(params.size || "10");
+      
+      const result = getMockLicenses(page, size);
+      return new Response(JSON.stringify(result), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Get single license
+    if (url.match(/\/api\/v1\/license\/(\d+)$/) && init?.method === "GET") {
+      await delay(300);
+      const userId = checkAuth(init.headers as any);
+      if (!userId) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      const match = url.match(/\/license\/(\d+)$/);
+      const id = parseInt(match![1]);
+      const license = getMockLicense(id);
+      
+      if (!license) {
+        return new Response(JSON.stringify({ error: "License not found" }), {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify(license), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Upload license (multipart form data)
+    if (url.includes("/api/v1/license") && init?.method === "POST") {
+      await delay(1000);
+      const userId = checkAuth(init.headers as any);
+      if (!userId) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      try {
+        // For multipart form data, we'll simulate parsing
+        const formData = init.body as FormData;
+        const name = formData.get('name') as string;
+        const file = formData.get('file') as File;
+        const is_default = formData.get('is_default') === 'true';
+
+        if (!name || !file) {
+          return new Response(JSON.stringify({ error: "Name and file are required" }), {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
+        const newLicense = uploadMockLicense({
+          name,
+          is_default,
+          file,
+        });
+
+        return new Response(JSON.stringify(newLicense), {
+          status: 201,
+          headers: { "Content-Type": "application/json" },
+        });
+      } catch (error) {
+        return new Response(JSON.stringify({ error: "Invalid request data" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // Update license
+    if (url.match(/\/api\/v1\/license\/(\d+)$/) && init?.method === "PATCH") {
+      await delay(600);
+      const userId = checkAuth(init.headers as any);
+      if (!userId) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      const match = url.match(/\/license\/(\d+)$/);
+      const id = parseInt(match![1]);
+      
+      try {
+        const body = JSON.parse(init.body as string);
+        const updatedLicense = updateMockLicense(id, body);
+        
+        if (!updatedLicense) {
+          return new Response(JSON.stringify({ error: "License not found" }), {
+            status: 404,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
+        return new Response(JSON.stringify(updatedLicense), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      } catch (error) {
+        return new Response(JSON.stringify({ error: "Invalid request data" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // Delete license
+    if (url.match(/\/api\/v1\/license\/(\d+)$/) && init?.method === "DELETE") {
+      await delay(500);
+      const userId = checkAuth(init.headers as any);
+      if (!userId) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      const match = url.match(/\/license\/(\d+)$/);
+      const id = parseInt(match![1]);
+      const success = deleteMockLicense(id);
+      
+      if (!success) {
+        return new Response(JSON.stringify({ error: "License not found" }), {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(null, { status: 204 });
     }
 
     // Pass through all other requests

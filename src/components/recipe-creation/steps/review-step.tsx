@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Stack,
   Text,
@@ -7,248 +7,317 @@ import {
   Paper,
   TextInput,
   Textarea,
-  Table,
   Badge,
   Divider,
   Alert,
   Box,
   Image,
+  SimpleGrid,
+  ThemeIcon,
+  List,
+  ColorSwatch,
+  Progress,
+  Title,
+  Card,
+  ScrollArea,
 } from "@mantine/core";
-import { IconAlertCircle } from "@tabler/icons-react";
+import { 
+  IconAlertCircle, 
+  IconVideo, 
+  IconBrain, 
+  IconMapPin,
+  IconCheck,
+  IconTag,
+  IconSettings,
+  IconFileDescription
+} from "@tabler/icons-react";
 import { useRecipeStore } from "../../../lib/store/recipe-store";
 import { useCreateRecipe } from "../../../lib/queries/recipe";
-import { MOCK_CLASS_CATEGORIES } from "../../../lib/queries/recipe";
+import { useModels } from "../../../lib/queries/model";
 
 export function ReviewStep() {
   const { t } = useTranslation(["recipes"]);
-  const { formValues, setRecipeInfo } = useRecipeStore();
+  const { formValues, updateForm } = useRecipeStore();
   const [recipeName, setRecipeName] = useState(formValues.name || "");
   const [recipeDescription, setRecipeDescription] = useState(
     formValues.description || ""
   );
 
+  // Get models data to find selected model details
+  const { data: models = [] } = useModels();
+  
   // Create recipe mutation
   const createRecipe = useCreateRecipe();
 
   // Update store when name or description change
-  const handleNameChange = (name: string) => {
-    setRecipeName(name);
-    setRecipeInfo(name, recipeDescription);
+  useEffect(() => {
+    updateForm({ name: recipeName, description: recipeDescription });
+  }, [recipeName, recipeDescription, updateForm]);
+
+  // Get selected model details
+  const selectedModel = models.find(m => m.id === formValues.modelId);
+  
+  // Calculate completion percentage
+  const getCompletionPercentage = () => {
+    let completed = 0;
+    const total = 5;
+    
+    if (formValues.taskType) completed++;
+    if (formValues.videoFile || formValues.extractedFrame) completed++;
+    if (formValues.regions && formValues.regions.length > 0) completed++;
+    if (formValues.modelId) completed++;
+    if (recipeName && recipeName.length >= 3) completed++;
+    
+    return (completed / total) * 100;
   };
-
-  const handleDescriptionChange = (description: string) => {
-    setRecipeDescription(description);
-    setRecipeInfo(recipeName, description);
-  };
-
-  // Get video details
-  const getVideoDetails = () => {
-    if (formValues.videoFile) {
-      return {
-        name: formValues.videoFile.name,
-        thumbnail: null,
-      };
-    }
-    return null;
-  };
-
-  const videoDetails = getVideoDetails();
-
-  // Get model details
-  const getModelName = () => {
-    if (!formValues.modelId) return "Not selected";
-
-    // This would be a lookup from the models list in a real implementation
-    return formValues.modelId === "model-1"
-      ? "YOLOv8"
-      : formValues.modelId === "model-2"
-        ? "EfficientDet"
-        : formValues.modelId === "model-3"
-          ? "Traffic Counter v2"
-          : formValues.modelId;
-  };
-
-  // Get class filter labels
-  const getClassLabels = () => {
-    if (!formValues.classFilter || formValues.classFilter.length === 0) {
-      return "All classes";
-    }
-
-    return formValues.classFilter
-      .map((classId) => {
-        const classInfo = MOCK_CLASS_CATEGORIES.find((c) => c.id === classId);
-        return classInfo ? classInfo.label : classId;
-      })
-      .join(", ");
-  };
+  
+  const completionPercentage = getCompletionPercentage();
+  const isComplete = completionPercentage === 100;
+  
+  // Count enabled labels
+  const enabledLabelsCount = formValues.modelConfig?.labels?.filter(l => l.enabled).length || 0;
+  const totalLabelsCount = formValues.modelConfig?.labels?.length || 0;
 
   return (
-    <Stack>
+    <Stack gap="lg">
+      {/* Header */}
       <Stack gap="xs">
-        <Text fw={700} size="xl">
-          {t("recipes:creation.review.title")}
-        </Text>
-        <Text size="sm" c="dimmed">
-          {t("recipes:creation.review.description")}
+        <Title order={2}>Review & Create Recipe</Title>
+        <Text c="dimmed">
+          Review your configuration and provide a name for your recipe
         </Text>
       </Stack>
+      
+      {/* Completion Progress */}
+      <Paper withBorder p="md" radius="md">
+        <Group justify="space-between" mb="xs">
+          <Text fw={500}>Configuration Progress</Text>
+          <Text size="sm" c="dimmed">{Math.round(completionPercentage)}% Complete</Text>
+        </Group>
+        <Progress value={completionPercentage} color={isComplete ? "green" : "blue"} size="lg" radius="xl" />
+      </Paper>
 
-      {/* Recipe Information */}
-      <Paper withBorder p="lg" radius="md" className="mt-4">
-        <Text fw={500} mb="md">
-          {t("recipes:creation.review.summary")}
-        </Text>
-
+      {/* Recipe Details */}
+      <Paper withBorder p="lg" radius="md">
+        <Group mb="md">
+          <ThemeIcon size="lg" radius="md" variant="light" color="blue">
+            <IconFileDescription size={20} />
+          </ThemeIcon>
+          <Text fw={600} size="lg">Recipe Details</Text>
+        </Group>
+        
         <Stack>
           <TextInput
-            label={t("recipes:creation.review.name")}
+            label="Recipe Name"
             value={recipeName}
-            onChange={(e) => handleNameChange(e.currentTarget.value)}
-            placeholder="Enter recipe name"
+            onChange={(e) => setRecipeName(e.currentTarget.value)}
+            placeholder="Enter a descriptive name for this recipe"
             required
+            error=""
           />
 
           <Textarea
-            label={t("recipes:creation.review.description")}
+            label="Description"
             value={recipeDescription}
-            onChange={(e) => handleDescriptionChange(e.currentTarget.value)}
-            placeholder="Enter recipe description (optional)"
+            onChange={(e) => setRecipeDescription(e.currentTarget.value)}
+            placeholder="Describe what this recipe does (optional)"
             autosize
             minRows={3}
+            maxRows={6}
           />
         </Stack>
       </Paper>
 
-      {/* Configuration Summary */}
-      <Paper withBorder p="lg" radius="md" className="mt-4">
-        <Stack>
-          <Group>
-            <Text fw={500} style={{ flex: 1 }}>
-              {t("recipes:creation.review.taskType")}:
-            </Text>
-            <Badge color="blue">
-              {formValues.taskType &&
-                t(`recipes:creation.taskType.types.${formValues.taskType}`)}
-            </Badge>
-          </Group>
-
-          <Divider />
-
-          <Group align="flex-start">
-            <Text fw={500} style={{ flex: 1 }}>
-              {t("recipes:creation.review.video")}:
-            </Text>
-            <Box style={{ textAlign: "right" }}>
-              {videoDetails ? (
-                <Stack align="flex-end">
-                  <Text size="sm">{videoDetails.name}</Text>
-                  {videoDetails.thumbnail && (
+      {/* Configuration Summary Cards */}
+      <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+        {/* Task Type & Video */}
+        <Card withBorder p="lg" radius="md">
+          <Stack>
+            <Group>
+              <ThemeIcon size="lg" radius="md" variant="light" color="indigo">
+                <IconVideo size={20} />
+              </ThemeIcon>
+              <Text fw={600}>Task Configuration</Text>
+            </Group>
+            
+            <Stack gap="sm" pl="xl">
+              <Group justify="space-between">
+                <Text size="sm" c="dimmed">Task Type:</Text>
+                <Badge color="indigo" variant="dot">
+                  {formValues.taskType || "Not selected"}
+                </Badge>
+              </Group>
+              
+              <Divider />
+              
+              <div>
+                <Text size="sm" c="dimmed" mb="xs">Video Source:</Text>
+                {formValues.extractedFrame ? (
+                  <Box>
                     <Image
-                      src={videoDetails.thumbnail}
-                      height={60}
-                      width={100}
-                      fallbackSrc="https://placehold.co/100x60?text=Video"
+                      src={formValues.extractedFrame}
+                      height={120}
+                      fit="contain"
                       radius="sm"
+                      style={{ border: '1px solid var(--mantine-color-gray-3)' }}
                     />
-                  )}
-                </Stack>
-              ) : (
-                <Text size="sm" c="dimmed">
-                  Not selected
+                    {formValues.videoName && (
+                      <Text size="xs" c="dimmed" mt="xs">{formValues.videoName}</Text>
+                    )}
+                  </Box>
+                ) : (
+                  <Text size="sm">No video selected</Text>
+                )}
+              </div>
+            </Stack>
+          </Stack>
+        </Card>
+        
+        {/* Model Configuration */}
+        <Card withBorder p="lg" radius="md">
+          <Stack>
+            <Group>
+              <ThemeIcon size="lg" radius="md" variant="light" color="teal">
+                <IconBrain size={20} />
+              </ThemeIcon>
+              <Text fw={600}>Model Configuration</Text>
+            </Group>
+            
+            <Stack gap="sm" pl="xl">
+              <Group justify="space-between">
+                <Text size="sm" c="dimmed">Model:</Text>
+                <Text size="sm" fw={500}>
+                  {selectedModel?.name || formValues.modelName || "Not selected"}
                 </Text>
+              </Group>
+              
+              {selectedModel && (
+                <>
+                  <Group justify="space-between">
+                    <Text size="sm" c="dimmed">Type:</Text>
+                    <Badge size="sm" variant="outline">{selectedModel.type}</Badge>
+                  </Group>
+                  
+                  <Group justify="space-between">
+                    <Text size="sm" c="dimmed">Status:</Text>
+                    <Badge size="sm" color={selectedModel.status === 'ready' ? 'green' : 'yellow'}>
+                      {selectedModel.status}
+                    </Badge>
+                  </Group>
+                </>
               )}
-            </Box>
-          </Group>
-
-          <Divider />
-
-          <Group align="flex-start">
-            <Text fw={500} style={{ flex: 1 }}>
-              {t("recipes:creation.review.regions")}:
-            </Text>
-            <Box style={{ textAlign: "right" }}>
-              {formValues.regions && formValues.regions.length > 0 ? (
-                <Table>
-                  <Table.Thead>
-                    <Table.Tr>
-                      <Table.Th>Name</Table.Th>
-                      <Table.Th>Type</Table.Th>
-                    </Table.Tr>
-                  </Table.Thead>
-                  <Table.Tbody>
-                    {formValues.regions.map((region) => (
-                      <Table.Tr key={region.id}>
-                        <Table.Td>{region.name}</Table.Td>
-                        <Table.Td>
-                          {t(
-                            `recipes:creation.regionSetup.types.${region.type}`
-                          )}
-                        </Table.Td>
-                      </Table.Tr>
-                    ))}
-                  </Table.Tbody>
-                </Table>
-              ) : (
-                <Text size="sm" c="dimmed">
-                  No regions defined
+              
+              <Divider />
+              
+              <Group justify="space-between">
+                <Text size="sm" c="dimmed">Detection Labels:</Text>
+                <Text size="sm" fw={500}>
+                  {enabledLabelsCount} / {totalLabelsCount} enabled
                 </Text>
+              </Group>
+              
+              {formValues.modelConfig?.labels && (
+                <ScrollArea h={80} offsetScrollbars>
+                  <Group gap="xs">
+                    {formValues.modelConfig.labels
+                      .filter(label => label.enabled)
+                      .map(label => (
+                        <Badge 
+                          key={label.id}
+                          leftSection={<ColorSwatch color={label.color} size={10} />}
+                          variant="dot"
+                          size="sm"
+                        >
+                          {label.name}
+                        </Badge>
+                      ))}
+                  </Group>
+                </ScrollArea>
               )}
-            </Box>
-          </Group>
-
-          <Divider />
-
-          <Group>
-            <Text fw={500} style={{ flex: 1 }}>
-              {t("recipes:creation.review.model")}:
+            </Stack>
+          </Stack>
+        </Card>
+      </SimpleGrid>
+      
+      {/* Regions Configuration */}
+      <Paper withBorder p="lg" radius="md">
+        <Group mb="md">
+          <ThemeIcon size="lg" radius="md" variant="light" color="orange">
+            <IconMapPin size={20} />
+          </ThemeIcon>
+          <Text fw={600}>Region Configuration</Text>
+          <Badge variant="filled" color="orange">
+            {formValues.regions?.length || 0} regions
+          </Badge>
+        </Group>
+        
+        {formValues.regions && formValues.regions.length > 0 ? (
+          <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="sm">
+            {formValues.regions.map((region, index) => (
+              <Card key={region.id} withBorder p="sm" radius="md">
+                <Group gap="xs">
+                  <Box
+                    style={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: '50%',
+                      backgroundColor: region.color
+                    }}
+                  />
+                  <Text size="sm" fw={500}>{region.name}</Text>
+                </Group>
+                <Text size="xs" c="dimmed" mt="xs">
+                  Type: {region.type} • {region.direction || 'N/A'}
+                </Text>
+              </Card>
+            ))}
+          </SimpleGrid>
+        ) : (
+          <Alert variant="light" color="orange" icon={<IconAlertCircle size={16} />}>
+            No regions have been configured
+          </Alert>
+        )}
+        
+        {formValues.connections && formValues.connections.length > 0 && (
+          <>
+            <Divider my="md" />
+            <Text size="sm" c="dimmed" mb="xs">
+              {formValues.connections.length} connection{formValues.connections.length !== 1 ? 's' : ''} configured
             </Text>
-            <Text>{getModelName()}</Text>
-          </Group>
-
-          <Group>
-            <Text fw={500} style={{ flex: 1 }}>
-              Confidence Threshold:
-            </Text>
-            <Text>
-              {formValues.confidenceThreshold
-                ? `${formValues.confidenceThreshold * 100}%`
-                : "50%"}
-            </Text>
-          </Group>
-
-          <Group>
-            <Text fw={500} style={{ flex: 1 }}>
-              Object Classes:
-            </Text>
-            <Text>{getClassLabels()}</Text>
-          </Group>
-        </Stack>
+          </>
+        )}
       </Paper>
-
-      {/* Validation errors */}
-      {(!formValues.name || formValues.name.length < 3) && (
-        <Alert
-          icon={<IconAlertCircle size={16} />}
-          color="red"
-          title="Missing information"
-        >
-          Please provide a recipe name before submitting
+      
+      {/* Validation Messages */}
+      {!isComplete && (
+        <Alert variant="light" color="yellow" icon={<IconAlertCircle size={16} />}>
+          <Text fw={500} mb="xs">Missing Configuration</Text>
+          <List size="sm" spacing="xs">
+            {!formValues.taskType && <List.Item>Select a task type</List.Item>}
+            {!formValues.extractedFrame && !formValues.videoFile && <List.Item>Upload or select a video</List.Item>}
+            {(!formValues.regions || formValues.regions.length === 0) && <List.Item>Configure at least one region</List.Item>}
+            {!formValues.modelId && <List.Item>Select an AI model</List.Item>}
+            {!recipeName && <List.Item>Provide a recipe name</List.Item>}
+          </List>
         </Alert>
       )}
-
+      
+      {isComplete && (
+        <Alert variant="light" color="green" icon={<IconCheck size={16} />}>
+          All configuration is complete! You can now create the recipe.
+        </Alert>
+      )}
+      
+      {/* Error/Success Messages */}
       {createRecipe.isError && (
-        <Alert icon={<IconAlertCircle size={16} />} color="red" title="Error">
-          {t("recipes:errors.creation")}: {createRecipe.error?.message}
+        <Alert variant="filled" color="red" icon={<IconAlertCircle size={16} />}>
+          Failed to create recipe: {createRecipe.error?.message}
         </Alert>
       )}
-
+      
       {createRecipe.isSuccess && (
-        <Alert
-          icon={<IconAlertCircle size={16} />}
-          color="green"
-          title="Success"
-        >
-          {t("recipes:success.created")}
+        <Alert variant="filled" color="green" icon={<IconCheck size={16} />}>
+          Recipe created successfully!
         </Alert>
       )}
     </Stack>

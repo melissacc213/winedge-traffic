@@ -1,115 +1,95 @@
-import { Button } from "@mantine/core";
-import { useEffect, useState } from "react";
+import { Button, Stack } from "@mantine/core";
 import { useTranslation } from "react-i18next";
-import { UsersTable } from "./users-table";
-import { Icons } from "../../components/icons";
+import { useNavigate } from "react-router-dom";
+import { IconPlus } from "@tabler/icons-react";
 import { PageLayout } from "@/components/page-layout/page-layout";
-
-// Mock user data
-const MOCK_USERS = [
-  {
-    id: "1",
-    username: "admin",
-    email: "admin@example.com",
-    status: "active",
-    role: "admin",
-    created: "2025-01-15T00:00:00Z",
-  },
-  {
-    id: "2",
-    username: "john.doe",
-    email: "john.doe@example.com",
-    status: "active",
-    role: "user",
-    created: "2025-02-10T00:00:00Z",
-  },
-  {
-    id: "3",
-    username: "jane.smith",
-    email: "jane.smith@example.com",
-    status: "active",
-    role: "user",
-    created: "2025-02-15T00:00:00Z",
-  },
-  {
-    id: "4",
-    username: "robert.williams",
-    email: "robert.williams@example.com",
-    status: "disabled",
-    role: "viewer",
-    created: "2025-03-01T00:00:00Z",
-  },
-  {
-    id: "5",
-    username: "emily.johnson",
-    email: "emily.johnson@example.com",
-    status: "active",
-    role: "user",
-    created: "2025-03-12T00:00:00Z",
-  },
-  {
-    id: "6",
-    username: "michael.brown",
-    email: "michael.brown@example.com",
-    status: "disabled",
-    role: "viewer",
-    created: "2025-03-20T00:00:00Z",
-  },
-] as User[];
-
-export interface User {
-  id: string;
-  username: string;
-  email: string;
-  status: "active" | "disabled";
-  role: "admin" | "user" | "viewer";
-  created: string;
-}
+import { UserCreateDialog } from "@/components/user";
+import { UsersTable } from "./users-table";
+import { useDisclosure } from "@mantine/hooks";
+import { useUsers, useToggleUserStatus } from "@/lib/queries/user";
+import { notifications } from "@mantine/notifications";
+import { USE_MOCK_DATA } from "@/lib/config/mock-data";
 
 export function UsersPage() {
-  const { t } = useTranslation(["components", "common"]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setTimeout(() => {
-      setUsers(MOCK_USERS);
-      setLoading(false);
-    }, 500);
-  }, []);
-
-  const handleDeleteUser = (id: string) => {
-    console.log(`Delete user with ID: ${id}`);
-  };
+  const { t } = useTranslation(["users", "common"]);
+  const navigate = useNavigate();
+  const [opened, { open, close }] = useDisclosure(false);
+  const { data, isLoading } = useUsers(undefined, USE_MOCK_DATA.users);
+  const toggleStatusMutation = useToggleUserStatus();
 
   const handleEditUser = (id: string) => {
-    console.log(`Edit user with ID: ${id}`);
+    navigate(`/users/${id}/edit`);
   };
 
-  const handleToggleUserStatus = (
-    id: string,
-    newStatus: "active" | "disabled"
-  ) => {
-    console.log(`Toggle user ${id} to status: ${newStatus}`);
+  const handleDeleteUser = (id: string) => {
+    // TODO: Implement delete functionality
+    notifications.show({
+      title: "Delete User",
+      message: "Delete functionality not yet implemented",
+      color: "yellow",
+    });
   };
+
+  const handleToggleStatus = async (id: string, status: "active" | "disabled") => {
+    try {
+      await toggleStatusMutation.mutateAsync({
+        id: Number(id),
+        active: status === "active",
+      });
+    } catch (error) {
+      notifications.show({
+        title: "Error",
+        message: "Failed to update user status",
+        color: "red",
+      });
+    }
+  };
+
+  // Transform the API data to match the table format
+  const users = data?.results?.map(user => {
+    // Map role from API format to table format
+    let role: "admin" | "user" | "viewer" = "viewer";
+    if (user.role === "Admin") role = "admin";
+    else if (user.role === "Operator") role = "user";
+    else if (user.role === "Viewer") role = "viewer";
+    
+    return {
+      id: String(user.id),
+      username: user.username,
+      email: user.email,
+      status: user.active ? "active" as const : "disabled" as const,
+      role,
+      created: user.created_at,
+    };
+  }) || [];
 
   return (
-    <PageLayout
-      title={t("components:users.title")}
-      description={t("components:users.description")}
-      actions={
-        <Button leftSection={<Icons.Plus size={16} />}>
-          {t("components:users.create")}
-        </Button>
-      }
-    >
-      <UsersTable
-        users={users}
-        isLoading={loading}
-        onDelete={handleDeleteUser}
-        onEdit={handleEditUser}
-        onToggleStatus={handleToggleUserStatus}
+    <>
+      <PageLayout
+        title={t("users:title")}
+        description={t("users:description")}
+        actions={
+          <Button leftSection={<IconPlus size={16} />} onClick={open}>
+            {t("users:form.createUser")}
+          </Button>
+        }
+      >
+        <Stack gap="lg">
+          <UsersTable
+            users={users}
+            isLoading={isLoading}
+            onEdit={handleEditUser}
+            onDelete={handleDeleteUser}
+            onToggleStatus={handleToggleStatus}
+          />
+        </Stack>
+      </PageLayout>
+      
+      <UserCreateDialog 
+        opened={opened} 
+        onClose={close} 
+        onSuccess={close}
       />
-    </PageLayout>
+    </>
   );
 }

@@ -5,6 +5,7 @@ This is the development guide for WinEdge Traffic, a sophisticated traffic stati
 ## Tech Stack Architecture
 
 ### Core Technologies
+
 - **React 19.1.0** with TypeScript 5.8.3 (strict mode)
 - **Mantine UI v8.0.1** - Primary component library with comprehensive components (@mantine/core, @mantine/form, @mantine/hooks, @mantine/notifications, @mantine/dates, @mantine/dropzone)
 - **Tailwind CSS v4.1.7** - Utility-first CSS framework
@@ -16,6 +17,7 @@ This is the development guide for WinEdge Traffic, a sophisticated traffic stati
 - **i18next v25.2.0** - Internationalization (English/Chinese Traditional)
 
 ### Additional Libraries
+
 - **Konva v9.3.20 + React-Konva v19.0.3** - Canvas-based region drawing and visualization
 - **Mux Player React v3.4.0** - Video playback functionality
 - **Axios v1.9.0** - HTTP client
@@ -29,6 +31,7 @@ This is the development guide for WinEdge Traffic, a sophisticated traffic stati
 ## Project Structure
 
 ### Key Directories
+
 ```
 src/
 ├── components/           # Reusable UI components
@@ -54,6 +57,7 @@ src/
 ## Development Patterns
 
 ### 1. Component Architecture
+
 Use Mantine UI components as the foundation with consistent styling:
 
 ```typescript
@@ -63,7 +67,7 @@ import { useTheme } from '@/providers/theme-provider';
 export function ExampleComponent() {
   const { colorScheme, theme } = useTheme();
   const isDark = colorScheme === 'dark';
-  
+
   return (
     <Paper p="lg" radius="md" withBorder>
       <Stack gap="md">
@@ -75,7 +79,26 @@ export function ExampleComponent() {
 }
 ```
 
+#### Icon Usage
+
+Always import icons from the `Icons` component rather than directly from `@tabler/icons-react`:
+
+```typescript
+// ✅ Correct - uses memoized icons
+import { Icons } from '@/components/icons';
+
+function MyComponent() {
+  return <Icons.Settings size={20} />;
+}
+
+// ❌ Incorrect - avoid direct imports
+import { IconSettings } from '@tabler/icons-react';
+```
+
+The `Icons` component uses `useMemo` for performance optimization, preventing unnecessary re-renders when icons are used throughout the application.
+
 ### 2. API Integration Pattern
+
 Follow the established pattern: Zod schema → API service → React Query hook → Zustand store
 
 ```typescript
@@ -83,29 +106,29 @@ Follow the established pattern: Zod schema → API service → React Query hook 
 export const taskSchema = z.object({
   id: z.string(),
   name: z.string().min(1),
-  status: z.enum(['pending', 'running', 'completed', 'failed']),
+  status: z.enum(["pending", "running", "completed", "failed"]),
   createdAt: z.string().datetime(),
 });
 
 // 2. API service function (lib/api/)
 export const taskService = {
   getTasks: async (): Promise<Task[]> => {
-    const response = await api.get('/api/tasks');
+    const response = await api.get("/api/tasks");
     return taskSchema.array().parse(response.data);
   },
-  
+
   createTask: async (data: CreateTaskRequest): Promise<Task> => {
-    const response = await api.post('/api/tasks', data);
+    const response = await api.post("/api/tasks", data);
     return taskSchema.parse(response.data);
-  }
+  },
 };
 
 // 3. React Query hook (lib/queries/)
 export function useTasks() {
-  const setTasks = useTaskStore(state => state.setTasks);
-  
+  const setTasks = useTaskStore((state) => state.setTasks);
+
   return useQuery({
-    queryKey: ['tasks'],
+    queryKey: ["tasks"],
     queryFn: async () => {
       const data = await taskService.getTasks();
       setTasks(data);
@@ -125,16 +148,19 @@ interface TaskState {
 export const useTaskStore = create<TaskState>((set) => ({
   tasks: [],
   setTasks: (tasks) => set({ tasks }),
-  addTask: (task) => set(state => ({ 
-    tasks: [...state.tasks, task] 
-  })),
-  updateTask: (id, updates) => set(state => ({
-    tasks: state.tasks.map(t => t.id === id ? { ...t, ...updates } : t)
-  })),
+  addTask: (task) =>
+    set((state) => ({
+      tasks: [...state.tasks, task],
+    })),
+  updateTask: (id, updates) =>
+    set((state) => ({
+      tasks: state.tasks.map((t) => (t.id === id ? { ...t, ...updates } : t)),
+    })),
 }));
 ```
 
 ### 3. Multi-Step Form Management
+
 For complex workflows (like recipe creation), use both Zustand for persistence and Mantine Form for validation:
 
 ```typescript
@@ -152,9 +178,9 @@ interface RecipeWorkflowState {
 }
 
 // Individual step component with Mantine Form
-function TaskTypeStep() {
+function RegionSetupStep() {
   const { formData, updateFormData, nextStep } = useRecipeStore();
-  
+
   const form = useForm({
     initialValues: formData.taskType || '',
     validate: zodResolver(taskTypeSchema),
@@ -174,21 +200,46 @@ function TaskTypeStep() {
 ```
 
 ### 4. Theme Integration
+
 Use the comprehensive Mantine theme system with 40+ color variants:
 
 ```typescript
 // Access theme colors for regions/visualizations
 const { theme } = useTheme();
-const regionColor = theme.other.regionPalette[index % theme.other.regionPalette.length];
+const regionColor =
+  theme.other.regionPalette[index % theme.other.regionPalette.length];
 
-// Use theme-aware styling
+// Use theme-aware styling - NEVER hardcode colors
 const cardStyle = {
-  backgroundColor: isDark ? theme.colors.gray[9] : 'white',
+  backgroundColor: isDark ? theme.colors.gray[9] : theme.white,
   borderColor: theme.colors.gray[isDark ? 7 : 2],
 };
+
+// Use theme shadows
+const boxStyle = {
+  boxShadow: theme.other.shadows.sm, // xs, sm, md, lg, xl available
+};
+
+// Theme color access patterns:
+// - Standard colors: theme.colors.blue[5]
+// - UI colors: theme.other.ui.border
+// - Backgrounds: theme.other.backgrounds.cardLight
+// - Task colors: theme.other.taskTypes.trafficStatistics
+// - Region colors: theme.other.regionColors.countLine
 ```
 
+**IMPORTANT: Color Usage Rules**
+
+1. **NEVER hardcode colors** - Always use theme colors
+2. **NEVER use raw rgba/hex values** - Define them in the theme first
+3. **For new colors**: Add to theme structure in `/src/themes/index.ts`
+4. **Theme structure**:
+   - Base colors in `colors` object (blue, red, green, etc.)
+   - Custom colors in `other` object (ui, backgrounds, shadows, etc.)
+   - Light/dark overrides in respective theme objects
+
 ### 5. Canvas-Based Region Configuration
+
 For traffic region setup, use React-Konva with the theme system:
 
 ```typescript
@@ -196,7 +247,7 @@ import { Stage, Layer, Rect, Circle } from 'react-konva';
 
 function RegionCanvas({ regions, onRegionUpdate }) {
   const { theme } = useTheme();
-  
+
   return (
     <Stage width={800} height={600}>
       <Layer>
@@ -227,6 +278,7 @@ function RegionCanvas({ regions, onRegionUpdate }) {
 ## UI/UX Guidelines
 
 ### Design Principles
+
 - **Consistent Spacing**: Use Mantine's spacing system (`xs`, `sm`, `md`, `lg`, `xl`)
 - **Visual Hierarchy**: Clear typography hierarchy with consistent font weights
 - **Color Consistency**: Leverage the 40-color region palette for visualizations
@@ -234,6 +286,7 @@ function RegionCanvas({ regions, onRegionUpdate }) {
 - **Accessibility**: WCAG compliant with proper ARIA labels and keyboard navigation
 
 ### Component Patterns
+
 ```typescript
 // Standard layout pattern
 <PageLayout>
@@ -261,6 +314,7 @@ function RegionCanvas({ regions, onRegionUpdate }) {
 ```
 
 ### Interactive Elements
+
 - **Hover Effects**: Subtle transforms (`translateY(-2px)`) on cards and buttons
 - **Visual Feedback**: Loading states, progress indicators, and status badges
 - **Smooth Transitions**: 200ms ease transitions for interactive elements
@@ -268,6 +322,7 @@ function RegionCanvas({ regions, onRegionUpdate }) {
 ## File Organization Conventions
 
 ### Component Structure
+
 ```typescript
 // components/feature-name/
 ├── index.ts                 # Barrel exports
@@ -277,6 +332,7 @@ function RegionCanvas({ regions, onRegionUpdate }) {
 ```
 
 ### API Organization
+
 ```typescript
 // lib/api/
 ├── index.ts                # Main API client configuration
@@ -291,25 +347,28 @@ function RegionCanvas({ regions, onRegionUpdate }) {
 ## Development Commands
 
 - `npm run dev` - Start development server
-- `npm run build` - Build for production 
+- `npm run build` - Build for production
 - `npm run lint` - Run ESLint
 - `npm run preview` - Preview production build
 
 ## State Management Strategy
 
 ### When to Use Zustand
+
 - Cross-component state sharing
-- Multi-step workflow persistence  
+- Multi-step workflow persistence
 - Complex application state
 - WebSocket data management
 
 ### When to Use React Query
+
 - Server state management
 - API request caching
 - Background refetching
 - Optimistic updates
 
 ### When to Use Mantine Form
+
 - Form validation and submission
 - Field-level error handling
 - Performance-optimized form rendering
@@ -326,6 +385,7 @@ function RegionCanvas({ regions, onRegionUpdate }) {
 ## International Support
 
 The application supports English and Traditional Chinese:
+
 - Use `useTranslation` hook for all user-facing text
 - Translation files located in `public/locales/`
 - Namespace organization: `auth`, `common`, `components`, `models`, `recipes`, `tasks`
@@ -335,7 +395,7 @@ import { useTranslation } from 'react-i18next';
 
 function ExampleComponent() {
   const { t } = useTranslation('components');
-  
+
   return <Text>{t('button.save')}</Text>;
 }
 ```
@@ -343,6 +403,7 @@ function ExampleComponent() {
 ## Notes for Claude Code
 
 ### Key Patterns to Follow
+
 1. **Always validate API responses** with Zod schemas before processing
 2. **Use TypeScript strict mode** - no implicit any types allowed
 3. **Leverage Mantine's design system** - don't create custom UI components unless absolutely necessary
@@ -355,16 +416,29 @@ function ExampleComponent() {
 10. **Use internationalization for all user-facing text**
 
 ### Common Anti-Patterns to Avoid
+
 - Don't create custom form validation - use Mantine Form + Zod
 - Don't manage server state in Zustand - use React Query
-- Don't hardcode colors - use the theme system
+- **Don't hardcode colors - ALWAYS use the theme system**
+- **Don't use inline color values (rgba, hex) - define in theme first**
 - Don't create custom UI components - leverage Mantine's comprehensive library
 - Don't bypass TypeScript with `any` types
 - Don't forget loading/error states in UI components
 
 ### Performance Considerations
+
 - Use React Query's caching for expensive operations
 - Implement proper list virtualization for large datasets
 - Lazy load heavy components and pages
 - Optimize Canvas rendering for region visualizations
 - Use Mantine's built-in optimizations (memoization, etc.)
+
+### Implementation Order for Multiple Instructions
+
+When multiple instructions are provided in a prompt, follow UI/UX best practices to determine implementation order:
+
+1. **User-facing critical functionality first** - Features that directly impact user experience
+2. **Data flow and validation** - Ensure data integrity before UI implementation
+3. **Visual enhancements** - Styling, animations, and polish come after core functionality
+4. **Performance optimizations** - Fine-tune after features are working correctly
+5. **Edge cases and error handling** - Complete coverage after main paths work

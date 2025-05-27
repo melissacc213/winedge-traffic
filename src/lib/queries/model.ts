@@ -147,3 +147,27 @@ export function useDeleteModel() {
     },
   });
 }
+
+export function useCreateModel() {
+  const queryClient = useQueryClient();
+  const addModel = useModelStore((state) => state.addModel);
+
+  return useMutation({
+    mutationFn: async (data: {
+      name: string;
+      type: string;
+      size: number;
+      description: string;
+      parameters?: Record<string, string>;
+    }) => {
+      const newModel = await modelService.createModel(data);
+      addModel(newModel);
+      return newModel;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: modelKeys.lists(),
+      });
+    },
+  });
+}

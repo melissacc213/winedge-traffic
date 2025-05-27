@@ -1,36 +1,152 @@
 import { useTranslation } from 'react-i18next';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { Stage, Layer, Image as KonvaImage } from 'react-konva';
 import { 
   Container, 
   Title, 
   Text, 
   Grid, 
   Card, 
-  Space, 
   Stack, 
   Box, 
   Group, 
   Button, 
   FileButton,
   Center,
-  Badge
+  Badge,
+  Paper,
+  useMantineTheme,
+  ThemeIcon,
 } from '@mantine/core';
+import { 
+  IconUpload, 
+  IconVideo, 
+  IconRefresh,
+  IconChevronLeft,
+  IconChevronRight,
+  IconCamera,
+  IconPhoto,
+} from '@tabler/icons-react';
 import { PageHeader } from '../../components/page-header/page-header';
-import { VideoPlayer } from '../../components/video-player';
-import { IconUpload, IconVideo } from '@tabler/icons-react';
+import { useTheme } from '../../providers/theme-provider';
+import useImage from 'use-image';
+import type { FrameData } from '../../types/recipe';
+
+const STAGE_WIDTH = 600;
+const STAGE_HEIGHT = 400;
 
 export function TaskVideoPage() {
   const { t } = useTranslation(['common', 'recipes']);
+  const mantineTheme = useMantineTheme();
+  const { theme, colorScheme } = useTheme();
+  
+  // State management
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [capturedFrame, setCapturedFrame] = useState<FrameData | null>(null);
+  const [showFrame, setShowFrame] = useState(false);
+  
+  // Refs
   const resetRef = useRef<() => void>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  
+  // Konva image for captured frame
+  const [konvaImage] = useImage(capturedFrame?.imageDataUrl || '');
 
+  // Sample video
+  const sampleVideoSrc = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+
+  // Theme color utility function
+  const getThemeColor = (colorPath: string): string => {
+    const [colorName, index] = colorPath.split('.');
+    
+    if (colorName === 'ui') {
+      return theme.other?.ui?.[index] || colorPath;
+    }
+    
+    if (colorName === 'backgrounds') {
+      return theme.other?.backgrounds?.[index] || colorPath;
+    }
+    
+    if (colorName === 'taskTypes') {
+      const path = theme.other?.taskTypes?.[index];
+      if (path) {
+        return getThemeColor(path);
+      }
+      return colorPath;
+    }
+    
+    return theme.colors?.[colorName]?.[Number(index)] || colorPath;
+  };
+
+  // Handle file upload
+  const handleFileChange = (file: File | null) => {
+    if (file) {
+      setUploadedFile(file);
+      const localUrl = URL.createObjectURL(file);
+      setVideoUrl(localUrl);
+      setCapturedFrame(null);
+      setShowFrame(false);
+    }
+  };
+
+  // Handle clear file
   const handleClearFile = () => {
+    if (videoUrl && uploadedFile) {
+      URL.revokeObjectURL(videoUrl);
+    }
     setUploadedFile(null);
+    setVideoUrl(null);
+    setCapturedFrame(null);
+    setShowFrame(false);
     resetRef.current?.();
   };
 
-  // Sample video in a standard format that most browsers can play
-  const sampleVideoSrc = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+  // Handle frame capture
+  const handleCaptureFrame = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (video && canvas) {
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      
+      canvas.width = STAGE_WIDTH;
+      canvas.height = STAGE_HEIGHT;
+      ctx.drawImage(video, 0, 0, STAGE_WIDTH, STAGE_HEIGHT);
+      
+      const imageDataUrl = canvas.toDataURL('image/png');
+      const frame: FrameData = {
+        imageDataUrl,
+        frameTime: video.currentTime,
+        objects: [],
+      };
+      
+      setCapturedFrame(frame);
+      setShowFrame(true);
+    }
+  };
+
+  // Step frame forward/backward
+  const stepFrame = (direction: 'forward' | 'backward') => {
+    const video = videoRef.current;
+    if (!video) return;
+    const fps = 25;
+    const delta = 1 / fps;
+    video.currentTime += direction === 'forward' ? delta : -delta;
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (videoUrl && uploadedFile) {
+        URL.revokeObjectURL(videoUrl);
+      }
+    };
+  }, []);
+
+  // Get current video source
+  const currentVideoSrc = videoUrl || (!uploadedFile ? sampleVideoSrc : null);
 
   return (
     <>
@@ -40,14 +156,16 @@ export function TaskVideoPage() {
       />
       
       <Container size="xl" py="xl">
-        <Title order={2} mb="md">Video Player</Title>
+        <Title order={2} mb="md">{t('recipes:creation.importVideo.title')}</Title>
         
-        <Card withBorder shadow="sm" mb="xl" p="lg">
+        <Card withBorder shadow="sm" p="lg">
+          <canvas ref={canvasRef} style={{ display: 'none' }} />
+          
           <Stack>
-            <Group position="center" my="md">
+            <Group justify="center" mb="md">
               <FileButton
                 resetRef={resetRef}
-                onChange={setUploadedFile}
+                onChange={handleFileChange}
                 accept="video/mp4,video/webm,video/ogg,video/quicktime"
               >
                 {(props) => (
@@ -63,66 +181,176 @@ export function TaskVideoPage() {
               </FileButton>
               
               {uploadedFile && (
-                <Button variant="light" color="red" radius="xl" onClick={handleClearFile}>
-                  {t('common:button.cancel')}
+                <Button 
+                  variant="light" 
+                  color="red" 
+                  radius="xl" 
+                  onClick={handleClearFile}
+                  leftSection={<IconRefresh size={16} />}
+                >
+                  {t('common:button.change')}
+                </Button>
+              )}
+
+              {capturedFrame && (
+                <Button
+                  variant="outline"
+                  radius="xl"
+                  onClick={() => setShowFrame(!showFrame)}
+                  leftSection={showFrame ? <IconVideo size={16} /> : <IconPhoto size={16} />}
+                >
+                  {showFrame ? 'View Video' : 'View Frame'}
                 </Button>
               )}
             </Group>
             
-            {/* Video player section */}
-            <Box sx={{ backgroundColor: '#f6f7fb', borderRadius: 8, padding: 20 }}>
-              <Stack spacing="xs" align="center" py={20}>
-                <Center sx={{ width: '100%' }}>
-                  <Box sx={{ width: '100%', maxWidth: 600 }}>
-                    <Text fw={500} size="md" mb={2} align="center">
-                      {uploadedFile ? uploadedFile.name : "2965398-hd_1920_1080_30fps.mp4"}
-                    </Text>
-                    <Text size="sm" color="dimmed" mb={15} align="center">
-                      {t('recipes:creation.importVideo.selectFrameInstructions')}
-                    </Text>
-                    
-                    <Box 
-                      sx={{ 
-                        width: '100%',
-                        height: 350,
+            {/* Video/Frame display section */}
+            <Paper 
+              p="md"
+              radius="md"
+              style={{
+                backgroundColor: colorScheme === 'dark' ? getThemeColor('gray.8') : getThemeColor('gray.0'),
+              }}
+            >
+              <Stack align="center">
+                <Text fw={500} size="md" mb={2}>
+                  {uploadedFile ? uploadedFile.name : "Sample Video"}
+                </Text>
+                <Text size="sm" c="dimmed" mb={15}>
+                  {capturedFrame && showFrame 
+                    ? `Frame captured at ${capturedFrame.frameTime.toFixed(2)}s`
+                    : t('recipes:creation.importVideo.selectFrameInstructions')
+                  }
+                </Text>
+                
+                {capturedFrame && showFrame ? (
+                  <Card withBorder radius="md" p="lg">
+                    <Stage
+                      width={STAGE_WIDTH}
+                      height={STAGE_HEIGHT}
+                      style={{
+                        background: colorScheme === 'dark' 
+                          ? getThemeColor('gray.8') 
+                          : getThemeColor('gray.1'),
                         borderRadius: 8,
-                        overflow: 'hidden',
-                        background: '#f8f9fa',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
+                        cursor: 'grab',
                       }}
                     >
-                      <VideoPlayer
-                        src={!uploadedFile ? sampleVideoSrc : undefined}
-                        file={uploadedFile}
-                        height={350}
-                        showControls
-                      />
-                    </Box>
+                      <Layer>
+                        {konvaImage && (
+                          <KonvaImage
+                            image={konvaImage}
+                            width={STAGE_WIDTH}
+                            height={STAGE_HEIGHT}
+                          />
+                        )}
+                      </Layer>
+                    </Stage>
                     
-                    <Group position="center" mt={20} mb={5}>
-                      <Badge color="blue" leftSection={<IconVideo size={12} />}>
-                        1080P
-                      </Badge>
-                      <Badge color="green">2:00</Badge>
-                    </Group>
-                    
-                    <Center>
-                      <Button 
-                        variant="light" 
-                        color="blue"
-                        mt={5}
+                    <Center mt="md">
+                      <Button
+                        variant="outline"
                         size="sm"
-                        radius="md"
+                        onClick={() => {
+                          setCapturedFrame(null);
+                          setShowFrame(false);
+                        }}
+                        leftSection={<IconCamera size={16} />}
+                      >
+                        Recapture Frame
+                      </Button>
+                    </Center>
+                  </Card>
+                ) : currentVideoSrc ? (
+                  <Stack
+                    gap="md"
+                    p="md"
+                    style={{
+                      borderRadius: 12,
+                      backgroundColor: colorScheme === 'dark' 
+                        ? getThemeColor('gray.8') 
+                        : getThemeColor('gray.0'),
+                      boxShadow: `0 4px 12px ${theme.other?.ui?.shadow || 'rgba(0,0,0,0.1)'}`,
+                    }}
+                  >
+                    <video
+                      ref={videoRef}
+                      src={currentVideoSrc}
+                      controls
+                      style={{
+                        width: STAGE_WIDTH,
+                        height: STAGE_HEIGHT,
+                        backgroundColor: colorScheme === 'dark' 
+                          ? getThemeColor('gray.9') 
+                          : '#000',
+                        borderRadius: 8,
+                        objectFit: 'contain',
+                      }}
+                    />
+
+                    <Group justify="space-between">
+                      <Group gap="xs">
+                        <Button
+                          leftSection={<IconChevronLeft size={16} />}
+                          size="sm"
+                          variant="outline"
+                          onClick={() => stepFrame('backward')}
+                        >
+                          Prev Frame
+                        </Button>
+                        <Button
+                          rightSection={<IconChevronRight size={16} />}
+                          size="sm"
+                          variant="outline"
+                          onClick={() => stepFrame('forward')}
+                        >
+                          Next Frame
+                        </Button>
+                      </Group>
+
+                      <Button
+                        size="sm"
+                        variant="filled"
+                        onClick={handleCaptureFrame}
+                        leftSection={<IconCamera size={16} />}
                       >
                         {t('recipes:creation.importVideo.captureFrame')}
                       </Button>
-                    </Center>
-                  </Box>
-                </Center>
+                    </Group>
+                  </Stack>
+                ) : (
+                  <Center 
+                    style={{ 
+                      height: STAGE_HEIGHT,
+                      backgroundColor: colorScheme === 'dark' 
+                        ? getThemeColor('gray.8') 
+                        : getThemeColor('gray.1'),
+                      borderRadius: 8,
+                    }}
+                  >
+                    <Stack align="center" gap="md">
+                      <ThemeIcon size={64} radius="xl" variant="light" color="gray">
+                        <IconVideo size={32} />
+                      </ThemeIcon>
+                      <Text c="dimmed">No video loaded</Text>
+                    </Stack>
+                  </Center>
+                )}
+                
+                {currentVideoSrc && (
+                  <Group justify="center" mt="md" gap="xs">
+                    <Badge color="blue" leftSection={<IconVideo size={12} />}>
+                      {uploadedFile ? 'Custom' : 'Sample'} Video
+                    </Badge>
+                    {capturedFrame && (
+                      <Badge color="green">
+                        Frame: {capturedFrame.frameTime.toFixed(2)}s
+                      </Badge>
+                    )}
+                  </Group>
+                )}
               </Stack>
-            </Box>
+            </Paper>
           </Stack>
         </Card>
       </Container>

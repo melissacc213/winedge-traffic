@@ -263,6 +263,15 @@ const baseTheme: MantineThemeOverride = {
       borderHover: "gray.3",
       shadow: "rgba(0,0,0,0.1)",
       borderRadius: "8px"
+    },
+    
+    // Shadow definitions
+    shadows: {
+      xs: "0 1px 3px rgba(0, 0, 0, 0.05)",
+      sm: "0 2px 4px rgba(0, 0, 0, 0.1)",
+      md: "0 4px 6px rgba(0, 0, 0, 0.15)",
+      lg: "0 10px 15px rgba(0, 0, 0, 0.2)",
+      xl: "0 20px 25px rgba(0, 0, 0, 0.25)"
     }
   },
   components: {
@@ -360,6 +369,15 @@ const lightThemeOverrides: MantineThemeOverride = {
       borderHover: "gray.3",
       shadow: "rgba(0,0,0,0.1)",
       borderRadius: "8px"
+    },
+    
+    // Shadow definitions for light mode
+    shadows: {
+      xs: "0 1px 3px rgba(0, 0, 0, 0.05)",
+      sm: "0 2px 4px rgba(0, 0, 0, 0.1)",
+      md: "0 4px 6px rgba(0, 0, 0, 0.15)",
+      lg: "0 10px 15px rgba(0, 0, 0, 0.2)",
+      xl: "0 20px 25px rgba(0, 0, 0, 0.25)"
     }
   }
 };
@@ -382,6 +400,15 @@ const darkThemeOverrides: MantineThemeOverride = {
       borderHover: "gray.6",
       shadow: "rgba(0,0,0,0.3)",
       borderRadius: "8px"
+    },
+    
+    // Shadow definitions for dark mode
+    shadows: {
+      xs: "0 1px 3px rgba(0, 0, 0, 0.3)",
+      sm: "0 2px 4px rgba(0, 0, 0, 0.3)",
+      md: "0 4px 6px rgba(0, 0, 0, 0.3)",
+      lg: "0 10px 15px rgba(0, 0, 0, 0.4)",
+      xl: "0 20px 25px rgba(0, 0, 0, 0.5)"
     }
   }
 };

@@ -1,0 +1,101 @@
+{
+  "title": "授權管理",
+  "description": "管理系統授權",
+  
+  "status": {
+    "active": "有效",
+    "expired": "已過期",
+    "invalid": "無效"
+  },
+  
+  "form": {
+    "name": "授權名稱",
+    "namePlaceholder": "輸入授權名稱",
+    "licenseFile": "授權檔案",
+    "setAsDefault": "設為預設授權",
+    "setAsDefaultDescription": "將此授權設為系統預設",
+    "uploadLicense": "上傳授權"
+  },
+  
+  "upload": {
+    "dragDrop": "拖放授權檔案到此處",
+    "acceptedFormats": "接受格式：.rsa, .pem, .key, .lic（最大 5MB）",
+    "or": "或",
+    "browse": "瀏覽檔案",
+    "setupProgress": "設定進度",
+    "licenseName": "授權名稱",
+    "licenseFile": "授權檔案",
+    "licenseInformation": "授權資訊",
+    "licenseInformationDescription": "輸入此授權的描述性名稱並配置其設定",
+    "uploadLicenseFile": "上傳授權檔案",
+    "uploadDescription": "選擇或拖放有效的授權檔案以上傳",
+    "infoMessage": "授權檔案將在上傳時進行驗證。請確保這是來自您供應商的有效授權檔案。"
+  },
+  
+  "table": {
+    "title": "授權列表",
+    "name": "名稱",
+    "fileName": "檔案名稱",
+    "fileSize": "大小",
+    "status": "狀態",
+    "uploadedBy": "上傳者",
+    "uploadedAt": "上傳時間",
+    "expiresAt": "到期時間",
+    "default": "預設",
+    "actions": "操作",
+    "noExpiry": "無期限",
+    "defaultLicense": "預設授權",
+    "setAsDefault": "設為預設"
+  },
+  
+  "createDialog": {
+    "title": "上傳新授權",
+    "description": "上傳新的授權檔案到系統"
+  },
+  
+  "detail": {
+    "title": "授權詳情",
+    "notFound": "找不到授權",
+    "licenseInfo": "授權資訊",
+    "name": "授權名稱",
+    "fileName": "檔案名稱",
+    "fileSize": "檔案大小",
+    "uploadedBy": "上傳者",
+    "uploadedAt": "上傳日期",
+    "expiresAt": "到期日期",
+    "timeline": "時間軸",
+    "lastChecked": "最後檢查",
+    "uploaded": "已上傳",
+    "uploadedByUser": "由 {{user}} 上傳"
+  },
+  
+  "edit": {
+    "title": "編輯授權",
+    "notFound": "找不到授權",
+    "notFoundDescription": "您要尋找的授權不存在。",
+    "licenseSettings": "授權設定",
+    "licenseSettingsDescription": "修改授權名稱和預設狀態",
+    "nameDescription": "此授權的描述性名稱",
+    "defaultLicense": "預設授權",
+    "defaultLicenseDescription": "將此授權設為系統預設",
+    "warningTitle": "重要提示",
+    "warningMessage": "將授權設為預設會移除其他授權的預設狀態。"
+  },
+  
+  "noLicenses": "找不到授權",
+  "page": {
+    "title": "授權管理",
+    "description": "管理和上傳系統授權"
+  },
+  
+  "actions": {
+    "download": "下載",
+    "delete": "刪除",
+    "setAsDefault": "設為預設"
+  },
+  
+  "delete": {
+    "title": "刪除授權",
+    "message": "確定要刪除授權「{{name}}」嗎？此操作無法復原。"
+  }
+}

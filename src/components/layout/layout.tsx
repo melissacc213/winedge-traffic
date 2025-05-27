@@ -3,7 +3,6 @@ import { useSiteConfig } from "@/lib/queries/config";
 import { useSelf } from "@/lib/queries/user";
 import { useTheme } from "@/providers/theme-provider";
 import {
-  ActionIcon,
   AppShell,
   Burger,
   Loader,
@@ -40,22 +39,21 @@ export function Layout({ children }: LayoutProps) {
   const { mutateAsync: logout, isPending: isLoggingOut } = useLogout();
   const { data: self } = useSelf();
   const { theme, colorScheme } = useTheme();
-  const mantineTheme = useMantineTheme();
-  
+
   // Theme color utility function
   const getThemeColor = (colorPath: string): string => {
     // Parse the color path (e.g., "blue.5" -> theme.colors.blue[5])
-    const [colorName, index] = colorPath.split('.');
-    
+    const [colorName, index] = colorPath.split(".");
+
     // Special handling for theme's other properties
-    if (colorName === 'ui') {
+    if (colorName === "ui") {
       return theme.other?.ui?.[index] || colorPath;
     }
-    
-    if (colorName === 'backgrounds') {
+
+    if (colorName === "backgrounds") {
       return theme.other?.backgrounds?.[index] || colorPath;
     }
-    
+
     // Standard color from theme colors
     return theme.colors?.[colorName]?.[Number(index)] || colorPath;
   };
@@ -101,7 +99,7 @@ export function Layout({ children }: LayoutProps) {
       icon: <Icons.Users className="h-5 w-5" />,
     },
     {
-      path: "/license",
+      path: "/licenses",
       label: t("components:layout.nav.license"),
       icon: <Icons.License className="h-5 w-5" />,
     },
@@ -174,11 +172,15 @@ export function Layout({ children }: LayoutProps) {
       styles={(theme) => ({
         root: {
           backgroundColor:
-            colorScheme === "dark" ? getThemeColor("gray.9") : getThemeColor("gray.0"),
+            colorScheme === "dark"
+              ? getThemeColor("gray.9")
+              : getThemeColor("gray.0"),
         },
         main: {
           backgroundColor:
-            colorScheme === "dark" ? getThemeColor("gray.9") : getThemeColor("gray.0"),
+            colorScheme === "dark"
+              ? getThemeColor("gray.9")
+              : getThemeColor("gray.0"),
           transition: "padding-left 300ms ease",
         },
         header: {

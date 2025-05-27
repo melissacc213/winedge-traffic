@@ -86,7 +86,7 @@ const stepValidationSchema = [
   
   // Step 5: Review & Submit
   z.object({
-    name: z.string().min(3, 'Recipe name must be at least 3 characters'),
+    name: z.string(),
     description: z.string(),
   }),
 ];

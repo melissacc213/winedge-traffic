@@ -1,0 +1,77 @@
+{
+  "title": "User Management",
+  "description": "Manage system users and permissions",
+  
+  "roles": {
+    "admin": "Administrator",
+    "operator": "Operator",
+    "viewer": "Viewer"
+  },
+  
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  
+  "form": {
+    "username": "Username",
+    "usernamePlaceholder": "Enter username",
+    "email": "Email",
+    "emailPlaceholder": "Enter email address",
+    "password": "Password",
+    "passwordPlaceholder": "Enter password",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Re-enter password",
+    "role": "Role",
+    "rolePlaceholder": "Select user role",
+    "createUser": "Create User"
+  },
+  
+  "table": {
+    "username": "Username",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "createdAt": "Created",
+    "lastLogin": "Last Login",
+    "actions": "Actions",
+    "neverLoggedIn": "Never"
+  },
+  
+  "createDialog": {
+    "title": "Create New User",
+    "description": "Add a new user to the system"
+  },
+  
+  "detail": {
+    "title": "User Details",
+    "notFound": "User not found",
+    "userInfo": "User Information",
+    "username": "Username",
+    "email": "Email",
+    "role": "Role",
+    "createdAt": "Created",
+    "activity": "Activity",
+    "lastLogin": "Last Login",
+    "lastUpdated": "Last Updated",
+    "accountCreated": "Account Created"
+  },
+  
+  "edit": {
+    "title": "Edit User",
+    "notFound": "User not found",
+    "notFoundDescription": "The user you are looking for does not exist.",
+    "userSettings": "User Settings",
+    "userSettingsDescription": "Modify user role and account status for {{username}}",
+    "roleDescription": "The user's permission level in the system",
+    "accountStatus": "Account Status",
+    "accountStatusDescription": "Enable or disable user access to the system",
+    "warningTitle": "Important",
+    "warningMessage": "Changes to user role and status take effect immediately."
+  },
+  
+  "actions": {
+    "activate": "Activate User",
+    "deactivate": "Deactivate User"
+  }
+}

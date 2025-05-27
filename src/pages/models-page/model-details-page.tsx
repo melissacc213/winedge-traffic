@@ -34,7 +34,7 @@ import { PageLayout } from "@/components/page-layout/page-layout";
 import { PageLoader } from "@/components/ui";
 import { useModelDetails, useDeleteModel } from "@/lib/queries/model";
 import { useTheme } from "@/providers/theme-provider";
-import { ModelConfig } from "@/types/model";
+import type { ModelConfig } from "../../types/model";
 import { useState } from "react";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
