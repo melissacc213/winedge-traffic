@@ -1,6 +1,27 @@
 import { createTheme, mergeMantineTheme } from "@mantine/core";
 import type { MantineThemeOverride, MantineTheme } from "@mantine/core";
 
+/**
+ * IMPORTANT: Theme Property Access in Mantine v8
+ * 
+ * This theme file defines both Mantine built-in properties and custom properties.
+ * Access patterns:
+ * 
+ * 1. For Mantine built-in properties (radius, spacing, fontSizes, etc.):
+ *    - Use useMantineTheme() hook from @mantine/core
+ *    - Access: mantineTheme.radius.md, mantineTheme.spacing.lg, etc.
+ * 
+ * 2. For custom properties defined in 'other' object:
+ *    - Use useTheme() hook from theme provider
+ *    - Access: theme.other.shadows.md, theme.other.regionPalette[0], etc.
+ * 
+ * 3. Colors can be accessed from either:
+ *    - mantineTheme.colors.blue[5] OR theme.colors.blue[5]
+ * 
+ * Common error: "Cannot read properties of undefined (reading 'md')"
+ * This happens when trying to access theme.radius.md instead of mantineTheme.radius.md
+ */
+
 // Base theme with shared settings
 const baseTheme: MantineThemeOverride = {
   primaryColor: "blue",

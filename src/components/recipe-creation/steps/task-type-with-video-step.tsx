@@ -15,17 +15,10 @@ import {
   Title,
   useMantineTheme,
   Modal,
+  Center,
+  rem,
 } from "@mantine/core";
-import {
-  IconChartBar,
-  IconTrain,
-  IconUpload,
-  IconRefresh,
-  IconChevronLeft,
-  IconChevronRight,
-  IconVideo,
-  IconCheck,
-} from "@tabler/icons-react";
+import { Icons } from "../../icons";
 import { Dropzone } from "@mantine/dropzone";
 import { useRecipeStore } from "../../../lib/store/recipe-store";
 import { useUploadVideo } from "../../../lib/queries/recipe";
@@ -33,8 +26,8 @@ import useImage from "use-image";
 import { useTheme } from "../../../providers/theme-provider";
 import type { TaskType, FrameData } from "../../../types/recipe";
 
-const STAGE_WIDTH = 600;
-const STAGE_HEIGHT = 400;
+const STAGE_WIDTH = 500;
+const STAGE_HEIGHT = 300;
 
 export function TaskTypeWithVideoStep() {
   const { t } = useTranslation(["recipes", "common"]);
@@ -90,19 +83,20 @@ export function TaskTypeWithVideoStep() {
   const taskTypes = [
     {
       id: "trafficStatistics" as TaskType,
-      label: t("recipes:creation.taskType.types.trafficStatistics"),
-      icon: <IconChartBar size={24} />,
+      label: t("recipes:creation.taskType.types.trafficStatistics", "Traffic Statistics"),
+      icon: <Icons.ChartBar size={20} />,
       color: "teal",
       description: t(
-        "recipes:creation.taskType.descriptions.trafficStatistics"
+        "recipes:creation.taskType.descriptions.trafficStatistics",
+        "Analyze and collect traffic flow statistics"
       ),
     },
     {
       id: "trainDetection" as TaskType,
-      label: t("recipes:creation.taskType.types.trainDetection"),
-      icon: <IconTrain size={24} />,
-      color: "indigo",
-      description: t("recipes:creation.taskType.descriptions.trainDetection"),
+      label: t("recipes:creation.taskType.types.trainDetection", "Train Detection"),
+      icon: <Icons.Train size={20} />,
+      color: "blue",
+      description: t("recipes:creation.taskType.descriptions.trainDetection", "Detect and track trains in railway environments"),
     },
   ];
 
@@ -156,387 +150,314 @@ export function TaskTypeWithVideoStep() {
   );
 
   return (
-    <Paper withBorder p="md" radius="md">
+    <Box>
       <canvas ref={canvasRef} style={{ display: "none" }} />
-      <Grid>
-        <Grid.Col span={{ base: 12, md: 4 }}>
-          <Stack>
-            <Title order={3}>{t("recipes:creation.taskType.title")}</Title>
-            <Text size="sm" c="dimmed">
-              {t("recipes:creation.taskType.description")}
-            </Text>
-            <Radio.Group
-              value={formValues.taskType || ""}
-              onChange={(val) => {
-                if (formValues.extractedFrame && val !== formValues.taskType) {
-                  setPendingTaskType(val as TaskType);
-                  setShowTaskChangeModal(true);
-                } else {
-                  setTaskType(val as TaskType);
-                }
-              }}
-            >
+      <Grid gutter="md">
+        <Grid.Col span={{ base: 12, md: 5 }}>
+          <Paper p="md" radius="md" withBorder>
+            <Stack gap="sm">
+              <div>
+                <Title order={4} fw={600}>{t("recipes:creation.taskType.title", "Select Task Type")}</Title>
+                <Text size="sm" c="dimmed" mt="xs">
+                  {t("recipes:creation.taskType.description", "Choose the type of analysis task for this recipe")}
+                </Text>
+              </div>
               <Stack gap="sm">
                 {taskTypes.map((item) => (
-                  <Radio.Card
+                  <Paper
                     key={item.id}
-                    value={item.id}
-                    radius="md"
                     p="md"
+                    radius="md"
+                    withBorder
                     style={{
                       cursor: "pointer",
-                      border:
+                      borderWidth: 2,
+                      borderColor:
                         formValues.taskType === item.id
-                          ? `2px solid ${mantineTheme.colors[item.color][5]}`
-                          : undefined,
+                          ? mantineTheme.colors[item.color][5]
+                          : "transparent",
                       backgroundColor:
                         formValues.taskType === item.id
                           ? colorScheme === "dark"
-                            ? mantineTheme.colors.dark[6]
-                            : mantineTheme.colors.gray[0]
+                            ? theme.colors.dark[6]
+                            : mantineTheme.colors[item.color][0]
                           : undefined,
                       transition: "all 200ms ease",
                     }}
+                    onClick={() => {
+                      if (formValues.extractedFrame && item.id !== formValues.taskType) {
+                        setPendingTaskType(item.id);
+                        setShowTaskChangeModal(true);
+                      } else {
+                        setTaskType(item.id);
+                      }
+                    }}
                   >
-                    <Group wrap="nowrap">
-                      <Radio.Indicator />
+                    <Group wrap="nowrap" align="flex-start">
+                      <Box
+                        style={{
+                          width: rem(20),
+                          height: rem(20),
+                          borderRadius: '50%',
+                          border: `2px solid ${formValues.taskType === item.id ? mantineTheme.colors[item.color][5] : mantineTheme.colors.gray[4]}`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {formValues.taskType === item.id && (
+                          <Box
+                            style={{
+                              width: rem(10),
+                              height: rem(10),
+                              borderRadius: '50%',
+                              backgroundColor: mantineTheme.colors[item.color][5],
+                            }}
+                          />
+                        )}
+                      </Box>
                       <ThemeIcon
                         color={item.color}
                         variant={
                           formValues.taskType === item.id ? "filled" : "light"
                         }
-                        size="lg"
+                        size="md"
+                        radius="md"
                       >
                         {item.icon}
                       </ThemeIcon>
                       <Box style={{ flex: 1 }}>
-                        <Text fw={formValues.taskType === item.id ? 600 : 500}>
+                        <Text fw={formValues.taskType === item.id ? 600 : 500} size="sm">
                           {item.label}
                         </Text>
-                        <Text size="xs" c="dimmed">
+                        <Text size="xs" c="dimmed" mt={2}>
                           {item.description}
                         </Text>
                       </Box>
                     </Group>
-                  </Radio.Card>
+                  </Paper>
                 ))}
               </Stack>
-            </Radio.Group>
-          </Stack>
+            </Stack>
+          </Paper>
         </Grid.Col>
-        <Grid.Col span={{ base: 12, md: 8 }}>
-          <Stack>
-            <Group justify="space-between">
+        <Grid.Col span={{ base: 12, md: 7 }}>
+          <Paper p="md" radius="md" withBorder h="100%">
+            <Stack h="100%">
               <div>
-                <Title order={3}>
-                  {t("recipes:creation.importVideo.title")}
+                <Title order={4} fw={600}>
+                  {t("recipes:creation.importVideo.title", "Import Video")}
                 </Title>
-                <Text size="sm" c="dimmed">
+                <Text size="sm" c="dimmed" mt="xs">
                   {formValues.taskType
-                    ? t("recipes:creation.importVideo.description")
-                    : "Please select a task type first"}
+                    ? t("recipes:creation.importVideo.description", "Please select a task type first")
+                    : t("recipes:creation.importVideo.selectTaskFirst", "Please select a task type first")}
                 </Text>
               </div>
-              {videoUrl && (
-                <Button
-                  variant="outline"
-                  leftSection={<IconRefresh size={16} />}
-                  onClick={() => {
-                    setSelectedVideoFile(null);
-                    setCapturedFrame(null);
-                    setVideo("", null);
-                    updateForm({
-                      extractedFrame: null,
-                      extractedFrameTime: null,
-                    });
-                  }}
-                >
-                  {t("common:button.change")}
-                </Button>
-              )}
-            </Group>
 
-            {!formValues.taskType ? (
-              <Card
-                withBorder
-                radius="md"
-                p="xl"
-                style={{
-                  minHeight: 300,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor:
-                    colorScheme === "dark"
-                      ? getThemeColor("gray.8")
-                      : getThemeColor("gray.0"),
-                }}
-              >
-                <Stack align="center" gap="md">
-                  <ThemeIcon size={64} radius="xl" variant="light" color="gray">
-                    <IconVideo size={32} />
-                  </ThemeIcon>
-                  <Text size="lg" fw={500} c="dimmed" ta="center">
-                    Select a task type to begin video import
-                  </Text>
-                </Stack>
-              </Card>
-            ) : videoUrl ? (
-              <Card withBorder radius="md" p="lg">
-                <Stack gap="md">
-                  <Group justify="space-between">
-                    <Group gap="xs">
-                      <Text fw={500}>
-                        {capturedFrame ? "Captured Frame" : "Video Preview"}
-                      </Text>
-                      {capturedFrame && (
-                        <Text size="sm" c="dimmed">
-                          Time: {capturedFrame.frameTime.toFixed(2)}s
+              {!formValues.taskType ? (
+                <Center style={{ flex: 1, minHeight: 200 }}>
+                  <Stack align="center" gap="sm">
+                    <ThemeIcon size={64} radius="xl" variant="light" color="gray">
+                      <Icons.Video size={32} />
+                    </ThemeIcon>
+                    <Text size="sm" fw={500} c="dimmed" ta="center">
+                      {t("recipes:creation.importVideo.selectTaskToBegin", "Select a task type to begin video import")}
+                    </Text>
+                  </Stack>
+                </Center>
+              ) : videoUrl ? (
+                <Card withBorder radius="md" p="md">
+                  <Stack gap="sm">
+                    <Group justify="space-between">
+                      <Group gap="xs">
+                        <Text fw={600}>
+                          {capturedFrame ? t("recipes:creation.importVideo.capturedFrame", "Captured Frame") : t("recipes:creation.importVideo.videoPreview", "Video Preview")}
                         </Text>
-                      )}
-                    </Group>
-                    <Group gap="xs">
-                      {capturedFrame && (
+                        {capturedFrame && (
+                          <Text size="sm" c="dimmed">
+                            {t("recipes:creation.importVideo.time", "Time")}: {capturedFrame.frameTime.toFixed(2)}s
+                          </Text>
+                        )}
+                      </Group>
+                      <Group gap="xs">
+                        {capturedFrame && (
+                          <Button
+                            size="xs"
+                            variant="subtle"
+                            onClick={() => setCapturedFrame(null)}
+                          >
+                            {t("recipes:creation.importVideo.backToVideo", "Back to Video")}
+                          </Button>
+                        )}
                         <Button
                           size="xs"
                           variant="subtle"
-                          onClick={() => setCapturedFrame(null)}
+                          leftSection={<Icons.Refresh size={14} />}
+                          onClick={() => {
+                            if (formValues.extractedFrame) {
+                              setShowVideoChangeModal(true);
+                            } else {
+                              setSelectedVideoFile(null);
+                              setCapturedFrame(null);
+                              setVideoUrl(null);
+                              setVideo("", null);
+                              updateForm({
+                                extractedFrame: null,
+                                extractedFrameTime: null,
+                              });
+                            }
+                          }}
                         >
-                          Back to Video
+                          {t("recipes:creation.importVideo.changeVideo", "Change Video")}
                         </Button>
-                      )}
-                      <Button
-                        size="xs"
-                        variant="subtle"
-                        leftSection={<IconRefresh size={14} />}
-                        onClick={() => {
-                          if (formValues.extractedFrame) {
-                            setShowVideoChangeModal(true);
-                          } else {
-                            setSelectedVideoFile(null);
-                            setCapturedFrame(null);
-                            setVideoUrl(null);
-                            setVideo("", null);
-                            updateForm({
-                              extractedFrame: null,
-                              extractedFrameTime: null,
-                            });
-                          }
-                        }}
-                      >
-                        Change Video
-                      </Button>
+                      </Group>
                     </Group>
-                  </Group>
 
-                  {/* Show either video or captured frame */}
-                  {capturedFrame ? (
-                    <Box
-                      style={{
-                        position: "relative",
-                        width: "100%",
-                        maxWidth: STAGE_WIDTH,
-                        margin: "0 auto",
-                      }}
-                    >
-                      <Stage
-                        width={STAGE_WIDTH}
-                        height={STAGE_HEIGHT}
+                    {/* Show either video or captured frame */}
+                    {capturedFrame ? (
+                      <Box
                         style={{
-                          background:
-                            colorScheme === "dark"
-                              ? getThemeColor("gray.8")
-                              : getThemeColor("gray.1"),
-                          cursor: "grab",
-                          border: `2px solid ${colorScheme === "dark" ? getThemeColor("gray.6") : getThemeColor("gray.3")}`,
-                          borderRadius: 8,
+                          position: "relative",
+                          width: "100%",
+                          maxWidth: STAGE_WIDTH,
+                          margin: "0 auto",
                         }}
                       >
-                        <Layer>
-                          {konvaImage && (
-                            <KonvaImage
-                              image={konvaImage}
-                              width={STAGE_WIDTH}
-                              height={STAGE_HEIGHT}
-                            />
-                          )}
-                        </Layer>
-                      </Stage>
-                    </Box>
-                  ) : (
-                    <video
-                      ref={videoRef}
-                      src={videoUrl}
-                      controls
-                      style={{
-                        width: "100%",
-                        maxWidth: STAGE_WIDTH,
-                        height: "auto",
-                        maxHeight: STAGE_HEIGHT,
-                        backgroundColor:
-                          colorScheme === "dark"
-                            ? getThemeColor("gray.9")
-                            : "#000",
-                        borderRadius: 8,
-                        boxShadow: `0 2px 8px ${getThemeColor("ui.shadow")}`,
-                        margin: "0 auto",
-                        display: "block",
-                      }}
-                    />
-                  )}
+                        <Stage
+                          width={STAGE_WIDTH}
+                          height={STAGE_HEIGHT}
+                          style={{
+                            background:
+                              colorScheme === "dark"
+                                ? getThemeColor("gray.8")
+                                : getThemeColor("gray.1"),
+                            cursor: "grab",
+                            border: `2px solid ${colorScheme === "dark" ? getThemeColor("gray.6") : getThemeColor("gray.3")}`,
+                            borderRadius: 8,
+                          }}
+                        >
+                          <Layer>
+                            {konvaImage && (
+                              <KonvaImage
+                                image={konvaImage}
+                                width={STAGE_WIDTH}
+                                height={STAGE_HEIGHT}
+                              />
+                            )}
+                          </Layer>
+                        </Stage>
+                      </Box>
+                    ) : (
+                      <video
+                        ref={videoRef}
+                        src={videoUrl}
+                        controls
+                        style={{
+                          width: "100%",
+                          maxWidth: STAGE_WIDTH,
+                          height: "auto",
+                          maxHeight: STAGE_HEIGHT,
+                          backgroundColor:
+                            colorScheme === "dark"
+                              ? getThemeColor("gray.9")
+                              : "#000",
+                          borderRadius: 8,
+                          boxShadow: `0 2px 8px ${getThemeColor("ui.shadow")}`,
+                          margin: "0 auto",
+                          display: "block",
+                        }}
+                      />
+                    )}
 
-                  {/* Controls */}
-                  <Group justify="space-between">
-                    <Group gap="xs">
+                    {/* Controls */}
+                    <Group justify="space-between">
+                      <Group gap="xs">
+                        <Button
+                          leftSection={<Icons.ChevronLeft size={16} />}
+                          size="sm"
+                          variant="outline"
+                          onClick={() => stepFrame("backward")}
+                          disabled={!!capturedFrame}
+                        >
+                          {t("recipes:creation.importVideo.prevFrame", "Prev Frame")}
+                        </Button>
+                        <Button
+                          rightSection={<Icons.ChevronRight size={16} />}
+                          size="sm"
+                          variant="outline"
+                          onClick={() => stepFrame("forward")}
+                          disabled={!!capturedFrame}
+                        >
+                          {t("recipes:creation.importVideo.nextFrame", "Next Frame")}
+                        </Button>
+                      </Group>
+
                       <Button
-                        leftSection={<IconChevronLeft size={16} />}
                         size="sm"
-                        variant="outline"
-                        onClick={() => stepFrame("backward")}
+                        variant={capturedFrame ? "outline" : "filled"}
+                        onClick={handleCaptureFrame}
                         disabled={!!capturedFrame}
+                        leftSection={capturedFrame ? <Icons.Check size={16} /> : undefined}
                       >
-                        Prev Frame
-                      </Button>
-                      <Button
-                        rightSection={<IconChevronRight size={16} />}
-                        size="sm"
-                        variant="outline"
-                        onClick={() => stepFrame("forward")}
-                        disabled={!!capturedFrame}
-                      >
-                        Next Frame
+                        {capturedFrame 
+                          ? t("recipes:creation.importVideo.frameCaptured", "Frame Captured")
+                          : t("recipes:creation.importVideo.captureFrame", "Capture Frame")}
                       </Button>
                     </Group>
-
-                    <Button
-                      size="sm"
-                      variant={capturedFrame ? "outline" : "filled"}
-                      onClick={handleCaptureFrame}
-                      disabled={!!capturedFrame}
-                    >
-                      Capture Frame
-                    </Button>
-                  </Group>
-                </Stack>
-              </Card>
-            ) : (
-              <Dropzone
-                onDrop={(files) => handleFileChange(files[0])}
-                accept={["video/mp4"]}
-                maxSize={500 * 1024 * 1024}
-                disabled={!formValues.taskType}
-                styles={{
-                  root: {
-                    border: `2px dashed ${colorScheme === "dark" ? getThemeColor("gray.6") : getThemeColor("gray.3")}`,
-                    borderRadius: "12px",
-                    padding: "40px",
-                    backgroundColor:
-                      colorScheme === "dark"
-                        ? getThemeColor("gray.8")
-                        : getThemeColor("gray.0"),
-                    cursor: formValues.taskType ? "pointer" : "not-allowed",
-                    opacity: formValues.taskType ? 1 : 0.6,
-                  },
-                }}
-              >
-                <Group
-                  align="center"
-                  justify="center"
-                  style={{ flexDirection: "column", minHeight: 240 }}
-                  gap="sm"
+                  </Stack>
+                </Card>
+              ) : (
+                <Dropzone
+                  onDrop={(files) => handleFileChange(files[0])}
+                  accept={["video/mp4"]}
+                  maxSize={500 * 1024 * 1024}
+                  disabled={!formValues.taskType}
+                  styles={{
+                    root: {
+                      border: `2px dashed ${colorScheme === "dark" ? getThemeColor("gray.6") : getThemeColor("gray.3")}`,
+                      borderRadius: "12px",
+                      padding: "30px",
+                      backgroundColor:
+                        colorScheme === "dark"
+                          ? getThemeColor("gray.8")
+                          : getThemeColor("gray.0"),
+                      cursor: formValues.taskType ? "pointer" : "not-allowed",
+                      opacity: formValues.taskType ? 1 : 0.6,
+                    },
+                  }}
                 >
-                  <ThemeIcon size={64} radius="xl" variant="light" color="blue">
-                    <IconUpload size={32} />
-                  </ThemeIcon>
-                  <Text size="md" fw={500}>
-                    {t(
-                      "recipes:creation.importVideo.dragDrop",
-                      "Drag & drop video here"
-                    )}
-                  </Text>
-                  <Text size="sm" c="dimmed">
-                    {t("recipes:creation.importVideo.or", "or")}
-                  </Text>
-                  <Button variant="light" color="blue" size="sm">
-                    {t("recipes:creation.importVideo.browse", "Browse Files")}
-                  </Button>
-                </Group>
-              </Dropzone>
-            )}
-          </Stack>
+                  <Group
+                    align="center"
+                    justify="center"
+                    style={{ flexDirection: "column", minHeight: 200 }}
+                    gap="sm"
+                  >
+                    <ThemeIcon size={64} radius="xl" variant="light" color="blue">
+                      <Icons.Video size={32} />
+                    </ThemeIcon>
+                    <Stack gap="xs" align="center">
+                      <Text size="sm" fw={500}>
+                        {t(
+                          "recipes:creation.importVideo.dragDrop",
+                          "Drag & drop video here"
+                        )}
+                      </Text>
+                      <Text size="sm" c="dimmed">
+                        {t("recipes:creation.importVideo.or", "or")}
+                      </Text>
+                      <Button variant="filled" color="blue" size="sm">
+                        {t("recipes:creation.importVideo.browse", "Browse Files")}
+                      </Button>
+                    </Stack>
+                  </Group>
+                </Dropzone>
+              )}
+            </Stack>
+          </Paper>
         </Grid.Col>
       </Grid>
-
-      {/* Step Completion Status */}
-      <Box
-        mt="md"
-        pt="md"
-        style={{
-          borderTop: `1px solid ${colorScheme === "dark" ? getThemeColor("gray.7") : getThemeColor("gray.2")}`,
-        }}
-      >
-        <Group justify="space-between">
-          <Text size="sm" c="dimmed">
-            Step Requirements:
-          </Text>
-          <Group gap="md">
-            <Group gap="xs">
-              <ThemeIcon
-                size="sm"
-                radius="xl"
-                color={formValues.taskType ? "green" : "gray"}
-                variant={formValues.taskType ? "filled" : "light"}
-              >
-                {formValues.taskType ? (
-                  <IconCheck size={14} />
-                ) : (
-                  <Text size="xs">1</Text>
-                )}
-              </ThemeIcon>
-              <Text size="sm" c={formValues.taskType ? "green" : "dimmed"}>
-                Task Type Selected
-              </Text>
-            </Group>
-            <Group gap="xs">
-              <ThemeIcon
-                size="sm"
-                radius="xl"
-                color={formValues.videoId ? "green" : "gray"}
-                variant={formValues.videoId ? "filled" : "light"}
-              >
-                {formValues.videoId ? (
-                  <IconCheck size={14} />
-                ) : (
-                  <Text size="xs">2</Text>
-                )}
-              </ThemeIcon>
-              <Text size="sm" c={formValues.videoId ? "green" : "dimmed"}>
-                Video Uploaded
-              </Text>
-            </Group>
-            <Group gap="xs">
-              <ThemeIcon
-                size="sm"
-                radius="xl"
-                color={formValues.extractedFrame ? "green" : "gray"}
-                variant={formValues.extractedFrame ? "filled" : "light"}
-              >
-                {formValues.extractedFrame ? (
-                  <IconCheck size={14} />
-                ) : (
-                  <Text size="xs">3</Text>
-                )}
-              </ThemeIcon>
-              <Text
-                size="sm"
-                c={formValues.extractedFrame ? "green" : "dimmed"}
-              >
-                Frame Captured
-              </Text>
-            </Group>
-          </Group>
-        </Group>
-      </Box>
 
       {/* Confirmation Modals */}
       <Modal
@@ -624,6 +545,6 @@ export function TaskTypeWithVideoStep() {
           </Group>
         </Stack>
       </Modal>
-    </Paper>
+    </Box>
   );
 }

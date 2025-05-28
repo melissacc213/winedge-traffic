@@ -11,12 +11,12 @@ import {
   Stack,
   Text,
   Title,
+  Container,
+  Paper,
+  useMantineTheme,
+  rem,
 } from "@mantine/core";
-import {
-  IconCheck,
-  IconChevronLeft,
-  IconChevronRight,
-} from "@tabler/icons-react";
+import { Icons } from "../icons";
 import { notifications } from "@mantine/notifications";
 import { useRecipeStore } from "../../lib/store/recipe-store";
 import { useCreateRecipe } from "../../lib/queries/recipe";
@@ -29,6 +29,7 @@ export function RecipeStepper() {
   const { t } = useTranslation("recipes");
   const navigate = useNavigate();
   const { theme, colorScheme } = useTheme();
+  const mantineTheme = useMantineTheme();
   const isDark = colorScheme === "dark";
 
   const { activeStep, nextStep, previousStep, formValues, resetForm, isDirty } =
@@ -135,245 +136,173 @@ export function RecipeStepper() {
   ];
 
   return (
-    <Stack gap={0}>
-      {/* Header with title and stepper */}
-      <Box
-        style={{
-          backgroundColor: isDark ? theme.colors.dark[7] : theme.white,
-          borderBottom: `1px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[2]}`,
-          boxShadow: theme.other.shadows.xs,
-        }}
-      >
-        <Box maw={1200} mx="auto" px="md" py="xs">
-          <Stack gap="sm">
-            <Group justify="space-between" align="center">
-              <div>
-                <Title order={3} size="h4">
-                  {t("recipes:creation.title")}
-                </Title>
-                <Text size="xs" c="dimmed" mt={2}>
-                  {t("recipes:creation.description")}
-                </Text>
-              </div>
-              <Button
-                variant="subtle"
-                color="red"
-                onClick={handleCancel}
-                size="xs"
-                radius="md"
-                style={{
-                  transition: "all 0.2s ease",
-                  "&:hover": {
-                    backgroundColor: isDark
-                      ? theme.colors.dark[6]
-                      : theme.colors.red[0],
-                  },
-                }}
-              >
-                Cancel
-              </Button>
-            </Group>
-
-            <MantineStepper
-              active={activeStep}
-              allowNextStepsSelect={false}
+    <Box
+      style={{
+        minHeight: "100vh",
+        backgroundColor: isDark ? theme.colors.dark[7] : theme.colors.gray[0],
+      }}
+    >
+      {/* Header */}
+      <Paper shadow="sm" p="md" radius={0}>
+        <Container size="lg">
+          <Group justify="space-between" align="center">
+            <div>
+              <Title order={2} size="h3" fw={600}>
+                {t("recipes:creation.title")}
+              </Title>
+              <Text size="sm" c="dimmed" mt={4}>
+                {t("recipes:creation.description")}
+              </Text>
+            </div>
+            <Button
+              variant="subtle"
+              color="red"
+              onClick={handleCancel}
               size="sm"
-              color="cyan"
-              styles={(theme) => ({
-                root: { maxWidth: "100%" },
-                steps: {
-                  display: "flex",
-                  flexWrap: "nowrap",
-                  overflowX: "auto",
-                  gap: "1rem",
-                },
-                step: {
-                  minWidth: "auto",
-                  flex: "1 1 auto",
-                  padding: "0.5rem",
-                  borderRadius: theme.radius.md,
-                  transition: "all 0.2s ease",
-                  "&[data-progress]": {
-                    backgroundColor: isDark
-                      ? theme.colors.dark[6]
-                      : theme.colors.gray[0],
-                  },
-                  "&[data-completed]": {
-                    backgroundColor: isDark
-                      ? theme.colors.dark[6]
-                      : theme.colors.cyan[0],
-                  },
-                },
-                stepIcon: {
-                  borderWidth: 2,
-                  transition: "all 0.2s ease",
-                  "&[data-completed]": {
-                    borderColor: theme.colors.cyan[6],
-                    backgroundColor: theme.colors.cyan[6],
-                  },
-                  "&[data-progress]": {
-                    borderColor: theme.colors.cyan[6],
-                  },
-                },
-                stepLabel: {
-                  fontSize: "0.875rem",
-                  fontWeight: 600,
-                  color: isDark ? theme.white : theme.black,
-                },
-                stepDescription: {
-                  fontSize: "0.75rem",
-                  marginTop: "0.25rem",
-                  color: isDark ? theme.colors.dark[2] : theme.colors.gray[6],
-                },
-                separator: {
-                  marginLeft: "0.5rem",
-                  marginRight: "0.5rem",
-                  backgroundColor: isDark
-                    ? theme.colors.dark[4]
-                    : theme.colors.gray[3],
-                },
-                separatorActive: {
-                  backgroundColor: theme.colors.cyan[6],
-                },
-              })}
             >
-              <MantineStepper.Step
-                label={
-                  activeStep === 0
-                    ? t("recipes:creation.stepper.taskWithVideo")
-                    : "Task & Video"
-                }
-                description={
-                  activeStep === 0
-                    ? t("recipes:creation.stepper.taskWithVideoDesc")
-                    : null
-                }
-                completedIcon={<IconCheck size={16} />}
-              />
-              <MantineStepper.Step
-                label={
-                  activeStep === 1
-                    ? t("recipes:creation.stepper.regionSetup")
-                    : "Regions"
-                }
-                description={
-                  activeStep === 1
-                    ? t("recipes:creation.stepper.regionSetupDesc")
-                    : null
-                }
-                completedIcon={<IconCheck size={16} />}
-              />
-              <MantineStepper.Step
-                label={
-                  activeStep === 2
-                    ? t("recipes:creation.stepper.modelConfig")
-                    : "Model"
-                }
-                description={
-                  activeStep === 2
-                    ? t("recipes:creation.stepper.modelConfigDesc")
-                    : null
-                }
-                completedIcon={<IconCheck size={16} />}
-              />
-            </MantineStepper>
-          </Stack>
-        </Box>
-      </Box>
+              {t("common:button.cancel", "Cancel")}
+            </Button>
+          </Group>
+
+          {/* Custom Stepper */}
+          <Box mt="xl">
+            <Group justify="center" gap="xl">
+              {stepTitles.map((title, index) => {
+                const isActive = index === activeStep;
+                const isCompleted = index < activeStep;
+                const stepNumber = index + 1;
+
+                return (
+                  <Group key={index} gap="xs">
+                    <Group gap="xs" align="center">
+                      {/* Step indicator */}
+                      <Box
+                        style={{
+                          width: rem(32),
+                          height: rem(32),
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: isActive
+                            ? mantineTheme.colors.blue[5]
+                            : isCompleted
+                              ? mantineTheme.colors.green[6]
+                              : isDark
+                                ? theme.colors.dark[5]
+                                : theme.colors.gray[3],
+                          color:
+                            isActive || isCompleted
+                              ? "white"
+                              : isDark
+                                ? theme.colors.gray[5]
+                                : theme.colors.gray[6],
+                          fontWeight: 600,
+                          fontSize: rem(14),
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        {isCompleted ? <Icons.Check size={16} /> : stepNumber}
+                      </Box>
+
+                      {/* Step label */}
+                      <Text
+                        size="sm"
+                        fw={isActive ? 600 : 400}
+                        c={isActive ? undefined : "dimmed"}
+                      >
+                        {title}
+                      </Text>
+                    </Group>
+
+                    {/* Separator */}
+                    {index < stepTitles.length - 1 && (
+                      <Box
+                        style={{
+                          width: rem(60),
+                          height: rem(2),
+                          backgroundColor: isCompleted
+                            ? mantineTheme.colors.green[6]
+                            : isDark
+                              ? theme.colors.dark[4]
+                              : theme.colors.gray[3],
+                          transition: "all 0.2s ease",
+                        }}
+                      />
+                    )}
+                  </Group>
+                );
+              })}
+            </Group>
+          </Box>
+        </Container>
+      </Paper>
 
       {/* Content Area */}
-      <Box maw={1200} mx="auto" px="md" py="md">
+      <Container size="lg" py="xl">
         {stepComponents[activeStep]}
-      </Box>
+      </Container>
 
       {/* Footer Navigation */}
-      <Box
+      <Paper
+        shadow="sm"
+        p="md"
+        radius={0}
         style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 100,
           borderTop: `1px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[2]}`,
-          backgroundColor: isDark ? theme.colors.dark[7] : theme.white,
-          boxShadow: `0 -2px 4px ${theme.other.ui.shadow}`,
         }}
       >
-        <Box maw={1200} mx="auto" px="md" py="xs">
-          <Group justify="space-between">
-            {activeStep > 0 ? (
+        <Container size="lg">
+          <Group justify="flex-end">
+            {activeStep > 0 && (
               <Button
                 variant="subtle"
-                leftSection={<IconChevronLeft size={18} />}
+                leftSection={<Icons.ChevronLeft size={18} />}
                 onClick={previousStep}
                 size="md"
-                radius="md"
-                style={{
-                  transition: "all 0.2s ease",
-                  "&:hover": {
-                    backgroundColor: isDark
-                      ? theme.colors.dark[6]
-                      : theme.colors.gray[0],
-                    transform: "translateX(-2px)",
-                  },
-                }}
               >
-                {t("recipes:common.previous")}
+                {t("common:button.back", "Back")}
               </Button>
-            ) : (
-              <Box />
             )}
 
-            {activeStep < 2 ? (
-              <Button
-                rightSection={<IconChevronRight size={18} />}
-                onClick={handleNext}
-                disabled={!stepsValid[activeStep as keyof typeof stepsValid]}
-                size="md"
-                radius="md"
-                variant="filled"
-                style={{
-                  transition: "all 0.2s ease",
-                  ...(!stepsValid[activeStep as keyof typeof stepsValid]
-                    ? {}
-                    : {
-                        "&:hover": {
-                          transform: "translateX(2px)",
-                          boxShadow: theme.other.shadows.sm,
-                        },
-                      }),
-                }}
-              >
-                {t("recipes:common.next")}
-              </Button>
-            ) : (
-              <Button
-                rightSection={<IconCheck size={18} />}
-                onClick={handleNext}
-                loading={createRecipe.isPending}
-                disabled={!stepsValid[activeStep as keyof typeof stepsValid]}
-                size="md"
-                radius="md"
-                variant="gradient"
-                gradient={{ from: "teal", to: "cyan", deg: 60 }}
-                style={{
-                  transition: "all 0.2s ease",
-                  ...(!stepsValid[activeStep as keyof typeof stepsValid] ||
-                  createRecipe.isPending
-                    ? {}
-                    : {
-                        "&:hover": {
-                          boxShadow: theme.other.shadows.md,
-                          transform: "scale(1.02)",
-                        },
-                      }),
-                }}
-              >
-                {createRecipe.isPending
+            <Button
+              rightSection={
+                activeStep < 2 ? (
+                  <Icons.ChevronRight size={18} />
+                ) : (
+                  <Icons.Check size={18} />
+                )
+              }
+              onClick={handleNext}
+              loading={activeStep === 2 && createRecipe.isPending}
+              disabled={!stepsValid[activeStep as keyof typeof stepsValid]}
+              size="md"
+              variant={activeStep === 2 ? "gradient" : "filled"}
+              gradient={
+                activeStep === 2
+                  ? { from: "teal", to: "cyan", deg: 60 }
+                  : undefined
+              }
+            >
+              {activeStep === 2
+                ? createRecipe.isPending
                   ? t("recipes:review.submitting", "Creating...")
-                  : t("recipes:review.submit")}
-              </Button>
-            )}
+                  : t("recipes:review.submit", "Create Recipe")
+                : t("common:button.next", "Next")}
+            </Button>
           </Group>
-        </Box>
-      </Box>
+        </Container>
+      </Paper>
 
       {/* Cancel Confirmation Modal */}
+      {/* Add padding at bottom to account for fixed footer */}
+      <Box h={80} />
+
       <Modal
         opened={showCancelModal}
         onClose={() => setShowCancelModal(false)}
@@ -395,6 +324,6 @@ export function RecipeStepper() {
           </Group>
         </Stack>
       </Modal>
-    </Stack>
+    </Box>
   );
 }

@@ -236,6 +236,24 @@ function RegionSetupStep() {
 Use the comprehensive Mantine theme system with 40+ color variants:
 
 ```typescript
+// CRITICAL: Theme property access in Mantine v8
+import { useMantineTheme } from '@mantine/core';
+import { useTheme } from '@/providers/theme-provider';
+
+// For Mantine built-in properties (radius, spacing, etc.)
+const mantineTheme = useMantineTheme();
+const borderRadius = mantineTheme.radius.md;  // ✅ Correct
+const spacing = mantineTheme.spacing.md;       // ✅ Correct
+
+// For custom theme properties (colors, shadows, etc.)
+const { theme } = useTheme();
+const shadow = theme.other.shadows.md;         // ✅ Correct
+const regionColor = theme.other.regionPalette[index]; // ✅ Correct
+
+// ❌ WRONG - This will cause "Cannot read properties of undefined" errors:
+// const borderRadius = theme.radius.md;
+// const spacing = theme.spacing.md;
+
 // Access theme colors for regions/visualizations
 const { theme } = useTheme();
 const regionColor =
@@ -259,6 +277,20 @@ const boxStyle = {
 // - Task colors: theme.other.taskTypes.trafficStatistics
 // - Region colors: theme.other.regionColors.countLine
 ```
+
+**IMPORTANT: Theme Property Access Rules**
+
+1. **Mantine built-in properties** (`radius`, `spacing`, `fontSizes`, etc.):
+   - Use `useMantineTheme()` hook
+   - Access via `mantineTheme.radius.md`, `mantineTheme.spacing.lg`, etc.
+
+2. **Custom theme properties** (defined in `theme.other`):
+   - Use `useTheme()` hook from our theme provider
+   - Access via `theme.other.shadows.md`, `theme.other.regionPalette`, etc.
+
+3. **Color properties**:
+   - Can be accessed from either `mantineTheme` or `theme`
+   - Both `mantineTheme.colors.blue[5]` and `theme.colors.blue[5]` work
 
 **IMPORTANT: Color Usage Rules**
 
