@@ -137,7 +137,7 @@ export function LoginPage() {
           style={{
             width: "100%",
             maxWidth: "400px",
-            backgroundColor: "rgba(255, 255, 255, 0.9)",
+            backgroundColor: theme.other.backgrounds.glassMorphism,
             backdropFilter: "blur(8px)",
           }}
         >
@@ -145,7 +145,7 @@ export function LoginPage() {
             <Title
               order={1}
               style={{
-                color: "#1890ff",
+                color: theme.colors.blue[5],
                 fontWeight: 700,
                 letterSpacing: "-0.5px",
               }}

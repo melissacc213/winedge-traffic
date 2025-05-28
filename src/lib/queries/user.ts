@@ -43,7 +43,7 @@ const generateMockUsers = (): User[] => {
 };
 
 // Create a persistent mock data store
-let mockUsers = generateMockUsers();
+const mockUsers = generateMockUsers();
 
 export const userKeys = {
   all: ['user'] as const,

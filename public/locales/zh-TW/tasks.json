@@ -15,13 +15,17 @@
     }
   },
   "status": {
+    "pending": "待處理",
     "queued": "等待中",
     "running": "執行中",
     "completed": "已完成",
     "failed": "失敗",
-    "cancelled": "已取消"
+    "cancelled": "已取消",
+    "stopped": "已停止"
   },
   "taskType": {
+    "title": "任務類型",
+    "placeholder": "選擇任務類型",
     "trafficStatistics": "交通量統計",
     "trainDetection": "列車偵測"
   },
@@ -31,7 +35,9 @@
     "view": "查看任務",
     "cancel": "取消任務",
     "delete": "刪除任務",
-    "viewMetrics": "查看指標"
+    "viewMetrics": "查看指標",
+    "start": "開始任務",
+    "stop": "停止任務"
   },
   "details": {
     "title": "任務詳情",
@@ -64,5 +70,21 @@
     "recipe": "配方",
     "createdAt": "建立時間",
     "search": "搜尋任務..."
+  },
+  "creation": {
+    "taskConfiguration": "任務配置",
+    "taskConfigurationDescription": "選擇要執行的任務類型",
+    "selectRecipe": "選擇配方",
+    "selectRecipeDescription": "根據任務類型選擇合適的配方",
+    "selectTaskTypeFirst": "請先選擇任務類型",
+    "selectTaskTypeFirstDescription": "選擇任務類型後，相關配方將顯示在此處",
+    "noRecipesAvailable": "沒有可用的配方",
+    "noRecipesAvailableDescription": "此任務類型目前沒有可用的配方",
+    "taskSettings": "任務設定",
+    "taskSettingsDescription": "配置任務執行參數",
+    "localPath": "本地檔案路徑",
+    "localPathPlaceholder": "輸入影片檔案路徑",
+    "startImmediately": "立即啟動辨識",
+    "createTask": "建立任務"
   }
 }

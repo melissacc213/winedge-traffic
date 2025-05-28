@@ -15,13 +15,17 @@
     }
   },
   "status": {
+    "pending": "Pending",
     "queued": "Queued",
     "running": "Running",
     "completed": "Completed",
     "failed": "Failed",
-    "cancelled": "Cancelled"
+    "cancelled": "Cancelled",
+    "stopped": "Stopped"
   },
   "taskType": {
+    "title": "Task Type",
+    "placeholder": "Select task type",
     "trafficStatistics": "Traffic Statistics",
     "trainDetection": "Train Detection"
   },
@@ -31,7 +35,9 @@
     "view": "View Task",
     "cancel": "Cancel Task",
     "delete": "Delete Task",
-    "viewMetrics": "View Metrics"
+    "viewMetrics": "View Metrics",
+    "start": "Start Task",
+    "stop": "Stop Task"
   },
   "details": {
     "title": "Task Details",
@@ -64,5 +70,21 @@
     "recipe": "Recipe",
     "createdAt": "Created At",
     "search": "Search tasks..."
+  },
+  "creation": {
+    "taskConfiguration": "Task Configuration",
+    "taskConfigurationDescription": "Select the type of task to execute",
+    "selectRecipe": "Select Recipe",
+    "selectRecipeDescription": "Choose an appropriate recipe based on task type",
+    "selectTaskTypeFirst": "Please select a task type first",
+    "selectTaskTypeFirstDescription": "After selecting a task type, relevant recipes will be displayed here",
+    "noRecipesAvailable": "No recipes available",
+    "noRecipesAvailableDescription": "There are no recipes available for this task type",
+    "taskSettings": "Task Settings",
+    "taskSettingsDescription": "Configure task execution parameters",
+    "localPath": "Local File Path",
+    "localPathPlaceholder": "Enter video file path",
+    "startImmediately": "Start recognition immediately",
+    "createTask": "Create Task"
   }
 }

@@ -7,7 +7,7 @@ import { LicensesPage } from '@/pages/licenses-page/licenses-page';
 import { ModelsPage } from '@/pages/models-page';
 import { RecipesPage } from '@/pages/recipes-page';
 import { RecipeCreationPage } from '@/pages/recipe-creation-page';
-import { TasksPage, TaskDetailsPage, TaskVideoPage } from '@/pages/tasks-page';
+import { TasksPage, TaskDetailsPage } from '@/pages/tasks-page';
 import { Center, Loader } from '@mantine/core';
 import { Suspense } from 'react';
 import {
@@ -35,6 +35,7 @@ const router = createBrowserRouter([
             </LoginLayout>
           </Suspense>
         ),
+        HydrateFallback: LoadingFallback,
       };
     },
   },
@@ -56,6 +57,7 @@ const router = createBrowserRouter([
 
           return {
             Component: HomePage,
+            HydrateFallback: LoadingFallback,
           };
         },
       },
@@ -70,6 +72,7 @@ const router = createBrowserRouter([
           const { UserDetailView } = await import('../components/user/UserDetailView');
           return {
             Component: UserDetailView,
+            HydrateFallback: LoadingFallback,
           };
         },
       },
@@ -79,6 +82,7 @@ const router = createBrowserRouter([
           const { UserEdit } = await import('../components/user/UserEdit');
           return {
             Component: UserEdit,
+            HydrateFallback: LoadingFallback,
           };
         },
       },
@@ -93,6 +97,7 @@ const router = createBrowserRouter([
           const { LicenseDetailView } = await import('../components/license/LicenseDetailView');
           return {
             Component: LicenseDetailView,
+            HydrateFallback: LoadingFallback,
           };
         },
       },
@@ -102,6 +107,7 @@ const router = createBrowserRouter([
           const { LicenseEdit } = await import('../components/license/LicenseEdit');
           return {
             Component: LicenseEdit,
+            HydrateFallback: LoadingFallback,
           };
         },
       },
@@ -111,12 +117,28 @@ const router = createBrowserRouter([
         element: <TasksPage />
       },
       {
-        path: 'tasks/video',
-        element: <TaskVideoPage />
+        path: 'tasks/create',
+        async lazy() {
+          const { TaskCreationPage } = await import('../pages/tasks-page/task-creation-page');
+          return {
+            Component: TaskCreationPage,
+            HydrateFallback: LoadingFallback,
+          };
+        },
       },
       {
         path: 'tasks/:taskId',
         element: <TaskDetailsPage />
+      },
+      {
+        path: 'tasks/create-demo',
+        async lazy() {
+          const { TaskCreationDemoPage } = await import('../pages/task-creation-demo-page');
+          return {
+            Component: TaskCreationDemoPage,
+            HydrateFallback: LoadingFallback,
+          };
+        },
       },
       {
         path: 'recipes',
@@ -136,6 +158,7 @@ const router = createBrowserRouter([
           const { ModelDetailsPage } = await import('../pages/models-page/model-details-page');
           return {
             Component: ModelDetailsPage,
+            HydrateFallback: LoadingFallback,
           };
         },
       },
@@ -145,6 +168,7 @@ const router = createBrowserRouter([
           const { ModelEditPage } = await import('../pages/models-page/model-edit-page');
           return {
             Component: ModelEditPage,
+            HydrateFallback: LoadingFallback,
           };
         },
       },

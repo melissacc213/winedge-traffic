@@ -4,6 +4,7 @@
   "create": "創建配方",
   "noRecipes": "未找到配方",
   "noRecipesDescription": "創建您的第一個配方開始使用",
+  "noRecipesFound": "此頁面沒有找到配方",
   "noDescription": "未提供描述",
   "runTask": "運行任務",
   "view": {

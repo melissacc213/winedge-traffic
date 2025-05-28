@@ -1,6 +1,7 @@
-import type { AxiosRequestConfig } from 'axios';
-import { clients } from '../api';
-import { taskSchema, tasksListSchema } from '../validator/task';
+import type { AxiosRequestConfig } from "axios";
+import { clients } from "../api";
+import { taskSchema, tasksListSchema } from "../validator/task";
+import type { CreateTaskRequest } from "../../types/task-creation";
 
 export const taskService = {
   async getTasks(config?: AxiosRequestConfig<unknown>) {
@@ -18,19 +19,61 @@ export const taskService = {
     // return taskSchema.parse(data);
 
     // Mock implementation for development
-    const task = MOCK_TASKS.find(task => task.id === id);
-    if (!task) throw new Error('Task not found');
+    const task = MOCK_TASKS.find((task) => task.id === id);
+    if (!task) throw new Error("Task not found");
     return taskSchema.parse(task);
   },
 
-  async startTask(recipeId: string, config?: AxiosRequestConfig<unknown>) {
+  async createTask(
+    taskData: CreateTaskRequest,
+    config?: AxiosRequestConfig<unknown>
+  ) {
     // In production, this would call the actual API
-    // const { data } = await clients.v1.private.post(`/tasks/start`, { recipeId }, config);
+    // const { data } = await clients.v1.private.post('/tasks', taskData, config);
     // return taskSchema.parse(data);
 
     // Mock implementation for development
-    const mockTask = createMockTask(recipeId);
-    return taskSchema.parse(mockTask);
+    const taskId = `task-${Date.now()}`;
+    const newTask = {
+      id: taskId,
+      name: taskData.name,
+      description: taskData.description,
+      recipeId: taskData.recipeId,
+      taskType: taskData.taskType,
+      status: "pending" as const,
+      progress: 0,
+      videoUrl: taskData.localPath,
+      videoStreamUrl: `wss://example.com/ws/tasks/${taskId}/stream`,
+      createdAt: new Date().toISOString(),
+    };
+
+    MOCK_TASKS.push(newTask);
+    return taskSchema.parse(newTask);
+  },
+
+  async startTask(taskId: string, config?: AxiosRequestConfig<unknown>) {
+    // In production, this would call the actual API
+    // const { data } = await clients.v1.private.post(`/tasks/${taskId}/start`, undefined, config);
+    // return taskSchema.parse(data);
+
+    // Mock implementation for development
+    const task = MOCK_TASKS.find((t) => t.id === taskId);
+    if (!task) throw new Error("Task not found");
+
+    const updatedTask = {
+      ...task,
+      status: "running" as const,
+      startTime: new Date().toISOString(),
+      progress: 5,
+    };
+
+    // Update the mock task
+    const index = MOCK_TASKS.findIndex((t) => t.id === taskId);
+    if (index !== -1) {
+      MOCK_TASKS[index] = updatedTask;
+    }
+
+    return taskSchema.parse(updatedTask);
   },
 
   async stopTask(taskId: string, config?: AxiosRequestConfig<unknown>) {
@@ -40,50 +83,50 @@ export const taskService = {
     // return taskSchema.parse(data);
 
     // Mock implementation for development
-    const task = MOCK_TASKS.find(task => task.id === taskId);
-    if (!task) throw new Error('Task not found');
-    
+    const task = MOCK_TASKS.find((task) => task.id === taskId);
+    if (!task) throw new Error("Task not found");
+
     const updatedTask = {
       ...task,
-      status: 'stopped',
-      endTime: new Date().toISOString()
+      status: "stopped",
+      endTime: new Date().toISOString(),
     };
-    
+
     // Update the mock task
-    const index = MOCK_TASKS.findIndex(t => t.id === taskId);
+    const index = MOCK_TASKS.findIndex((t) => t.id === taskId);
     if (index !== -1) {
       MOCK_TASKS[index] = updatedTask;
     }
-    
+
     return taskSchema.parse(updatedTask);
   },
 
   async deleteTask(taskId: string, config?: AxiosRequestConfig<unknown>) {
     // In production, this would call the actual API
     // await clients.v1.private.delete(`/tasks/${taskId}`, config);
-    
+
     // Mock implementation for development
-    const index = MOCK_TASKS.findIndex(task => task.id === taskId);
+    const index = MOCK_TASKS.findIndex((task) => task.id === taskId);
     if (index !== -1) {
       MOCK_TASKS.splice(index, 1);
     }
-  }
+  },
 };
 
 // Mock data for development
 export const MOCK_TASKS = [
   {
-    id: 'task-1',
-    name: 'Downtown Traffic Analysis',
-    description: 'Analyzing traffic patterns at Main St intersection',
-    recipeId: 'recipe-1',
-    taskType: 'counting',
-    status: 'completed',
+    id: "task-1",
+    name: "Downtown Traffic Analysis",
+    description: "Analyzing traffic patterns at Main St intersection",
+    recipeId: "recipe-1",
+    taskType: "trafficStatistics",
+    status: "completed",
     progress: 100,
-    startTime: '2023-05-10T14:30:00Z',
-    endTime: '2023-05-10T15:15:00Z',
-    videoUrl: 'https://example.com/videos/traffic-sample.mp4',
-    videoStreamUrl: 'wss://example.com/ws/tasks/task-1/stream',
+    startTime: "2023-05-10T14:30:00Z",
+    endTime: "2023-05-10T15:15:00Z",
+    videoUrl: "https://example.com/videos/traffic-sample.mp4",
+    videoStreamUrl: "wss://example.com/ws/tasks/task-1/stream",
     metrics: {
       objectsCounted: 1245,
       detectionRate: 0.96,
@@ -92,22 +135,22 @@ export const MOCK_TASKS = [
         car: 876,
         truck: 142,
         bus: 45,
-        motorcycle: 182
-      }
+        motorcycle: 182,
+      },
     },
-    createdAt: '2023-05-10T14:25:00Z'
+    createdAt: "2023-05-10T14:25:00Z",
   },
   {
-    id: 'task-2',
-    name: 'Highway Traffic Monitoring',
-    description: 'Monitoring vehicle flow on Highway 101',
-    recipeId: 'recipe-2',
-    taskType: 'tracking',
-    status: 'running',
+    id: "task-2",
+    name: "Highway Traffic Monitoring",
+    description: "Monitoring vehicle flow on Highway 101",
+    recipeId: "recipe-2",
+    taskType: "trafficStatistics",
+    status: "running",
     progress: 68,
-    startTime: '2023-05-20T09:45:00Z',
-    videoUrl: 'https://example.com/videos/highway-sample.mp4',
-    videoStreamUrl: 'wss://example.com/ws/tasks/task-2/stream',
+    startTime: "2023-05-20T09:45:00Z",
+    videoUrl: "https://example.com/videos/highway-sample.mp4",
+    videoStreamUrl: "wss://example.com/ws/tasks/task-2/stream",
     metrics: {
       objectsCounted: 876,
       detectionRate: 0.92,
@@ -115,81 +158,62 @@ export const MOCK_TASKS = [
       totalObjects: {
         car: 652,
         truck: 187,
-        bus: 37
-      }
+        bus: 37,
+      },
     },
-    createdAt: '2023-05-20T09:40:00Z'
+    createdAt: "2023-05-20T09:40:00Z",
   },
   {
-    id: 'task-3',
-    name: 'Parking Lot Occupancy',
-    description: 'Monitoring mall parking lot usage',
-    recipeId: 'recipe-3',
-    taskType: 'detection',
-    status: 'pending',
+    id: "task-3",
+    name: "Parking Lot Occupancy",
+    description: "Monitoring mall parking lot usage",
+    recipeId: "recipe-3",
+    taskType: "trafficStatistics",
+    status: "pending",
     progress: 0,
-    videoUrl: 'https://example.com/videos/parking-lot.mp4',
-    videoStreamUrl: 'wss://example.com/ws/tasks/task-3/stream',
-    createdAt: '2023-05-21T10:30:00Z'
+    videoUrl: "https://example.com/videos/parking-lot.mp4",
+    videoStreamUrl: "wss://example.com/ws/tasks/task-3/stream",
+    createdAt: "2023-05-21T10:30:00Z",
   },
   {
-    id: 'task-4',
-    name: 'Crosswalk Safety Analysis',
-    description: 'Analyzing pedestrian patterns at busy crosswalk',
-    recipeId: 'recipe-4',
-    taskType: 'detection',
-    status: 'failed',
+    id: "task-4",
+    name: "Crosswalk Safety Analysis",
+    description: "Analyzing pedestrian patterns at busy crosswalk",
+    recipeId: "recipe-4",
+    taskType: "trainDetection",
+    status: "failed",
     progress: 32,
-    startTime: '2023-05-19T16:20:00Z',
-    endTime: '2023-05-19T16:35:00Z',
-    videoUrl: 'https://example.com/videos/crosswalk.mp4',
-    videoStreamUrl: 'wss://example.com/ws/tasks/task-4/stream',
-    error: 'Model inference failed: GPU memory allocation error',
-    createdAt: '2023-05-19T16:15:00Z'
+    startTime: "2023-05-19T16:20:00Z",
+    endTime: "2023-05-19T16:35:00Z",
+    videoUrl: "https://example.com/videos/crosswalk.mp4",
+    videoStreamUrl: "wss://example.com/ws/tasks/task-4/stream",
+    error: "Model inference failed: GPU memory allocation error",
+    createdAt: "2023-05-19T16:15:00Z",
   },
   {
-    id: 'task-5',
-    name: 'School Zone Traffic',
-    description: 'Monitoring traffic patterns in school safety zone',
-    recipeId: 'recipe-5',
-    taskType: 'counting',
-    status: 'stopped',
+    id: "task-5",
+    name: "School Zone Traffic",
+    description: "Monitoring traffic patterns in school safety zone",
+    recipeId: "recipe-5",
+    taskType: "trainDetection",
+    status: "stopped",
     progress: 45,
-    startTime: '2023-05-18T12:00:00Z',
-    endTime: '2023-05-18T12:22:00Z',
-    videoUrl: 'https://example.com/videos/school-zone.mp4',
-    videoStreamUrl: 'wss://example.com/ws/tasks/task-5/stream',
+    startTime: "2023-05-18T12:00:00Z",
+    endTime: "2023-05-18T12:22:00Z",
+    videoUrl: "https://example.com/videos/school-zone.mp4",
+    videoStreamUrl: "wss://example.com/ws/tasks/task-5/stream",
     metrics: {
       objectsCounted: 246,
       processingFps: 26.1,
       totalObjects: {
         car: 187,
-        bicycle: 59
-      }
+        bicycle: 59,
+      },
     },
-    createdAt: '2023-05-18T11:55:00Z'
-  }
+    createdAt: "2023-05-18T11:55:00Z",
+  },
 ];
 
 function getMockTasks() {
   return tasksListSchema.parse(MOCK_TASKS);
-}
-
-function createMockTask(recipeId: string) {
-  const taskId = `task-${Date.now()}`;
-  const newTask = {
-    id: taskId,
-    name: `Task ${taskId}`,
-    description: 'Automatically created task',
-    recipeId,
-    taskType: 'detection',
-    status: 'pending',
-    progress: 0,
-    videoUrl: 'https://example.com/videos/sample.mp4',
-    videoStreamUrl: `wss://example.com/ws/tasks/${taskId}/stream`,
-    createdAt: new Date().toISOString()
-  };
-  
-  MOCK_TASKS.push(newTask);
-  return newTask;
 }

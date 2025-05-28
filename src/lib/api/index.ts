@@ -52,6 +52,9 @@ export const clients = {
   },
 };
 
+// Default API client export for convenience
+export const api = clients.v1.private;
+
 // Generic API error handler
 export class ApiError extends Error {
   status: number;

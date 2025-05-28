@@ -200,10 +200,7 @@ export function Layout({ children }: LayoutProps) {
           transition: "width 300ms ease",
           overflow: "hidden",
           zIndex: 999,
-          boxShadow:
-            colorScheme === "dark"
-              ? "2px 0 8px rgba(0, 0, 0, 0.3)"
-              : "2px 0 8px rgba(0, 0, 0, 0.1)",
+          boxShadow: theme.other.shadows.md,
         },
       })}
     >
@@ -211,33 +208,27 @@ export function Layout({ children }: LayoutProps) {
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between">
           <Group>
-            <Tooltip
-              label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-              position="bottom"
-              withArrow
+            <Box
+              component="span"
+              onClick={toggleSidebar}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: rem(8),
+                borderRadius: rem(8),
+                cursor: "pointer",
+                transition: "transform 200ms ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "scale(1.05)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
+              }}
             >
-              <Box
-                component="span"
-                onClick={toggleSidebar}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: rem(8),
-                  borderRadius: rem(8),
-                  cursor: "pointer",
-                  transition: "transform 200ms ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "scale(1.05)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "scale(1)";
-                }}
-              >
-                <Burger opened={sidebarExpanded} size="sm" />
-              </Box>
-            </Tooltip>
+              <Burger opened={sidebarExpanded} size="sm" />
+            </Box>
 
             <Title
               order={3}
@@ -441,7 +432,7 @@ export function Layout({ children }: LayoutProps) {
               }}
             >
               <Text size="xs" c="dimmed" ta="center">
-                WinEdge Traffic v2.0
+                WinEdge v1.0
               </Text>
             </Box>
           )}
@@ -455,9 +446,7 @@ export function Layout({ children }: LayoutProps) {
           transition: "padding-left 300ms ease",
         }}
       >
-        <Box p="xl" style={{ height: "100%" }}>
-          {children}
-        </Box>
+        <Box style={{ height: "100%" }}>{children}</Box>
       </AppShell.Main>
     </AppShell>
   );

@@ -54,7 +54,7 @@ const useStyles = () => {
     right: 0,
     bottom: 0,
     zIndex: 999,
-    backgroundColor: "rgba(0, 0, 0, 0.15)",
+    backgroundColor: theme.other.overlay.backdrop,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",

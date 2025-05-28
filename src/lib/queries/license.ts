@@ -46,7 +46,7 @@ const generateMockLicenses = (): License[] => {
 };
 
 // Create a persistent mock data store
-let mockLicenses = generateMockLicenses();
+const mockLicenses = generateMockLicenses();
 
 // Query keys
 export const licenseKeys = {

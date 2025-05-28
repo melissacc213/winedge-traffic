@@ -322,7 +322,7 @@ export function TaskVideoStream({
                 bottom: 0,
                 left: 0,
                 right: 0,
-                background: `linear-gradient(transparent, ${isDark ? 'rgba(0,0,0,0.9)' : 'rgba(0,0,0,0.8)'})`,
+                background: `linear-gradient(transparent, ${theme.other.overlay.gradient})`,
                 padding: theme.spacing?.md || '16px',
                 backdropFilter: 'blur(4px)'
               }}
@@ -352,7 +352,7 @@ export function TaskVideoStream({
                         radius="xl"
                         style={{
                           backgroundColor: isDark ? theme.colors.blue[6] : theme.colors.blue[5],
-                          boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)'
+                          boxShadow: `0 4px 12px ${theme.other.overlay.blueShadow}`
                         }}
                       >
                         {isPlaying ? <IconPlayerPause size={24} /> : <IconPlayerPlay size={24} />}
@@ -367,7 +367,7 @@ export function TaskVideoStream({
                         color="gray"
                         radius="xl"
                         style={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                          backgroundColor: theme.other.overlay.lightButton,
                           backdropFilter: 'blur(8px)'
                         }}
                       >
@@ -383,7 +383,7 @@ export function TaskVideoStream({
                         color="gray"
                         radius="xl"
                         style={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                          backgroundColor: theme.other.overlay.lightButton,
                           backdropFilter: 'blur(8px)'
                         }}
                       >
@@ -393,7 +393,7 @@ export function TaskVideoStream({
                     
                     <Box
                       style={{
-                        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                        backgroundColor: theme.other.overlay.controls,
                         padding: '6px 12px',
                         borderRadius: theme.radius?.md || '8px',
                         backdropFilter: 'blur(8px)'
@@ -415,7 +415,7 @@ export function TaskVideoStream({
                           color="teal"
                           radius="xl"
                           style={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                            backgroundColor: theme.other.overlay.lightButton,
                             backdropFilter: 'blur(8px)'
                           }}
                         >
@@ -432,7 +432,7 @@ export function TaskVideoStream({
                         color="gray"
                         radius="xl"
                         style={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                          backgroundColor: theme.other.overlay.lightButton,
                           backdropFilter: 'blur(8px)'
                         }}
                       >

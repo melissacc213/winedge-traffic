@@ -342,15 +342,6 @@ export function UsersTable({
               onClick={() => navigate(`/users/${row.original.id}`)}
               style={{
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = colorScheme === 'dark' 
-                  ? 'rgba(255, 255, 255, 0.05)' 
-                  : 'rgba(0, 0, 0, 0.02)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
               }}
             >
               {row.getVisibleCells().map((cell) => (

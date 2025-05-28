@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Stage, Layer, Image as KonvaImage } from "react-konva";
 import {
   Stack,
@@ -21,17 +21,17 @@ import {
 import { Icons } from "../../icons";
 import { Dropzone } from "@mantine/dropzone";
 import { useRecipeStore } from "../../../lib/store/recipe-store";
-import { useUploadVideo } from "../../../lib/queries/recipe";
 import useImage from "use-image";
 import { useTheme } from "../../../providers/theme-provider";
 import type { TaskType, FrameData } from "../../../types/recipe";
+import { UnifiedVideoPlayer } from "../../video-player/unified-video-player";
 
 const STAGE_WIDTH = 500;
 const STAGE_HEIGHT = 300;
 
 export function TaskTypeWithVideoStep() {
   const { t } = useTranslation(["recipes", "common"]);
-  const { formValues, setTaskType, setVideo, updateForm } = useRecipeStore();
+  const { formValues, setTaskType, setVideo, updateForm, setExtractedFrame, clearVideoData } = useRecipeStore();
   const mantineTheme = useMantineTheme();
   const { theme, colorScheme } = useTheme();
 
@@ -70,14 +70,14 @@ export function TaskTypeWithVideoStep() {
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(
     formValues.videoFile || null
   );
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [capturedFrame, setCapturedFrame] = useState<FrameData | null>(
-    formValues.extractedFrame ? JSON.parse(formValues.extractedFrame) : null
-  );
+  const [capturedFrame, setCapturedFrame] = useState<FrameData | null>(() => {
+    try {
+      return formValues.extractedFrame ? JSON.parse(formValues.extractedFrame) : null;
+    } catch {
+      return null;
+    }
+  });
 
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const uploadVideo = useUploadVideo();
   const [konvaImage] = useImage(capturedFrame?.imageDataUrl || "");
 
   const taskTypes = [
@@ -100,46 +100,20 @@ export function TaskTypeWithVideoStep() {
     },
   ];
 
-  const handleCaptureFrame = () => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (video && canvas) {
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      canvas.width = STAGE_WIDTH;
-      canvas.height = STAGE_HEIGHT;
-      ctx.drawImage(video, 0, 0, STAGE_WIDTH, STAGE_HEIGHT);
-      const imageDataUrl = canvas.toDataURL("image/png");
-      const frame: FrameData = {
-        imageDataUrl,
-        frameTime: video.currentTime,
-        objects: [],
-      };
-      setCapturedFrame(frame);
-      updateForm({
-        extractedFrame: JSON.stringify(frame),
-        extractedFrameTime: frame.frameTime,
-      });
-    }
-  };
-
-  const stepFrame = (direction: "forward" | "backward") => {
-    const video = videoRef.current;
-    if (!video) return;
-    const fps = 25;
-    const delta = 1 / fps;
-    video.currentTime += direction === "forward" ? delta : -delta;
+  const handleFrameCaptured = (frame: FrameData) => {
+    setCapturedFrame(frame);
+    setExtractedFrame(
+      JSON.stringify(frame),
+      frame.frameTime,
+      `frame_${Date.now()}.jpg`
+    );
   };
 
   const handleFileChange = (file: File) => {
     setSelectedVideoFile(file);
-    const localUrl = URL.createObjectURL(file);
-    setVideoUrl(localUrl);
-    uploadVideo.mutate(file, {
-      onSuccess: (videoId) => {
-        setVideo(videoId, file);
-      },
-    });
+    // Generate a temporary ID for the video
+    const videoId = `video-${Date.now()}`;
+    setVideo(videoId, file);
   };
 
   // Check if step is complete
@@ -151,7 +125,6 @@ export function TaskTypeWithVideoStep() {
 
   return (
     <Box>
-      <canvas ref={canvasRef} style={{ display: "none" }} />
       <Grid gutter="md">
         <Grid.Col span={{ base: 12, md: 5 }}>
           <Paper p="md" radius="md" withBorder>
@@ -179,7 +152,7 @@ export function TaskTypeWithVideoStep() {
                       backgroundColor:
                         formValues.taskType === item.id
                           ? colorScheme === "dark"
-                            ? theme.colors.dark[6]
+                            ? mantineTheme.colors.dark[6]
                             : mantineTheme.colors[item.color][0]
                           : undefined,
                       transition: "all 200ms ease",
@@ -267,8 +240,8 @@ export function TaskTypeWithVideoStep() {
                     </Text>
                   </Stack>
                 </Center>
-              ) : videoUrl ? (
-                <Card withBorder radius="md" p="md">
+              ) : selectedVideoFile ? (
+                <Box>
                   <Stack gap="sm">
                     <Group justify="space-between">
                       <Group gap="xs">
@@ -301,12 +274,7 @@ export function TaskTypeWithVideoStep() {
                             } else {
                               setSelectedVideoFile(null);
                               setCapturedFrame(null);
-                              setVideoUrl(null);
-                              setVideo("", null);
-                              updateForm({
-                                extractedFrame: null,
-                                extractedFrameTime: null,
-                              });
+                              clearVideoData();
                             }
                           }}
                         >
@@ -334,7 +302,7 @@ export function TaskTypeWithVideoStep() {
                                 ? getThemeColor("gray.8")
                                 : getThemeColor("gray.1"),
                             cursor: "grab",
-                            border: `2px solid ${colorScheme === "dark" ? getThemeColor("gray.6") : getThemeColor("gray.3")}`,
+                            border: `1px solid ${colorScheme === "dark" ? getThemeColor("gray.7") : getThemeColor("gray.3")}`,
                             borderRadius: 8,
                           }}
                         >
@@ -350,83 +318,44 @@ export function TaskTypeWithVideoStep() {
                         </Stage>
                       </Box>
                     ) : (
-                      <video
-                        ref={videoRef}
-                        src={videoUrl}
-                        controls
-                        style={{
-                          width: "100%",
-                          maxWidth: STAGE_WIDTH,
-                          height: "auto",
-                          maxHeight: STAGE_HEIGHT,
-                          backgroundColor:
-                            colorScheme === "dark"
-                              ? getThemeColor("gray.9")
-                              : "#000",
-                          borderRadius: 8,
-                          boxShadow: `0 2px 8px ${getThemeColor("ui.shadow")}`,
-                          margin: "0 auto",
-                          display: "block",
-                        }}
+                      <UnifiedVideoPlayer
+                        file={selectedVideoFile}
+                        width={STAGE_WIDTH}
+                        height={STAGE_HEIGHT}
+                        onFrameCaptured={handleFrameCaptured}
                       />
                     )}
 
-                    {/* Controls */}
-                    <Group justify="space-between">
-                      <Group gap="xs">
-                        <Button
-                          leftSection={<Icons.ChevronLeft size={16} />}
-                          size="sm"
-                          variant="outline"
-                          onClick={() => stepFrame("backward")}
-                          disabled={!!capturedFrame}
-                        >
-                          {t("recipes:creation.importVideo.prevFrame", "Prev Frame")}
-                        </Button>
-                        <Button
-                          rightSection={<Icons.ChevronRight size={16} />}
-                          size="sm"
-                          variant="outline"
-                          onClick={() => stepFrame("forward")}
-                          disabled={!!capturedFrame}
-                        >
-                          {t("recipes:creation.importVideo.nextFrame", "Next Frame")}
-                        </Button>
-                      </Group>
-
-                      <Button
-                        size="sm"
-                        variant={capturedFrame ? "outline" : "filled"}
-                        onClick={handleCaptureFrame}
-                        disabled={!!capturedFrame}
-                        leftSection={capturedFrame ? <Icons.Check size={16} /> : undefined}
-                      >
-                        {capturedFrame 
-                          ? t("recipes:creation.importVideo.frameCaptured", "Frame Captured")
-                          : t("recipes:creation.importVideo.captureFrame", "Capture Frame")}
-                      </Button>
-                    </Group>
                   </Stack>
-                </Card>
+                </Box>
               ) : (
                 <Dropzone
                   onDrop={(files) => handleFileChange(files[0])}
-                  accept={["video/mp4"]}
+                  accept={{
+                    'video/mp4': ['.mp4'],
+                    'video/x-matroska': ['.mkv'],
+                    'video/webm': ['.webm']
+                  }}
                   maxSize={500 * 1024 * 1024}
                   disabled={!formValues.taskType}
-                  styles={{
+                  styles={(theme) => ({
                     root: {
-                      border: `2px dashed ${colorScheme === "dark" ? getThemeColor("gray.6") : getThemeColor("gray.3")}`,
-                      borderRadius: "12px",
-                      padding: "30px",
-                      backgroundColor:
-                        colorScheme === "dark"
-                          ? getThemeColor("gray.8")
-                          : getThemeColor("gray.0"),
+                      border: `1px dashed ${colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[4]}`,
+                      borderRadius: "8px",
+                      padding: "24px",
+                      backgroundColor: colorScheme === "dark" ? theme.colors.dark[7] : theme.colors.gray[0],
                       cursor: formValues.taskType ? "pointer" : "not-allowed",
                       opacity: formValues.taskType ? 1 : 0.6,
+                      transition: "all 0.2s ease",
+                      "&:hover": formValues.taskType ? {
+                        borderColor: colorScheme === "dark" ? theme.colors.dark[3] : theme.colors.gray[5],
+                        backgroundColor: colorScheme === "dark" ? theme.colors.dark[6] : theme.colors.gray[1],
+                      } : {},
                     },
-                  }}
+                    inner: {
+                      backgroundColor: 'transparent !important',
+                    },
+                  })}
                 >
                   <Group
                     align="center"
@@ -443,6 +372,9 @@ export function TaskTypeWithVideoStep() {
                           "recipes:creation.importVideo.dragDrop",
                           "Drag & drop video here"
                         )}
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        Supports MP4, MKV, and WebM formats
                       </Text>
                       <Text size="sm" c="dimmed">
                         {t("recipes:creation.importVideo.or", "or")}
@@ -483,12 +415,7 @@ export function TaskTypeWithVideoStep() {
               onClick={() => {
                 setSelectedVideoFile(null);
                 setCapturedFrame(null);
-                setVideoUrl(null);
-                setVideo("", null);
-                updateForm({
-                  extractedFrame: null,
-                  extractedFrameTime: null,
-                });
+                clearVideoData();
                 setShowVideoChangeModal(false);
               }}
             >
@@ -529,12 +456,7 @@ export function TaskTypeWithVideoStep() {
                   setTaskType(pendingTaskType);
                   setSelectedVideoFile(null);
                   setCapturedFrame(null);
-                  setVideoUrl(null);
-                  setVideo("", null);
-                  updateForm({
-                    extractedFrame: null,
-                    extractedFrameTime: null,
-                  });
+                  clearVideoData();
                 }
                 setShowTaskChangeModal(false);
                 setPendingTaskType(null);

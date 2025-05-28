@@ -111,19 +111,25 @@ export function TaskVideoPage() {
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
       
-      canvas.width = STAGE_WIDTH;
-      canvas.height = STAGE_HEIGHT;
-      ctx.drawImage(video, 0, 0, STAGE_WIDTH, STAGE_HEIGHT);
-      
-      const imageDataUrl = canvas.toDataURL('image/png');
-      const frame: FrameData = {
-        imageDataUrl,
-        frameTime: video.currentTime,
-        objects: [],
-      };
-      
-      setCapturedFrame(frame);
-      setShowFrame(true);
+      try {
+        canvas.width = STAGE_WIDTH;
+        canvas.height = STAGE_HEIGHT;
+        ctx.drawImage(video, 0, 0, STAGE_WIDTH, STAGE_HEIGHT);
+        
+        const imageDataUrl = canvas.toDataURL('image/png');
+        const frame: FrameData = {
+          imageDataUrl,
+          frameTime: video.currentTime,
+          objects: [],
+        };
+        
+        setCapturedFrame(frame);
+        setShowFrame(true);
+      } catch (err) {
+        console.error('Frame capture failed due to CORS restrictions:', err);
+        // Show user-friendly message instead of crashing
+        alert('Frame capture failed due to video security restrictions. Try using a different video file or format.');
+      }
     }
   };
 

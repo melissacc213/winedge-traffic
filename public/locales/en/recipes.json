@@ -4,6 +4,7 @@
   "create": "Create Recipe",
   "noRecipes": "No Recipes Found",
   "noRecipesDescription": "Get started by creating your first recipe",
+  "noRecipesFound": "No recipes found in this page",
   "noDescription": "No description provided",
   "runTask": "Run Task",
   "view": {

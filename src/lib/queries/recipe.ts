@@ -3,6 +3,7 @@ import { recipeSchema, recipesListSchema } from "../validator/recipe";
 import type { RecipeFormValues } from "../validator/recipe";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRecipeStore } from "../store/recipe-store";
+import { recipeService } from "../api/recipe-service";
 
 // Mock data for development
 const MOCK_RECIPES = [
@@ -659,32 +660,59 @@ export function useRecipe(id: string) {
 export function useCreateRecipe() {
   const queryClient = useQueryClient();
   const addRecipe = useRecipeStore((state) => state.addRecipe);
+  const generateAPIPayload = useRecipeStore((state) => state.generateAPIPayload);
+  const formValues = useRecipeStore((state) => state.formValues);
 
   return useMutation({
-    mutationFn: async (formValues: RecipeFormValues) => {
-      // In production, replace with actual API call
-      // const { data } = await clients.v1.private.post('/recipes', formValues);
-      // return recipeSchema.parse(data);
+    mutationFn: async () => {
+      // Generate the API payload from the store
+      const payload = generateAPIPayload();
+      
+      if (!payload) {
+        throw new Error("Failed to generate API payload. Please ensure all required fields are filled.");
+      }
+
+      // In production, use the actual API service
+      // return await recipeService.createRecipe(payload);
 
       // Using mock implementation for development
-      console.log("Creating recipe with values:", formValues);
+      console.log("Creating recipe with payload:", payload);
 
       // Simulate API call
       return new Promise((resolve) => {
         setTimeout(() => {
-          const newRecipe = {
+          // Create a proper recipe response based on the payload
+          const mockResponse = {
             id: `recipe-${Date.now()}`,
-            ...formValues,
+            name: formValues.name || `${payload.kind === "train" ? "Train Detection" : "Traffic Statistics"} Recipe`,
+            description: formValues.description || `Auto-generated ${payload.kind} recipe`,
+            taskType: payload.kind === "train" ? "trainDetection" as const : "trafficStatistics" as const,
+            videoId: formValues.videoId || "video-1",
+            regions: payload.kind === "intersection" 
+              ? payload.polygons.map(p => ({
+                  id: p.id,
+                  name: `Region ${p.id}`,
+                  type: "areaOfInterest" as const,
+                  points: p.points
+                }))
+              : [],
+            modelId: payload.model_id.toString(),
+            confidenceThreshold: payload.models[0]?.confidence || 0.7,
+            classFilter: payload.models.map(m => m.label),
             createdAt: new Date().toISOString(),
-            status: "active",
+            status: "active" as const,
+            inferenceStep: 3,
           };
-          const result = recipeSchema.parse(newRecipe);
-          addRecipe(result);
-          resolve(result);
+          resolve(mockResponse);
         }, 1000);
       });
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
+      // Add the new recipe to the store
+      if (data && data.id) {
+        addRecipe(data);
+      }
+      
       queryClient.invalidateQueries({
         queryKey: recipeKeys.lists(),
       });

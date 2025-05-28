@@ -23,18 +23,11 @@ import {
   Flex,
   Collapse,
   Tooltip,
+  Divider,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useTheme } from "../../../providers/theme-provider";
-import {
-  IconPlus,
-  IconTrash,
-  IconEdit,
-  IconArrowRight,
-  IconPolygon,
-  IconChevronDown,
-  IconInfoCircle,
-} from "@tabler/icons-react";
+import { Icons } from "../../icons";
 import { v4 as uuidv4 } from "uuid";
 import {
   Stage,
@@ -70,6 +63,7 @@ export function RegionSetupStep() {
     updateRegion,
     deleteRegion,
     updateConnections,
+    setROI,
   } = useRecipeStore();
   const mantineTheme = useMantineTheme();
   const { theme, colorScheme } = useTheme();
@@ -101,7 +95,9 @@ export function RegionSetupStep() {
   );
 
   // Rectangle drawing state
-  const [rectangleStart, setRectangleStart] = useState<RegionPoint | null>(null);
+  const [rectangleStart, setRectangleStart] = useState<RegionPoint | null>(
+    null
+  );
   const [isDrawingRect, setIsDrawingRect] = useState(false);
 
   // UI state
@@ -269,7 +265,7 @@ export function RegionSetupStep() {
           const minY = Math.min(rectangleStart!.y, point.y);
           const maxX = Math.max(rectangleStart!.x, point.x);
           const maxY = Math.max(rectangleStart!.y, point.y);
-          
+
           setCurrentPoints([
             { x: minX, y: minY },
             { x: maxX, y: minY },
@@ -287,14 +283,76 @@ export function RegionSetupStep() {
   };
 
   const handleAddRegion = () => {
+    // In rectangle mode with existing region, set up for editing
+    if (isRectangleMode && regions.length > 0) {
+      const existingRegion = regions[0];
+      setEditingRegion(existingRegion.id);
+      // Don't set region name for rectangle mode
+    } else if (!isRectangleMode) {
+      setRegionName("");
+    }
+
     setSelectedRegion(null);
-    setEditingRegion(null);
     setIsDrawing(true);
     setCurrentPoints([]);
     setIsEditMode(false);
+    setRectangleStart(null);
+    setIsDrawingRect(false);
   };
 
   const handleSaveRegion = () => {
+    // In rectangle mode, require exactly 4 points
+    if (isRectangleMode) {
+      if (currentPoints.length !== 4) {
+        return;
+      }
+
+      // For rectangle mode, use a default name if updating
+      const trimmedName = regionName.trim() || "Detection Area";
+
+      // Calculate ROI bounds
+      const x1 = Math.min(currentPoints[0].x, currentPoints[2].x);
+      const y1 = Math.min(currentPoints[0].y, currentPoints[2].y);
+      const x2 = Math.max(currentPoints[0].x, currentPoints[2].x);
+      const y2 = Math.max(currentPoints[0].y, currentPoints[2].y);
+
+      // Set ROI
+      setROI({ x1, y1, x2, y2 });
+
+      if (editingRegion) {
+        // Update existing region
+        const updatedRegion: Region = {
+          id: editingRegion,
+          name: trimmedName,
+          points: currentPoints,
+          roadType: roadType,
+        };
+        updateRegion(updatedRegion);
+      } else {
+        // In rectangle mode, only allow one region
+        if (regions.length > 0) {
+          // Clear existing regions first
+          regions.forEach((r) => deleteRegion(r.id));
+        }
+
+        const newRegion: Region = {
+          id: uuidv4(),
+          name: trimmedName,
+          points: currentPoints,
+          roadType: roadType,
+        };
+        addRegion(newRegion);
+      }
+
+      setIsDrawing(false);
+      setCurrentPoints([]);
+      setRegionName("");
+      setEditingRegion(null);
+      setSelectedRegion(null);
+      return;
+    }
+
+    // Original logic for non-rectangle mode
     if (currentPoints.length < 3) {
       return;
     }
@@ -308,7 +366,9 @@ export function RegionSetupStep() {
 
     // Check for duplicate names
     const isDuplicate = regions.some(
-      (r) => r.name.toLowerCase() === trimmedName.toLowerCase() && r.id !== editingRegion
+      (r) =>
+        r.name.toLowerCase() === trimmedName.toLowerCase() &&
+        r.id !== editingRegion
     );
     if (isDuplicate) {
       return;
@@ -362,7 +422,9 @@ export function RegionSetupStep() {
 
       // Check for duplicate names
       const isDuplicate = regions.some(
-        (r) => r.name.toLowerCase() === trimmedName.toLowerCase() && r.id !== editingRegion
+        (r) =>
+          r.name.toLowerCase() === trimmedName.toLowerCase() &&
+          r.id !== editingRegion
       );
       if (isDuplicate) {
         return;
@@ -398,6 +460,9 @@ export function RegionSetupStep() {
     setIsDraggingRegion(false);
     setDragStartPos({ x: 0, y: 0 });
     setOriginalPoints([]);
+    // Clear rectangle drawing states
+    setRectangleStart(null);
+    setIsDrawingRect(false);
   };
 
   const handleDeleteRegion = (regionId: string) => {
@@ -526,12 +591,17 @@ export function RegionSetupStep() {
   };
 
   return (
-    <Paper withBorder p="md" radius="md" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Paper
+      withBorder
+      p="md"
+      radius="md"
+      style={{ height: "100%", display: "flex", flexDirection: "column" }}
+    >
       {/* Compact Header */}
       <Box pb="sm" style={{ flexShrink: 0 }}>
         <Group justify="space-between" align="center">
           <Group gap="sm">
-            <IconPolygon
+            <Icons.Polygon
               size={20}
               color={theme.colors[mantineTheme.primaryColor][6]}
             />
@@ -540,32 +610,38 @@ export function RegionSetupStep() {
               size="sm"
               variant={colorScheme === "dark" ? "filled" : "light"}
             >
-              {regions.length} regions{!isRectangleMode && ` • ${connections.length} connections`}
+              {isRectangleMode
+                ? regions.length > 0
+                  ? "ROI configured"
+                  : "No ROI"
+                : `${regions.length} regions • ${connections.length} connections`}
             </Badge>
           </Group>
 
           {/* Road Type Selector Button - hide for train detection */}
           {!isRectangleMode && (
             <Button
-            variant="subtle"
-            size="sm"
-            rightSection={
-              <IconChevronDown
-                size={16}
-                style={{
-                  transform: roadTypeSelectorOpened ? "rotate(180deg)" : "none",
-                  transition: "transform 0.2s",
-                }}
-              />
-            }
-            onClick={toggleRoadTypeSelector}
-          >
-            <Group gap="xs">
-              <RoadTypeIcon type={roadType} size={20} />
-              <Text size="sm">
-                {roadTypeOptions.find((opt) => opt.value === roadType)?.label}
-              </Text>
-            </Group>
+              variant="subtle"
+              size="sm"
+              rightSection={
+                <Icons.ChevronDown
+                  size={16}
+                  style={{
+                    transform: roadTypeSelectorOpened
+                      ? "rotate(180deg)"
+                      : "none",
+                    transition: "transform 0.2s",
+                  }}
+                />
+              }
+              onClick={toggleRoadTypeSelector}
+            >
+              <Group gap="xs">
+                <RoadTypeIcon type={roadType} size={20} />
+                <Text size="sm">
+                  {roadTypeOptions.find((opt) => opt.value === roadType)?.label}
+                </Text>
+              </Group>
             </Button>
           )}
         </Group>
@@ -574,73 +650,82 @@ export function RegionSetupStep() {
       {/* Collapsible Road Type Selector - hide for train detection */}
       {!isRectangleMode && (
         <Collapse in={roadTypeSelectorOpened}>
-        <Box px="md" pb="md">
-          <Card
-            withBorder
-            p="sm"
-            radius="md"
-            style={{
-              backgroundColor:
-                colorScheme === "dark" ? theme.colors.gray[8] : "white",
-            }}
-          >
-            <SimpleGrid cols={{ base: 3 }} spacing="sm">
-              {roadTypeOptions.map((option) => (
-                <UnstyledButton
-                  key={option.value}
-                  p="sm"
-                  style={{
-                    border: `2px solid ${roadType === option.value ? theme.colors[mantineTheme.primaryColor][5] : theme.colors.gray[colorScheme === "dark" ? 7 : 2]}`,
-                    borderRadius: mantineTheme.radius.md,
-                    backgroundColor:
-                      roadType === option.value
-                        ? colorScheme === "dark"
-                          ? `${theme.colors[mantineTheme.primaryColor][8]}40`
-                          : `${theme.colors[mantineTheme.primaryColor][0]}50`
-                        : colorScheme === "dark"
-                        ? theme.colors.gray[8]
-                        : theme.colors.gray[0],
-                    transition: "all 0.2s ease",
-                  }}
-                  onClick={() => handleRoadTypeChange(option.value)}
-                  onMouseEnter={(e) => {
-                    if (roadType !== option.value) {
-                      e.currentTarget.style.backgroundColor = colorScheme === "dark"
-                        ? theme.colors.gray[7]
-                        : theme.colors.gray[1];
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (roadType !== option.value) {
-                      e.currentTarget.style.backgroundColor = colorScheme === "dark"
-                        ? theme.colors.gray[8]
-                        : theme.colors.gray[0];
-                    }
-                  }}
-                >
-                  <Center>
-                    <Stack gap="xs" align="center">
-                      <Box style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 60 }}>
-                        <RoadTypeIcon type={option.value} size={50} />
-                      </Box>
-                      <Text size="sm" fw={roadType === option.value ? 600 : 500}>
-                        {option.label}
-                      </Text>
-                    </Stack>
-                  </Center>
-                </UnstyledButton>
-              ))}
-            </SimpleGrid>
-          </Card>
-        </Box>
+          <Box px="md" pb="md">
+            <Card
+              withBorder
+              p="sm"
+              radius="md"
+              style={{
+                backgroundColor:
+                  colorScheme === "dark" ? theme.colors.gray[8] : "white",
+              }}
+            >
+              <SimpleGrid cols={{ base: 3 }} spacing="sm">
+                {roadTypeOptions.map((option) => (
+                  <UnstyledButton
+                    key={option.value}
+                    p="sm"
+                    style={{
+                      border: `2px solid ${roadType === option.value ? theme.colors[mantineTheme.primaryColor][5] : theme.colors.gray[colorScheme === "dark" ? 7 : 2]}`,
+                      borderRadius: mantineTheme.radius.md,
+                      backgroundColor:
+                        roadType === option.value
+                          ? colorScheme === "dark"
+                            ? `${theme.colors[mantineTheme.primaryColor][8]}40`
+                            : `${theme.colors[mantineTheme.primaryColor][0]}50`
+                          : colorScheme === "dark"
+                            ? theme.colors.gray[8]
+                            : theme.colors.gray[0],
+                      transition: "all 0.2s ease",
+                    }}
+                    onClick={() => handleRoadTypeChange(option.value)}
+                    onMouseEnter={(e) => {
+                      if (roadType !== option.value) {
+                        e.currentTarget.style.backgroundColor =
+                          colorScheme === "dark"
+                            ? theme.colors.gray[7]
+                            : theme.colors.gray[1];
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (roadType !== option.value) {
+                        e.currentTarget.style.backgroundColor =
+                          colorScheme === "dark"
+                            ? theme.colors.gray[8]
+                            : theme.colors.gray[0];
+                      }
+                    }}
+                  >
+                    <Center>
+                      <Stack gap="xs" align="center">
+                        <Box
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            height: 60,
+                          }}
+                        >
+                          <RoadTypeIcon type={option.value} size={50} />
+                        </Box>
+                        <Text
+                          size="sm"
+                          fw={roadType === option.value ? 600 : 500}
+                        >
+                          {option.label}
+                        </Text>
+                      </Stack>
+                    </Center>
+                  </UnstyledButton>
+                ))}
+              </SimpleGrid>
+            </Card>
+          </Box>
         </Collapse>
       )}
 
       {/* Main Content - Side by side layout */}
-        <Flex
-          gap="md"
-          style={{ flex: 1 }}
-        >
+      <Flex gap="md" style={{ flex: 1 }}>
         {/* Left Panel - Canvas */}
         <Box style={{ flex: 1, minWidth: 0 }}>
           <Card
@@ -650,8 +735,8 @@ export function RegionSetupStep() {
             style={{
               backgroundColor:
                 colorScheme === "dark" ? theme.colors.gray[8] : "white",
-              display: 'flex',
-              flexDirection: 'column',
+              display: "flex",
+              flexDirection: "column",
               minHeight: 450,
             }}
           >
@@ -664,35 +749,50 @@ export function RegionSetupStep() {
                 <Group gap="xs">
                   {!isDrawing && !isEditMode && (
                     <Button
-                      leftSection={<IconPlus size={14} />}
+                      leftSection={
+                        isRectangleMode && regions.length > 0 ? (
+                          <Icons.Edit size={14} />
+                        ) : (
+                          <Icons.Plus size={14} />
+                        )
+                      }
                       onClick={handleAddRegion}
                       size="xs"
-                      variant="filled"
+                      variant="light"
                     >
-                      Add Region
+                      {isRectangleMode && regions.length > 0
+                        ? "Update Region"
+                        : "Add Region"}
                     </Button>
                   )}
                   {isDrawing && !isEditMode && (
                     <>
                       <Button
-                        variant="subtle"
+                        variant="light"
                         color="red"
                         onClick={handleCancelEdit}
                         size="xs"
+                        leftSection={<Icons.X size={14} />}
                       >
                         Cancel
                       </Button>
                       <Button
+                        variant="light"
                         disabled={
-                          currentPoints.length < 3 ||
-                          regionName.trim() === "" ||
-                          regions.some(
-                            (r) =>
-                              r.name.toLowerCase() === regionName.trim().toLowerCase()
-                          )
+                          isRectangleMode
+                            ? currentPoints.length !== 4 // Rectangle needs exactly 4 points
+                            : currentPoints.length < 3 ||
+                              regionName.trim() === "" ||
+                              regions.some(
+                                (r) =>
+                                  r.name.toLowerCase() ===
+                                    regionName.trim().toLowerCase() &&
+                                  r.id !== editingRegion
+                              )
                         }
                         onClick={handleSaveRegion}
                         size="xs"
+                        leftSection={<Icons.Check size={14} />}
                       >
                         Save
                       </Button>
@@ -704,11 +804,18 @@ export function RegionSetupStep() {
                         variant="subtle"
                         color="red"
                         onClick={handleCancelEdit}
-                        size="xs"
+                        size="sm"
+                        leftSection={<Icons.X size={14} />}
                       >
                         Cancel
                       </Button>
-                      <Button onClick={handleSaveEdit} size="xs">
+                      <Button
+                        onClick={handleSaveEdit}
+                        size="sm"
+                        variant="light"
+                        color="gray"
+                        leftSection={<Icons.Check size={14} />}
+                      >
                         Save Changes
                       </Button>
                     </>
@@ -741,9 +848,7 @@ export function RegionSetupStep() {
                   onMouseUp={handleStageMouseUp}
                   style={{
                     backgroundColor:
-                      colorScheme === "dark"
-                        ? theme.colors.gray[9]
-                        : "white",
+                      colorScheme === "dark" ? theme.colors.gray[9] : "white",
                     borderRadius: mantineTheme.radius.md,
                   }}
                 >
@@ -973,37 +1078,41 @@ export function RegionSetupStep() {
                           strokeDasharray={[8, 4]}
                         />
                         {/* Draw points for current region (not in rectangle mode) */}
-                        {!isRectangleMode && currentPoints.map((point, i) => (
-                          <Circle
-                            key={i}
-                            x={point.x}
-                            y={point.y}
-                            radius={POINT_RADIUS}
-                            fill={
-                              colorScheme === "dark"
-                                ? theme.colors.gray[4]
-                                : "white"
-                            }
-                            stroke={getRegionColor("new-region")}
-                            strokeWidth={2}
-                          />
-                        ))}
+                        {!isRectangleMode &&
+                          currentPoints.map((point, i) => (
+                            <Circle
+                              key={i}
+                              x={point.x}
+                              y={point.y}
+                              radius={POINT_RADIUS}
+                              fill={
+                                colorScheme === "dark"
+                                  ? theme.colors.gray[4]
+                                  : "white"
+                              }
+                              stroke={getRegionColor("new-region")}
+                              strokeWidth={2}
+                            />
+                          ))}
                       </>
                     )}
 
                     {/* Draw rectangle preview when in rectangle mode */}
-                    {isRectangleMode && isDrawingRect && rectangleStart && mousePos && (
-                      <Rect
-                        x={Math.min(rectangleStart.x, mousePos.x)}
-                        y={Math.min(rectangleStart.y, mousePos.y)}
-                        width={Math.abs(mousePos.x - rectangleStart.x)}
-                        height={Math.abs(mousePos.y - rectangleStart.y)}
-                        fill={getRegionColor("new-region") + "25"}
-                        stroke={getRegionColor("new-region")}
-                        strokeWidth={STROKE_WIDTH}
-                        strokeDasharray={[8, 4]}
-                      />
-                    )}
+                    {isRectangleMode &&
+                      isDrawingRect &&
+                      rectangleStart &&
+                      mousePos && (
+                        <Rect
+                          x={Math.min(rectangleStart.x, mousePos.x)}
+                          y={Math.min(rectangleStart.y, mousePos.y)}
+                          width={Math.abs(mousePos.x - rectangleStart.x)}
+                          height={Math.abs(mousePos.y - rectangleStart.y)}
+                          fill={getRegionColor("new-region") + "25"}
+                          stroke={getRegionColor("new-region")}
+                          strokeWidth={STROKE_WIDTH}
+                          strokeDasharray={[8, 4]}
+                        />
+                      )}
                   </Layer>
                 </Stage>
 
@@ -1046,7 +1155,7 @@ export function RegionSetupStep() {
                   }}
                 >
                   <Group gap="xs">
-                    <IconInfoCircle
+                    <Icons.InfoCircle
                       size={14}
                       color={theme.colors[mantineTheme.primaryColor][5]}
                     />
@@ -1055,8 +1164,8 @@ export function RegionSetupStep() {
                       c={colorScheme === "dark" ? "gray.4" : "gray.6"}
                     >
                       {isDrawing
-                        ? isRectangleMode 
-                          ? "Click to set rectangle corners" 
+                        ? isRectangleMode
+                          ? "Click to set rectangle corners"
                           : "Click to add points (min 3)"
                         : "Drag region to move, drag points to adjust"}
                     </Text>
@@ -1069,8 +1178,8 @@ export function RegionSetupStep() {
 
         {/* Right Panel */}
         <Box style={{ width: "350px", flexShrink: 0 }}>
-          {/* Region Name Input - Shows when drawing/editing */}
-          {(isDrawing || isEditMode) && (
+          {/* Region Name Input - Shows when drawing/editing (not for rectangle mode) */}
+          {(isDrawing || isEditMode) && !isRectangleMode && (
             <Card
               withBorder
               p="sm"
@@ -1093,12 +1202,13 @@ export function RegionSetupStep() {
                     regionName.trim() === ""
                       ? "Region name is required"
                       : regions.some(
-                          (r) =>
-                            r.name.toLowerCase() === regionName.trim().toLowerCase() &&
-                            r.id !== editingRegion
-                        )
-                      ? "Region name already exists"
-                      : null
+                            (r) =>
+                              r.name.toLowerCase() ===
+                                regionName.trim().toLowerCase() &&
+                              r.id !== editingRegion
+                          )
+                        ? "Region name already exists"
+                        : null
                   }
                 />
                 <Group justify="space-between">
@@ -1121,37 +1231,113 @@ export function RegionSetupStep() {
             </Card>
           )}
 
-          {/* Tabs for Regions and Connections */}
-          <Card
-            withBorder
-            p="sm"
-            radius="md"
-            style={{
-              backgroundColor:
-                colorScheme === "dark" ? theme.colors.gray[8] : "white",
-              display: "flex",
-              flexDirection: "column",
-              minHeight: isDrawing || isEditMode ? 350 : 450,
-              maxHeight: '70vh',
-            }}
-          >
-            <Tabs
-              value={activeTab}
-              onChange={(value) => setActiveTab(value || "regions")}
-              style={{ height: "100%" }}
+          {/* ROI Status Card - Shows for rectangle mode */}
+          {isRectangleMode && (isDrawing || regions.length > 0) && (
+            <Card
+              withBorder
+              p="sm"
+              radius="md"
+              mb="sm"
+              style={{
+                backgroundColor:
+                  colorScheme === "dark" ? theme.colors.gray[8] : "white",
+              }}
             >
-              <Tabs.List>
-                <Tabs.Tab
-                  value="regions"
-                  leftSection={
-                    <Badge size="xs" variant="filled">
-                      {regions.length}
+              <Stack gap="xs">
+                <Group justify="space-between">
+                  <Text size="sm" fw={600}>
+                    Detection Area (ROI)
+                  </Text>
+                  {regions.length > 0 && (
+                    <Badge color="green" size="sm">
+                      Configured
                     </Badge>
-                  }
-                >
-                  Regions
-                </Tabs.Tab>
-                {!isRectangleMode && (
+                  )}
+                </Group>
+                {isDrawing && (
+                  <Text size="xs" c="dimmed">
+                    {currentPoints.length === 0
+                      ? "Click to set first corner"
+                      : currentPoints.length < 4
+                        ? "Click to set second corner"
+                        : "Rectangle complete"}
+                  </Text>
+                )}
+                {regions.length > 0 && !isDrawing && formValues.roi && (
+                  <>
+                    <Divider />
+                    <Group gap="xs">
+                      <Box>
+                        <Text size="xs" c="dimmed">
+                          Position
+                        </Text>
+                        <Text size="sm" fw={500}>
+                          ({formValues.roi.x1}, {formValues.roi.y1})
+                        </Text>
+                      </Box>
+                      <Box>
+                        <Text size="xs" c="dimmed">
+                          Size
+                        </Text>
+                        <Text size="sm" fw={500}>
+                          {Math.abs(formValues.roi.x2 - formValues.roi.x1)} ×{" "}
+                          {Math.abs(formValues.roi.y2 - formValues.roi.y1)}
+                        </Text>
+                      </Box>
+                    </Group>
+                    <Divider />
+                    <Group gap="xs">
+                      <Button
+                        size="xs"
+                        variant="light"
+                        color="red"
+                        leftSection={<Icons.Trash size={14} />}
+                        onClick={() => {
+                          regions.forEach((r) => deleteRegion(r.id));
+                          setROI(undefined);
+                        }}
+                        fullWidth
+                      >
+                        Clear
+                      </Button>
+                    </Group>
+                  </>
+                )}
+              </Stack>
+            </Card>
+          )}
+
+          {/* Tabs for Regions and Connections - Hide for rectangle mode */}
+          {!isRectangleMode && (
+            <Card
+              withBorder
+              p="sm"
+              radius="md"
+              style={{
+                backgroundColor:
+                  colorScheme === "dark" ? theme.colors.gray[8] : "white",
+                display: "flex",
+                flexDirection: "column",
+                minHeight: isDrawing || isEditMode ? 350 : 450,
+                maxHeight: "70vh",
+              }}
+            >
+              <Tabs
+                value={activeTab}
+                onChange={(value) => setActiveTab(value || "regions")}
+                style={{ height: "100%" }}
+              >
+                <Tabs.List>
+                  <Tabs.Tab
+                    value="regions"
+                    leftSection={
+                      <Badge size="xs" variant="filled">
+                        {regions.length}
+                      </Badge>
+                    }
+                  >
+                    Regions
+                  </Tabs.Tab>
                   <Tabs.Tab
                     value="connections"
                     leftSection={
@@ -1162,259 +1348,96 @@ export function RegionSetupStep() {
                   >
                     Connections
                   </Tabs.Tab>
-                )}
-              </Tabs.List>
+                </Tabs.List>
 
-              <Tabs.Panel
-                value="regions"
-                pt="sm"
-                style={{ height: "calc(100% - 40px)" }}
-              >
-                <ScrollArea style={{ height: "100%" }} scrollbarSize={8} type="scroll">
-                  {regions.length === 0 ? (
-                    <Center p="xl">
-                      <Stack align="center" gap="xs">
-                        <IconPolygon size={30} opacity={0.3} />
-                        <Text size="sm" c="dimmed">
-                          No regions yet
-                        </Text>
-                      </Stack>
-                    </Center>
-                  ) : (
-                    <Stack gap="xs">
-                      {regions.map((region) => {
-                        const hasConnections = connections.some(
-                          (conn) =>
-                            conn.sourceId === region.id ||
-                            conn.destinationId === region.id
-                        );
-
-                        return (
-                          <Paper
-                            key={region.id}
-                            p="xs"
-                            withBorder
-                            radius="sm"
-                            style={{
-                              borderLeft: `3px solid ${getRegionColor(region.id)}`,
-                            }}
-                          >
-                            <Group justify="space-between">
-                              <Group gap="xs">
-                                <Box
-                                  style={{
-                                    width: 12,
-                                    height: 12,
-                                    borderRadius: "50%",
-                                    backgroundColor: getRegionColor(region.id),
-                                  }}
-                                />
-                                <Text size="sm" fw={500}>
-                                  {region.name}
-                                </Text>
-                                {hasConnections && (
-                                  <Badge size="xs" color="green" variant="dot">
-                                    Connected
-                                  </Badge>
-                                )}
-                              </Group>
-                              <Group gap={4}>
-                                <Tooltip label="Edit">
-                                  <ActionIcon
-                                    size="xs"
-                                    variant="subtle"
-                                    onClick={() => handleEditRegion(region)}
-                                  >
-                                    <IconEdit size={14} />
-                                  </ActionIcon>
-                                </Tooltip>
-                                <Tooltip label="Delete">
-                                  <ActionIcon
-                                    size="xs"
-                                    variant="subtle"
-                                    color="red"
-                                    onClick={() =>
-                                      handleDeleteRegion(region.id)
-                                    }
-                                  >
-                                    <IconTrash size={14} />
-                                  </ActionIcon>
-                                </Tooltip>
-                              </Group>
-                            </Group>
-                          </Paper>
-                        );
-                      })}
-                    </Stack>
-                  )}
-                </ScrollArea>
-              </Tabs.Panel>
-
-              {!isRectangleMode && (
                 <Tabs.Panel
-                  value="connections"
+                  value="regions"
                   pt="sm"
                   style={{ height: "calc(100% - 40px)" }}
                 >
-                <Stack gap="sm" style={{ height: "100%" }}>
-                  {/* Connection creator */}
-                  {regions.length >= 2 && (
-                    <Card
-                      p="xs"
-                      withBorder
-                      radius="sm"
-                      style={{
-                        backgroundColor:
-                          colorScheme === "dark"
-                            ? theme.colors.gray[9]
-                            : theme.colors.gray[0],
-                      }}
-                    >
-                      <Stack gap="xs">
-                        <Text
-                          size="xs"
-                          fw={600}
-                          c={colorScheme === "dark" ? "gray.4" : "gray.7"}
-                        >
-                          Create Connection
-                        </Text>
-                        <Group gap="xs" align="center">
-                          <Select
-                            placeholder="From"
-                            size="xs"
-                            value={sourceRegionId}
-                            onChange={setSourceRegionId}
-                            data={regions.map((r) => ({
-                              value: r.id,
-                              label: r.name,
-                            }))}
-                            style={{ flex: 1 }}
-                            searchable
-                            clearable
-                          />
-                          <IconArrowRight
-                            size={14}
-                            color={theme.colors.green[5]}
-                          />
-                          <Select
-                            placeholder="To"
-                            size="xs"
-                            value={destinationRegionId}
-                            onChange={setDestinationRegionId}
-                            data={regions
-                              .filter((r) => r.id !== sourceRegionId)
-                              .map((r) => ({ value: r.id, label: r.name }))}
-                            disabled={!sourceRegionId}
-                            style={{ flex: 1 }}
-                            searchable
-                            clearable
-                          />
-                          <Button
-                            size="xs"
-                            disabled={!sourceRegionId || !destinationRegionId}
-                            onClick={handleSaveDirection}
-                            color="green"
-                          >
-                            Add
-                          </Button>
-                        </Group>
-                      </Stack>
-                    </Card>
-                  )}
-
-                  <ScrollArea style={{ flex: 1 }} scrollbarSize={8} type="scroll">
-                    {connections.length === 0 ? (
+                  <ScrollArea
+                    style={{ height: "100%" }}
+                    scrollbarSize={8}
+                    type="scroll"
+                  >
+                    {regions.length === 0 ? (
                       <Center p="xl">
                         <Stack align="center" gap="xs">
-                          <IconArrowRight size={30} opacity={0.3} />
+                          <Icons.Polygon size={30} opacity={0.3} />
                           <Text size="sm" c="dimmed">
-                            {regions.length < 2
-                              ? "Need 2+ regions"
-                              : "No connections yet"}
+                            No regions yet
                           </Text>
                         </Stack>
                       </Center>
                     ) : (
                       <Stack gap="xs">
-                        {connections.map((conn) => {
-                          const source = regions.find(
-                            (r) => r.id === conn.sourceId
-                          );
-                          const dest = regions.find(
-                            (r) => r.id === conn.destinationId
+                        {regions.map((region) => {
+                          const hasConnections = connections.some(
+                            (conn) =>
+                              conn.sourceId === region.id ||
+                              conn.destinationId === region.id
                           );
 
                           return (
                             <Paper
-                              key={conn.id}
+                              key={region.id}
                               p="xs"
                               withBorder
                               radius="sm"
-                              onMouseEnter={() => setHoveredConnection(conn.id)}
-                              onMouseLeave={() => setHoveredConnection(null)}
                               style={{
-                                borderColor:
-                                  hoveredConnection === conn.id
-                                    ? theme.colors.green[5]
-                                    : undefined,
-                                backgroundColor:
-                                  hoveredConnection === conn.id
-                                    ? colorScheme === "dark"
-                                      ? theme.colors.green[9] + "20"
-                                      : theme.colors.green[0]
-                                    : undefined,
-                                transition: "all 0.2s ease",
+                                borderLeft: `3px solid ${getRegionColor(region.id)}`,
                               }}
                             >
                               <Group justify="space-between">
                                 <Group gap="xs">
                                   <Box
                                     style={{
-                                      width: 10,
-                                      height: 10,
+                                      width: 12,
+                                      height: 12,
                                       borderRadius: "50%",
                                       backgroundColor: getRegionColor(
-                                        conn.sourceId
+                                        region.id
                                       ),
                                     }}
                                   />
-                                  <Text size="xs" fw={500}>
-                                    {source?.name}
+                                  <Text size="sm" fw={500}>
+                                    {region.name}
                                   </Text>
-                                  <IconArrowRight
-                                    size={12}
-                                    color={theme.colors.green[5]}
-                                  />
-                                  <Box
-                                    style={{
-                                      width: 10,
-                                      height: 10,
-                                      borderRadius: "50%",
-                                      backgroundColor: getRegionColor(
-                                        conn.destinationId
-                                      ),
-                                    }}
-                                  />
-                                  <Text size="xs" fw={500}>
-                                    {dest?.name}
-                                  </Text>
+                                  {hasConnections && (
+                                    <Badge
+                                      size="xs"
+                                      color="green"
+                                      variant="dot"
+                                    >
+                                      Connected
+                                    </Badge>
+                                  )}
                                 </Group>
-                                <Tooltip label="Delete">
-                                  <ActionIcon
-                                    size="xs"
-                                    variant="subtle"
-                                    color="red"
-                                    onClick={() => {
-                                      const newConnections = connections.filter(
-                                        (c) => c.id !== conn.id
-                                      );
-                                      setConnections(newConnections);
-                                      updateConnections(newConnections);
-                                    }}
-                                  >
-                                    <IconTrash size={14} />
-                                  </ActionIcon>
-                                </Tooltip>
+                                {!isRectangleMode && (
+                                  <Group gap={4}>
+                                    <Tooltip label="Edit">
+                                      <ActionIcon
+                                        size="xs"
+                                        variant="subtle"
+                                        onClick={() => handleEditRegion(region)}
+                                      >
+                                        <Icons.Edit size={14} />
+                                      </ActionIcon>
+                                    </Tooltip>
+                                    <Tooltip label="Delete">
+                                      <ActionIcon
+                                        size="xs"
+                                        variant="subtle"
+                                        color="red"
+                                        onClick={() =>
+                                          handleDeleteRegion(region.id)
+                                        }
+                                      >
+                                        <Icons.Trash size={14} />
+                                      </ActionIcon>
+                                    </Tooltip>
+                                  </Group>
+                                )}
                               </Group>
                             </Paper>
                           );
@@ -1422,11 +1445,191 @@ export function RegionSetupStep() {
                       </Stack>
                     )}
                   </ScrollArea>
-                </Stack>
                 </Tabs.Panel>
-              )}
-            </Tabs>
-          </Card>
+
+                <Tabs.Panel
+                  value="connections"
+                  pt="sm"
+                  style={{ height: "calc(100% - 40px)" }}
+                >
+                  <Stack gap="sm" style={{ height: "100%" }}>
+                    {/* Connection creator */}
+                    {regions.length >= 2 && (
+                      <Card
+                        p="xs"
+                        withBorder
+                        radius="sm"
+                        style={{
+                          backgroundColor:
+                            colorScheme === "dark"
+                              ? theme.colors.gray[9]
+                              : theme.colors.gray[0],
+                        }}
+                      >
+                        <Stack gap="xs">
+                          <Text
+                            size="xs"
+                            fw={600}
+                            c={colorScheme === "dark" ? "gray.4" : "gray.7"}
+                          >
+                            Create Connection
+                          </Text>
+                          <Group gap="xs" align="center">
+                            <Select
+                              placeholder="From"
+                              size="xs"
+                              value={sourceRegionId}
+                              onChange={setSourceRegionId}
+                              data={regions.map((r) => ({
+                                value: r.id,
+                                label: r.name,
+                              }))}
+                              style={{ flex: 1 }}
+                              searchable
+                              clearable
+                            />
+                            <Icons.ArrowRight
+                              size={14}
+                              color={theme.colors.green[5]}
+                            />
+                            <Select
+                              placeholder="To"
+                              size="xs"
+                              value={destinationRegionId}
+                              onChange={setDestinationRegionId}
+                              data={regions
+                                .filter((r) => r.id !== sourceRegionId)
+                                .map((r) => ({ value: r.id, label: r.name }))}
+                              disabled={!sourceRegionId}
+                              style={{ flex: 1 }}
+                              searchable
+                              clearable
+                            />
+                            <Button
+                              size="xs"
+                              disabled={!sourceRegionId || !destinationRegionId}
+                              onClick={handleSaveDirection}
+                              color="green"
+                            >
+                              Add
+                            </Button>
+                          </Group>
+                        </Stack>
+                      </Card>
+                    )}
+
+                    <ScrollArea
+                      style={{ flex: 1 }}
+                      scrollbarSize={8}
+                      type="scroll"
+                    >
+                      {connections.length === 0 ? (
+                        <Center p="xl">
+                          <Stack align="center" gap="xs">
+                            <Icons.ArrowRight size={30} opacity={0.3} />
+                            <Text size="sm" c="dimmed">
+                              {regions.length < 2
+                                ? "Need 2+ regions"
+                                : "No connections yet"}
+                            </Text>
+                          </Stack>
+                        </Center>
+                      ) : (
+                        <Stack gap="xs">
+                          {connections.map((conn) => {
+                            const source = regions.find(
+                              (r) => r.id === conn.sourceId
+                            );
+                            const dest = regions.find(
+                              (r) => r.id === conn.destinationId
+                            );
+
+                            return (
+                              <Paper
+                                key={conn.id}
+                                p="xs"
+                                withBorder
+                                radius="sm"
+                                onMouseEnter={() =>
+                                  setHoveredConnection(conn.id)
+                                }
+                                onMouseLeave={() => setHoveredConnection(null)}
+                                style={{
+                                  borderColor:
+                                    hoveredConnection === conn.id
+                                      ? theme.colors.green[5]
+                                      : undefined,
+                                  backgroundColor:
+                                    hoveredConnection === conn.id
+                                      ? colorScheme === "dark"
+                                        ? theme.colors.green[9] + "20"
+                                        : theme.colors.green[0]
+                                      : undefined,
+                                  transition: "all 0.2s ease",
+                                }}
+                              >
+                                <Group justify="space-between">
+                                  <Group gap="xs">
+                                    <Box
+                                      style={{
+                                        width: 10,
+                                        height: 10,
+                                        borderRadius: "50%",
+                                        backgroundColor: getRegionColor(
+                                          conn.sourceId
+                                        ),
+                                      }}
+                                    />
+                                    <Text size="xs" fw={500}>
+                                      {source?.name}
+                                    </Text>
+                                    <Icons.ArrowRight
+                                      size={12}
+                                      color={theme.colors.green[5]}
+                                    />
+                                    <Box
+                                      style={{
+                                        width: 10,
+                                        height: 10,
+                                        borderRadius: "50%",
+                                        backgroundColor: getRegionColor(
+                                          conn.destinationId
+                                        ),
+                                      }}
+                                    />
+                                    <Text size="xs" fw={500}>
+                                      {dest?.name}
+                                    </Text>
+                                  </Group>
+                                  <Tooltip label="Delete">
+                                    <ActionIcon
+                                      size="xs"
+                                      variant="subtle"
+                                      color="red"
+                                      onClick={() => {
+                                        const newConnections =
+                                          connections.filter(
+                                            (c) => c.id !== conn.id
+                                          );
+                                        setConnections(newConnections);
+                                        updateConnections(newConnections);
+                                      }}
+                                    >
+                                      <Icons.Trash size={14} />
+                                    </ActionIcon>
+                                  </Tooltip>
+                                </Group>
+                              </Paper>
+                            );
+                          })}
+                        </Stack>
+                      )}
+                    </ScrollArea>
+                  </Stack>
+                </Tabs.Panel>
+              </Tabs>
+            </Card>
+          )}
         </Box>
       </Flex>
 

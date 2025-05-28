@@ -1,45 +1,67 @@
-import { useEffect } from "react";
-import { useBlocker } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useBlocker, useNavigate } from "react-router-dom";
+import { Modal, Text, Button, Group, Stack } from "@mantine/core";
 import { useRecipeStore } from "../../lib/store/recipe-store";
 
 export function RecipeNavigationGuard() {
   const { isDirty, resetForm } = useRecipeStore();
+  const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
+  const [pendingLocation, setPendingLocation] = useState<string | null>(null);
 
   // Block navigation when there are unsaved changes
-  // But don't show any modal - let the parent component handle it
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) => {
-      // Check if we're navigating away and have unsaved changes
-      if (isDirty && currentLocation.pathname !== nextLocation.pathname) {
-        // Check if this is a programmatic navigation that was already confirmed
-        const isConfirmed = sessionStorage.getItem('recipe-navigation-confirmed');
-        if (isConfirmed) {
-          // Clean up the flag
-          sessionStorage.removeItem('recipe-navigation-confirmed');
-          return false; // Don't block
-        }
-        return true; // Block and let parent handle
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => {
+    // Check if we're navigating away and have unsaved changes
+    if (isDirty && currentLocation.pathname !== nextLocation.pathname) {
+      // Check if this is a programmatic navigation that was already confirmed
+      const isConfirmed = sessionStorage.getItem("recipe-navigation-confirmed");
+      if (isConfirmed) {
+        // Clean up the flag
+        sessionStorage.removeItem("recipe-navigation-confirmed");
+        return false; // Don't block
       }
-      return false;
+      return true; // Block navigation
     }
-  );
+    return false;
+  });
 
-  // If navigation is blocked, cancel it and let the parent component handle the confirmation
+  // Handle blocked navigation
   useEffect(() => {
     if (blocker.state === "blocked") {
-      // Reset the blocker without proceeding
-      blocker.reset();
-      // Trigger the browser's back button to maintain URL consistency
-      window.history.forward();
+      // Show confirmation modal
+      setPendingLocation(blocker.location.pathname);
+      setShowModal(true);
     }
-  }, [blocker]);
+  }, [blocker.state, blocker.location]);
+
+  const handleCancel = () => {
+    setShowModal(false);
+    setPendingLocation(null);
+    if (blocker.state === "blocked") {
+      blocker.reset();
+    }
+  };
+
+  const handleConfirm = () => {
+    setShowModal(false);
+    // Mark navigation as confirmed
+    sessionStorage.setItem("recipe-navigation-confirmed", "true");
+    resetForm();
+
+    // Proceed with navigation
+    if (blocker.state === "blocked" && pendingLocation) {
+      blocker.proceed();
+    }
+  };
 
   // Clean up store when component unmounts
   useEffect(() => {
     return () => {
       // Only reset if we're actually leaving the recipe creation page
       if (!window.location.pathname.includes("/recipes/create")) {
-        const isConfirmed = sessionStorage.getItem('recipe-navigation-confirmed');
+        const isConfirmed = sessionStorage.getItem(
+          "recipe-navigation-confirmed"
+        );
         if (!isConfirmed) {
           resetForm();
         }
@@ -47,5 +69,36 @@ export function RecipeNavigationGuard() {
     };
   }, [resetForm]);
 
-  return null;
+  return (
+    <Modal
+      opened={showModal}
+      onClose={handleCancel}
+      title="Leave Recipe Creation?"
+      centered
+      size="md"
+    >
+      <Stack gap="md">
+        <Text size="sm">
+          You have unsaved changes in your recipe. Are you sure you want to
+          leave? All your progress will be lost.
+        </Text>
+        <Group justify="space-between" gap="sm" wrap="nowrap">
+          <Button
+            variant="outline"
+            onClick={handleCancel}
+            style={{ whiteSpace: "nowrap" }}
+          >
+            Continue Editing
+          </Button>
+          <Button
+            color="red"
+            onClick={handleConfirm}
+            style={{ whiteSpace: "nowrap" }}
+          >
+            Leave Without Saving
+          </Button>
+        </Group>
+      </Stack>
+    </Modal>
+  );
 }

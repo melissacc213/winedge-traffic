@@ -108,16 +108,16 @@ When you need to add a new icon that's not available in the Icons component:
 // 1. Add the import
 import {
   // ... existing imports
-  IconVideo,         // Add new icon import
-  IconRefresh,       // Add another icon import
+  IconVideo, // Add new icon import
+  IconRefresh, // Add another icon import
   // ... rest of imports
 } from "@tabler/icons-react";
 
 // 2. Add to RawIcons object
 export const RawIcons = {
   // ... existing icons
-  Video: IconVideo,       // Add new icon mapping
-  Refresh: IconRefresh,   // Add another icon mapping
+  Video: IconVideo, // Add new icon mapping
+  Refresh: IconRefresh, // Add another icon mapping
   // ... rest of icons
 };
 ```
@@ -237,17 +237,17 @@ Use the comprehensive Mantine theme system with 40+ color variants:
 
 ```typescript
 // CRITICAL: Theme property access in Mantine v8
-import { useMantineTheme } from '@mantine/core';
-import { useTheme } from '@/providers/theme-provider';
+import { useMantineTheme } from "@mantine/core";
+import { useTheme } from "@/providers/theme-provider";
 
 // For Mantine built-in properties (radius, spacing, etc.)
 const mantineTheme = useMantineTheme();
-const borderRadius = mantineTheme.radius.md;  // ✅ Correct
-const spacing = mantineTheme.spacing.md;       // ✅ Correct
+const borderRadius = mantineTheme.radius.md; // ✅ Correct
+const spacing = mantineTheme.spacing.md; // ✅ Correct
 
 // For custom theme properties (colors, shadows, etc.)
 const { theme } = useTheme();
-const shadow = theme.other.shadows.md;         // ✅ Correct
+const shadow = theme.other.shadows.md; // ✅ Correct
 const regionColor = theme.other.regionPalette[index]; // ✅ Correct
 
 // ❌ WRONG - This will cause "Cannot read properties of undefined" errors:
@@ -281,10 +281,12 @@ const boxStyle = {
 **IMPORTANT: Theme Property Access Rules**
 
 1. **Mantine built-in properties** (`radius`, `spacing`, `fontSizes`, etc.):
+
    - Use `useMantineTheme()` hook
    - Access via `mantineTheme.radius.md`, `mantineTheme.spacing.lg`, etc.
 
 2. **Custom theme properties** (defined in `theme.other`):
+
    - Use `useTheme()` hook from our theme provider
    - Access via `theme.other.shadows.md`, `theme.other.regionPalette`, etc.
 
@@ -302,7 +304,46 @@ const boxStyle = {
    - Custom colors in `other` object (ui, backgrounds, shadows, etc.)
    - Light/dark overrides in respective theme objects
 
-### 5. Canvas-Based Region Configuration
+### 5. Dark Theme Considerations
+
+When implementing UI components, ALWAYS test with both light and dark themes:
+
+```typescript
+// Use theme-aware colors for backgrounds
+backgroundColor: isDark ? theme.colors.dark[7] : theme.colors.gray[0]
+
+// Use theme-aware colors for borders
+borderColor: isDark ? theme.colors.dark[4] : theme.colors.gray[2]
+
+// Use theme-aware colors for text
+color: isDark ? theme.colors.gray[5] : theme.colors.gray[6]
+
+// Example component with proper dark theme support
+<Paper
+  style={{
+    backgroundColor: isDark ? theme.colors.dark[8] : theme.white,
+    borderBottom: `1px solid ${isDark ? theme.colors.dark[5] : theme.colors.gray[2]}`,
+  }}
+>
+  <Text c={isDark ? "white" : "black"}>Content</Text>
+</Paper>
+```
+
+**Dark Theme Best Practices**:
+
+1. Always check `isDark` from `useTheme()` hook
+2. Use semantic color values (dark[6-9] for dark backgrounds)
+3. Ensure sufficient contrast for text readability
+4. Test all interactive states (hover, active, disabled)
+5. Use theme.colors.dark for dark mode backgrounds:
+   - dark[9]: Darkest (main background)
+   - dark[8]: Slightly lighter (cards)
+   - dark[7]: Lighter (hover states)
+   - dark[6]: Even lighter (active states)
+   - dark[5]: Borders and dividers
+   - dark[4]: Subtle borders
+
+### 6. Canvas-Based Region Configuration
 
 For traffic region setup, use React-Konva with the theme system:
 
@@ -383,6 +424,372 @@ function RegionCanvas({ regions, onRegionUpdate }) {
 - **Visual Feedback**: Loading states, progress indicators, and status badges
 - **Smooth Transitions**: 200ms ease transitions for interactive elements
 
+## Multi-Step Workflow Pattern
+
+The WinEdge Traffic system implements a comprehensive multi-step workflow pattern for complex form processes, exemplified by the Recipe Creation workflow. This pattern should be used as a template for any multi-step process in the application.
+
+### Architecture Overview
+
+```typescript
+// Complete multi-step workflow consists of:
+pages/feature-creation-page/           # Page wrapper
+  ├── feature-creation-page.tsx        # Main page with navigation guard
+components/feature-creation/           # Workflow components
+  ├── stepper.tsx                      # Main stepper orchestrator
+  ├── navigation-guard.tsx             # Navigation protection
+  └── steps/                          # Individual step components
+      ├── step-1.tsx
+      ├── step-2.tsx
+      └── step-3.tsx
+lib/store/feature-store.ts            # Zustand state management
+lib/queries/feature.ts               # React Query integration
+```
+
+### 1. Page Level Implementation
+
+```typescript
+// Pattern: Main page handles browser navigation and cleanup
+export function FeatureCreationPage() {
+  const { resetForm, isDirty } = useFeatureStore();
+
+  // Prevent accidental browser navigation loss
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
+
+  // Cleanup on unmount - only if navigation was confirmed
+  useEffect(() => {
+    return () => {
+      const isConfirmed = sessionStorage.getItem("feature-navigation-confirmed");
+      if (isConfirmed === "true") {
+        resetForm();
+        sessionStorage.removeItem("feature-navigation-confirmed");
+      }
+    };
+  }, [resetForm]);
+
+  return (
+    <>
+      <FeatureNavigationGuard />
+      <FeatureStepper />
+    </>
+  );
+}
+```
+
+### 2. Navigation Guard Component
+
+```typescript
+// Pattern: Protects against navigation loss with React Router useBlocker
+export function FeatureNavigationGuard() {
+  const { isDirty, resetForm } = useFeatureStore();
+  const [showModal, setShowModal] = useState(false);
+
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => {
+    if (isDirty && currentLocation.pathname !== nextLocation.pathname) {
+      const isConfirmed = sessionStorage.getItem("feature-navigation-confirmed");
+      return !isConfirmed; // Block if not confirmed
+    }
+    return false;
+  });
+
+  // Handle modal confirmation
+  const handleConfirm = () => {
+    sessionStorage.setItem("feature-navigation-confirmed", "true");
+    resetForm();
+    if (blocker.state === "blocked") blocker.proceed();
+  };
+
+  return (
+    <Modal opened={showModal} title="Leave Creation Process?">
+      <Text>You have unsaved changes. Leave without saving?</Text>
+      <Group>
+        <Button variant="outline" onClick={() => setShowModal(false)}>
+          Continue Editing
+        </Button>
+        <Button color="red" onClick={handleConfirm}>
+          Leave Without Saving
+        </Button>
+      </Group>
+    </Modal>
+  );
+}
+```
+
+### 3. Main Stepper Orchestrator
+
+```typescript
+// Pattern: Handles step progression, validation, and UI layout
+export function FeatureStepper() {
+  const { activeStep, formValues, nextStep, previousStep, resetForm } = useFeatureStore();
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // Step-specific validation functions
+  const validateStep = (stepIndex: number): { isValid: boolean; errors: Record<string, string> } => {
+    const errors: Record<string, string> = {};
+    
+    switch (stepIndex) {
+      case 0:
+        if (!formValues.requiredField) {
+          errors.requiredField = "Detailed user-friendly error message explaining what's needed and why";
+        }
+        break;
+      case 1:
+        // Additional validation logic...
+        break;
+    }
+    
+    setValidationErrors(errors);
+    return { isValid: Object.keys(errors).length === 0, errors };
+  };
+
+  // Handle next button with validation
+  const handleNext = () => {
+    const { isValid, errors } = validateStep(activeStep);
+    
+    if (!isValid) {
+      const errorCount = Object.keys(errors).length;
+      const errorMessage = errorCount === 1 
+        ? Object.values(errors)[0]
+        : `Please fix the following ${errorCount} issues:\n${Object.values(errors).map((err, idx) => `${idx + 1}. ${err}`).join('\n')}`;
+        
+      notifications.show({
+        title: errorCount === 1 ? "Action Required" : "Actions Required",
+        message: errorMessage,
+        color: "red",
+        autoClose: errorCount > 1 ? 10000 : 5000,
+      });
+      return;
+    }
+
+    if (activeStep === finalStep) {
+      handleSubmit();
+    } else {
+      nextStep();
+    }
+  };
+
+  // Layout: Header + Content + Footer pattern
+  return (
+    <Box style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 70px)" }}>
+      {/* Fixed Header with Progress */}
+      <Box style={{ backgroundColor: theme.colors.dark[8], borderBottom: "1px solid" }}>
+        <Container size="xl" py="md">
+          <Group justify="space-between">
+            <Group gap="xl">
+              <Title order={2}>Create Feature</Title>
+              {/* Step indicators with icons and completion status */}
+              <Group gap="lg">
+                {steps.map((step, index) => (
+                  <StepIndicator 
+                    key={step.id}
+                    step={step}
+                    isActive={index === activeStep}
+                    isCompleted={index < activeStep}
+                  />
+                ))}
+              </Group>
+            </Group>
+            <Button color="red" onClick={handleCancel}>Exit</Button>
+          </Group>
+        </Container>
+      </Box>
+
+      {/* Scrollable Content Area */}
+      <Box style={{ flex: 1, overflowY: "auto" }}>
+        <Container size="lg" py="xl">
+          {/* Validation Errors Alert */}
+          {Object.keys(validationErrors).length > 0 && (
+            <ValidationErrorsAlert errors={validationErrors} />
+          )}
+          
+          {/* Current Step Component */}
+          {stepComponents[activeStep]}
+        </Container>
+      </Box>
+
+      {/* Fixed Footer Navigation */}
+      <Box style={{ backgroundColor: theme.colors.dark[8], borderTop: "1px solid" }}>
+        <Container size="xl" py="md">
+          <Group justify="space-between">
+            <Button 
+              variant="subtle" 
+              leftSection={<Icons.ChevronLeft />}
+              onClick={handlePrevious}
+              disabled={activeStep === 0}
+            >
+              Back
+            </Button>
+            <Button 
+              rightSection={isLastStep ? <Icons.Check /> : <Icons.ChevronRight />}
+              onClick={handleNext}
+              loading={isSubmitting}
+            >
+              {isLastStep ? "Create Feature" : "Next"}
+            </Button>
+          </Group>
+        </Container>
+      </Box>
+    </Box>
+  );
+}
+```
+
+### 4. Zustand Store Pattern
+
+```typescript
+// Pattern: Comprehensive state management with step tracking and data persistence
+interface FeatureStoreState {
+  // Navigation state
+  activeStep: number;
+  isDirty: boolean;
+  stepCompleted: Record<string, boolean>;
+
+  // Form data
+  formValues: FeatureFormValues;
+
+  // Actions
+  nextStep: () => void;
+  previousStep: () => void;
+  updateForm: (values: Partial<FeatureFormValues>) => void;
+  resetForm: () => void;
+  
+  // Step-specific clear functions (for back navigation)
+  clearStep1Data: () => void;
+  clearStep2Data: () => void;
+  
+  // API payload generation
+  generateAPIPayload: () => APIPayload | null;
+}
+
+export const useFeatureStore = create<FeatureStoreState>((set, get) => ({
+  activeStep: 0,
+  isDirty: false,
+  stepCompleted: {
+    step0: false,
+    step1: false,
+    step2: false,
+  },
+  formValues: initialFormState,
+
+  nextStep: () => set((state) => ({
+    activeStep: Math.min(state.activeStep + 1, maxSteps - 1),
+  })),
+
+  updateForm: (values) => set((state) => ({
+    formValues: { ...state.formValues, ...values },
+    isDirty: true,
+  })),
+
+  // Generate API-ready payload based on form data
+  generateAPIPayload: () => {
+    const state = get();
+    const { formValues } = state;
+    
+    // Validate required fields
+    if (!formValues.requiredField || !formValues.anotherField) {
+      return null;
+    }
+    
+    // Transform form data to API format
+    return {
+      ...formValues,
+      // API-specific transformations
+      transformed_field: formValues.uiField.map(transformFunction),
+    };
+  },
+}));
+```
+
+### 5. Individual Step Components
+
+```typescript
+// Pattern: Focused, single-responsibility step components
+export function Step1Component() {
+  const { formValues, updateForm } = useFeatureStore();
+  const { theme } = useTheme();
+
+  return (
+    <Stack gap="xl">
+      {/* Step title and description */}
+      <Box>
+        <Title order={3} mb="xs">Step Title</Title>
+        <Text c="dimmed">Clear description of what this step accomplishes</Text>
+      </Box>
+
+      {/* Main content area */}
+      <Paper p="xl" radius="md" withBorder>
+        {/* Form fields, file uploads, canvas components, etc. */}
+        <Stack gap="md">
+          {/* Component-specific UI */}
+        </Stack>
+      </Paper>
+
+      {/* Optional: Step-specific actions or info panels */}
+      <Card variant="light" bg={theme.other.backgrounds.cardLight}>
+        <Text size="sm">Helpful tips or additional information</Text>
+      </Card>
+    </Stack>
+  );
+}
+```
+
+### 6. React Query Integration
+
+```typescript
+// Pattern: Mutation handles API payload generation from store
+export function useCreateFeature() {
+  const queryClient = useQueryClient();
+  const generateAPIPayload = useFeatureStore((state) => state.generateAPIPayload);
+  const formValues = useFeatureStore((state) => state.formValues);
+
+  return useMutation({
+    mutationFn: async () => {
+      const payload = generateAPIPayload();
+      
+      if (!payload) {
+        throw new Error("Failed to generate API payload. Please ensure all required fields are filled.");
+      }
+
+      return await featureService.createFeature(payload);
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: featureKeys.lists() });
+    },
+  });
+}
+```
+
+### Key Design Principles
+
+1. **Separation of Concerns**: Page handles navigation, stepper handles orchestration, steps handle specific UI
+2. **State Persistence**: Zustand store maintains form state across navigation
+3. **Validation Strategy**: Step-specific validation with detailed, actionable error messages
+4. **Navigation Protection**: Prevent accidental data loss with confirmation modals
+5. **Progressive Disclosure**: Show only relevant information for current step
+6. **API Abstraction**: Store generates API payloads, keeping UI components clean
+7. **Responsive Layout**: Fixed header/footer with scrollable content area
+8. **Theme Integration**: Consistent styling using theme system
+9. **Error Handling**: User-friendly validation messages with clear next steps
+10. **Performance**: Lazy loading of step components and efficient re-rendering
+
+### Visual Design Standards
+
+- **Header**: Fixed header with title, step indicators, and exit button
+- **Progress**: Visual step indicators with icons, completion states, and active highlighting
+- **Content**: Scrollable main area with validation alerts and step content
+- **Footer**: Fixed navigation with back/next buttons and loading states
+- **Spacing**: Consistent `xl` gaps between major sections, `md` for related elements
+- **Colors**: Theme-aware colors for all states (active, completed, error, disabled)
+- **Typography**: Clear hierarchy with titles, descriptions, and helper text
+
 ## File Organization Conventions
 
 ### Component Structure
@@ -444,7 +851,27 @@ function RegionCanvas({ regions, onRegionUpdate }) {
 - **Component Naming**: PascalCase for components, camelCase for functions
 - **File Naming**: kebab-case for files, PascalCase for component files
 - **Import Organization**: External libraries → internal modules → relative imports
+- **Type Imports**: ALWAYS use `import type` for TypeScript type-only imports to avoid runtime errors
 - **No Comments**: Code should be self-documenting through clear naming
+
+### TypeScript Import Guidelines
+
+**CRITICAL**: Always use `import type` for importing TypeScript types and interfaces:
+
+```typescript
+// ✅ Correct - use import type for types
+import type { Recipe, CreateTaskRequest } from './types/task-creation';
+import type { TaskType, RecipeStatus } from './types/recipe';
+
+// ❌ Incorrect - regular imports for types cause runtime errors
+import { Recipe, CreateTaskRequest } from './types/task-creation';
+
+// ✅ Correct - mixed imports and type imports
+import { taskService } from './services/task-service';
+import type { TaskResponse } from './types/task';
+```
+
+This prevents "does not provide an export" runtime errors in Vite/ESM environments.
 
 ## International Support
 
@@ -463,6 +890,15 @@ function ExampleComponent() {
   return <Text>{t('button.save')}</Text>;
 }
 ```
+
+## Layout Guidelines
+
+**Important spacing values**:
+
+- Use `p="md"` for compact padding in cards
+- Use `gap="sm"` for tight spacing in stacks
+- Reduce icon sizes for compact layouts (64px instead of 72px)
+- Keep minimum heights reasonable (200px instead of 300px)
 
 ## Notes for Claude Code
 

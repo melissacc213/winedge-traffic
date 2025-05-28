@@ -23,17 +23,7 @@ import {
   Box,
   Title
 } from '@mantine/core';
-import { 
-  IconBrain, 
-  IconSearch,
-  IconCheck,
-  IconAlertCircle,
-  IconUpload,
-  IconPlus,
-  IconSettings,
-  IconTag,
-  IconX
-} from '@tabler/icons-react';
+import { Icons } from '../../icons';
 import { useDisclosure } from '@mantine/hooks';
 import { useRecipeStore } from '../../../lib/store/recipe-store';
 import { useModels } from '../../../lib/queries/model';
@@ -126,7 +116,7 @@ export function ModelConfigStep() {
             </Text>
           </Stack>
           <Button 
-            leftSection={<IconPlus size={16} />}
+            leftSection={<Icons.Plus size={16} />}
             onClick={open}
           >
             Create Model
@@ -137,12 +127,12 @@ export function ModelConfigStep() {
         <Paper withBorder radius="md">
           <Tabs value={activeTab} onChange={setActiveTab}>
             <Tabs.List>
-              <Tabs.Tab value="models" leftSection={<IconBrain size={16} />}>
+              <Tabs.Tab value="models" leftSection={<Icons.Brain size={16} />}>
                 Select Model
               </Tabs.Tab>
               <Tabs.Tab 
                 value="labels" 
-                leftSection={<IconTag size={16} />}
+                leftSection={<Icons.Tag size={16} />}
                 disabled={!formValues.modelId}
               >
                 Configure Labels
@@ -155,11 +145,11 @@ export function ModelConfigStep() {
                   placeholder="Search models..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.currentTarget.value)}
-                  leftSection={<IconSearch size={16} />}
+                  leftSection={<Icons.Search size={16} />}
                   rightSection={
                     searchQuery && (
                       <ActionIcon size="sm" variant="subtle" onClick={() => setSearchQuery('')}>
-                        <IconX size={16} />
+                        <Icons.X size={16} />
                       </ActionIcon>
                     )
                   }
@@ -172,7 +162,7 @@ export function ModelConfigStep() {
                   </Center>
                 ) : filteredModels.length === 0 ? (
                   <Stack align="center" py="xl" gap="md">
-                    <IconBrain size={48} color="gray" />
+                    <Icons.Brain size={48} color="gray" />
                     <Text c="dimmed" ta="center">
                       {searchQuery 
                         ? `No models found matching "${searchQuery}"`
@@ -180,7 +170,7 @@ export function ModelConfigStep() {
                     </Text>
                     {!searchQuery && (
                       <Button 
-                        leftSection={<IconPlus size={16} />}
+                        leftSection={<Icons.Plus size={16} />}
                         onClick={open}
                       >
                         Create Model
@@ -223,7 +213,7 @@ export function ModelConfigStep() {
                             </Table.Td>
                             <Table.Td>
                               <Group gap="xs">
-                                <IconBrain size={16} />
+                                <Icons.Brain size={16} />
                                 <Text fw={500}>{model.name}</Text>
                               </Group>
                             </Table.Td>
@@ -263,7 +253,7 @@ export function ModelConfigStep() {
                       </Text>
                     </div>
                     <Button 
-                      leftSection={<IconPlus size={16} />}
+                      leftSection={<Icons.Plus size={16} />}
                       onClick={handleAddLabel}
                     >
                       Add Label
@@ -296,7 +286,7 @@ export function ModelConfigStep() {
                                   variant="subtle"
                                   onClick={() => handleDeleteLabel(label.id)}
                                 >
-                                  <IconX size={16} />
+                                  <Icons.X size={16} />
                                 </ActionIcon>
                               </Group>
                             </Group>
@@ -311,21 +301,21 @@ export function ModelConfigStep() {
                                 step={5}
                                 decimalScale={0}
                                 suffix="%"
-                                leftSection={<IconSettings size={16} />}
+                                leftSection={<Icons.Settings size={16} />}
                               />
                               <NumberInput
                                 label="Min Width (px)"
                                 value={label.width_threshold || 0}
                                 onChange={(value) => handleLabelUpdate(label.id, { width_threshold: Number(value) })}
                                 min={0}
-                                leftSection={<IconSettings size={16} />}
+                                leftSection={<Icons.Settings size={16} />}
                               />
                               <NumberInput
                                 label="Min Height (px)"
                                 value={label.height_threshold || 0}
                                 onChange={(value) => handleLabelUpdate(label.id, { height_threshold: Number(value) })}
                                 min={0}
-                                leftSection={<IconSettings size={16} />}
+                                leftSection={<Icons.Settings size={16} />}
                               />
                             </Group>
                             
@@ -349,13 +339,13 @@ export function ModelConfigStep() {
                   </ScrollArea>
                   
                   {labels.length === 0 && (
-                    <Alert variant="light" color="blue" icon={<IconAlertCircle size={16} />}>
+                    <Alert variant="light" color="blue" icon={<Icons.AlertCircle size={16} />}>
                       No labels configured. Add labels to define what objects the model should detect.
                     </Alert>
                   )}
                 </Stack>
               ) : (
-                <Alert variant="light" color="yellow" icon={<IconAlertCircle size={16} />}>
+                <Alert variant="light" color="yellow" icon={<Icons.AlertCircle size={16} />}>
                   Please select a model first to configure its labels.
                 </Alert>
               )}

@@ -1,5 +1,6 @@
 import { Center, Loader, Text, Box, Paper, Stack } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../../providers/theme-provider';
 
 interface PageLoaderProps {
   text?: string;
@@ -57,6 +58,7 @@ export function SectionLoader({
   className,
 }: SectionLoaderProps) {
   const { t } = useTranslation(['common']);
+  const { theme } = useTheme();
   const displayText = text || t('common:status.loading', 'Loading...');
 
   return (
@@ -70,7 +72,7 @@ export function SectionLoader({
         position: overlay ? 'absolute' : 'relative',
         top: 0,
         left: 0,
-        backgroundColor: overlay ? 'rgba(255, 255, 255, 0.7)' : 'transparent',
+        backgroundColor: overlay ? theme.other.overlay.loading : 'transparent',
         zIndex: overlay ? 10 : 1,
         backdropFilter: overlay ? 'blur(2px)' : 'none',
         ...style,

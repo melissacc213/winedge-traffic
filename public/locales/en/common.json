@@ -38,9 +38,10 @@
   "of": "of",
   "stepsCompleted": "steps completed",
   "pagination": {
-    "showing": "Showing",
+    "showing": "Showing {{from}}-{{to}} of {{total}}",
     "of": "of",
     "per_page": "per page",
+    "itemsPerPage": "Items per page",
     "next": "Next",
     "previous": "Previous",
     "first": "First",
@@ -57,6 +58,11 @@
     "failed": "Failed",
     "cancelled": "Cancelled"
   },
+  "saving": "Saving",
+  "error": {
+    "generic": "An error occurred, please try again"
+  },
+  "cancel": "Cancel",
   "taskStatus": "Task Status",
   "taskDashboard": "Tasks",
   "taskDashboardDescription": "Monitor and manage your tasks",

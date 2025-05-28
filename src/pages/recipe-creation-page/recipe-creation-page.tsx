@@ -14,13 +14,13 @@ export function RecipeCreationPage() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
         e.preventDefault();
-        e.returnValue = '';
+        e.returnValue = "";
       }
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener("beforeunload", handleBeforeUnload);
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [isDirty]);
 
@@ -28,10 +28,10 @@ export function RecipeCreationPage() {
   useEffect(() => {
     return () => {
       // Only reset if navigation was confirmed
-      const isConfirmed = sessionStorage.getItem('recipe-navigation-confirmed');
-      if (isConfirmed === 'true') {
+      const isConfirmed = sessionStorage.getItem("recipe-navigation-confirmed");
+      if (isConfirmed === "true") {
         resetForm();
-        sessionStorage.removeItem('recipe-navigation-confirmed');
+        sessionStorage.removeItem("recipe-navigation-confirmed");
       }
     };
   }, [resetForm]);

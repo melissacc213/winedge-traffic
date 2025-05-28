@@ -3,8 +3,10 @@ export interface ModelLabel {
   name: string;
   color: string;
   confidence?: number;
-  width_threshold?: number;
-  height_threshold?: number;
+  widthThreshold?: number;  // For UI consistency
+  heightThreshold?: number; // For UI consistency
+  width_threshold?: number;  // For API payload
+  height_threshold?: number; // For API payload
   enabled?: boolean;
 }
 

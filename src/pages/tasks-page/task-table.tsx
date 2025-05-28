@@ -189,13 +189,6 @@ export function TaskTable({
                   </ActionIcon>
                 </Menu.Target>
                 <Menu.Dropdown>
-                  <Menu.Item
-                    leftSection={<Icons.Eye size="xs" />}
-                    onClick={() => navigate(`/tasks/${info.getValue()}`)}
-                  >
-                    {t("tasks:action.view")}
-                  </Menu.Item>
-
                   {task.status === "running" && (
                     <Menu.Item
                       leftSection={<Icons.PlayerStop size="xs" />}

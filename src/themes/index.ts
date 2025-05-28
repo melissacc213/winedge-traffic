@@ -381,7 +381,9 @@ const lightThemeOverrides: MantineThemeOverride = {
       cardLight: "gray.0",
       cardHover: "gray.1",
       pageBackground: "white",
-      divider: "gray.2"
+      divider: "gray.2",
+      glassMorphism: "rgba(255, 255, 255, 0.9)",
+      videoPlayer: "#000000"
     },
     
     // UI element colors for light mode
@@ -390,6 +392,25 @@ const lightThemeOverrides: MantineThemeOverride = {
       borderHover: "gray.3",
       shadow: "rgba(0,0,0,0.1)",
       borderRadius: "8px"
+    },
+    
+    // Hover colors for interactive elements
+    hover: {
+      subtle: "rgba(0, 0, 0, 0.05)",
+      light: "rgba(0, 0, 0, 0.08)",
+      medium: "rgba(0, 0, 0, 0.1)",
+      blueSubtle: "rgba(25, 144, 255, 0.1)",
+      blueMedium: "rgba(25, 144, 255, 0.15)"
+    },
+    
+    // Overlay colors
+    overlay: {
+      gradient: "rgba(0, 0, 0, 0.8)",
+      controls: "rgba(0, 0, 0, 0.6)",
+      lightButton: "rgba(255, 255, 255, 0.15)",
+      blueShadow: "rgba(37, 99, 235, 0.3)",
+      backdrop: "rgba(0, 0, 0, 0.15)",
+      loading: "rgba(255, 255, 255, 0.7)"
     },
     
     // Shadow definitions for light mode
@@ -412,7 +433,9 @@ const darkThemeOverrides: MantineThemeOverride = {
       cardLight: "gray.9",
       cardHover: "gray.8",
       pageBackground: "gray.9",
-      divider: "gray.7"
+      divider: "gray.7",
+      glassMorphism: "rgba(17, 25, 40, 0.9)",
+      videoPlayer: "#000000"
     },
     
     // UI element colors for dark mode
@@ -421,6 +444,25 @@ const darkThemeOverrides: MantineThemeOverride = {
       borderHover: "gray.6",
       shadow: "rgba(0,0,0,0.3)",
       borderRadius: "8px"
+    },
+    
+    // Hover colors for interactive elements
+    hover: {
+      subtle: "rgba(255, 255, 255, 0.05)",
+      light: "rgba(255, 255, 255, 0.08)",
+      medium: "rgba(255, 255, 255, 0.1)",
+      blueSubtle: "rgba(64, 192, 255, 0.1)",
+      blueMedium: "rgba(64, 192, 255, 0.15)"
+    },
+    
+    // Overlay colors
+    overlay: {
+      gradient: "rgba(0, 0, 0, 0.9)",
+      controls: "rgba(0, 0, 0, 0.6)",
+      lightButton: "rgba(255, 255, 255, 0.15)",
+      blueShadow: "rgba(37, 99, 235, 0.3)",
+      backdrop: "rgba(0, 0, 0, 0.15)",
+      loading: "rgba(0, 0, 0, 0.7)"
     },
     
     // Shadow definitions for dark mode
