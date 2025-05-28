@@ -22,6 +22,7 @@ import {
   IconPlayerPlay,
   IconPlayerStop,
   IconPlus,
+  IconRefresh,
   IconSearch,
   IconSun,
   IconTable,
@@ -29,6 +30,7 @@ import {
   IconUpload,
   IconUser,
   IconUsers,
+  IconVideo,
   IconX,
 } from "@tabler/icons-react";
 
@@ -55,6 +57,7 @@ export const RawIcons = {
   PlayerStop: IconPlayerStop,
   Plus: IconPlus,
   Recipe: IconBook,
+  Refresh: IconRefresh,
   Search: IconSearch,
   Sort: IconArrowsSort,
   Sun: IconSun,
@@ -64,5 +67,6 @@ export const RawIcons = {
   Upload: IconUpload,
   User: IconUser,
   Users: IconUsers,
+  Video: IconVideo,
   X: IconX,
 };

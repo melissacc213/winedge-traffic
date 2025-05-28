@@ -152,7 +152,7 @@ export const useRecipeStore = create<RecipeState>((set) => ({
   // Creation step actions
   nextStep: () =>
     set((state) => ({
-      activeStep: Math.min(state.activeStep + 1, 3), // Now we have 4 total steps
+      activeStep: Math.min(state.activeStep + 1, 2), // 3 total steps (0-2)
     })),
 
   previousStep: () =>

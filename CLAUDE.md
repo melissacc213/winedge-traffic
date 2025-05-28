@@ -97,6 +97,38 @@ import { IconSettings } from '@tabler/icons-react';
 
 The `Icons` component uses `useMemo` for performance optimization, preventing unnecessary re-renders when icons are used throughout the application.
 
+##### Adding New Icons
+
+When you need to add a new icon that's not available in the Icons component:
+
+1. First check if the icon exists in `@tabler/icons-react`
+2. Edit `/src/components/ui/icon-map.ts`:
+
+```typescript
+// 1. Add the import
+import {
+  // ... existing imports
+  IconVideo,         // Add new icon import
+  IconRefresh,       // Add another icon import
+  // ... rest of imports
+} from "@tabler/icons-react";
+
+// 2. Add to RawIcons object
+export const RawIcons = {
+  // ... existing icons
+  Video: IconVideo,       // Add new icon mapping
+  Refresh: IconRefresh,   // Add another icon mapping
+  // ... rest of icons
+};
+```
+
+3. Now you can use the new icons:
+
+```typescript
+<Icons.Video size={20} />
+<Icons.Refresh size="md" color="blue" />
+```
+
 ### 2. API Integration Pattern
 
 Follow the established pattern: Zod schema → API service → React Query hook → Zustand store

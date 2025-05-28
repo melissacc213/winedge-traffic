@@ -13,8 +13,6 @@ import {
   Title,
 } from "@mantine/core";
 import {
-  IconArrowRight,
-  IconArrowLeft,
   IconCheck,
   IconChevronLeft,
   IconChevronRight,
@@ -32,15 +30,9 @@ export function RecipeStepper() {
   const navigate = useNavigate();
   const { theme, colorScheme } = useTheme();
   const isDark = colorScheme === "dark";
-  
-  const {
-    activeStep,
-    nextStep,
-    previousStep,
-    formValues,
-    resetForm,
-    isDirty,
-  } = useRecipeStore();
+
+  const { activeStep, nextStep, previousStep, formValues, resetForm, isDirty } =
+    useRecipeStore();
 
   const createRecipe = useCreateRecipe();
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -95,20 +87,20 @@ export function RecipeStepper() {
       {
         onSuccess: () => {
           notifications.show({
-            title: 'Success',
-            message: 'Recipe created successfully!',
-            color: 'green',
+            title: "Success",
+            message: "Recipe created successfully!",
+            color: "green",
           });
           // Set flag to prevent navigation guard from showing confirmation
-          sessionStorage.setItem('recipe-navigation-confirmed', 'true');
+          sessionStorage.setItem("recipe-navigation-confirmed", "true");
           resetForm();
-          navigate('/recipes');
+          navigate("/recipes");
         },
         onError: (error) => {
           notifications.show({
-            title: 'Error',
-            message: error.message || 'Failed to create recipe',
-            color: 'red',
+            title: "Error",
+            message: error.message || "Failed to create recipe",
+            color: "red",
           });
         },
       }
@@ -119,15 +111,15 @@ export function RecipeStepper() {
     if (isDirty) {
       setShowCancelModal(true);
     } else {
-      navigate('/recipes');
+      navigate("/recipes");
     }
   };
 
   const confirmCancel = () => {
     // Set flag to prevent navigation guard from showing another confirmation
-    sessionStorage.setItem('recipe-navigation-confirmed', 'true');
+    sessionStorage.setItem("recipe-navigation-confirmed", "true");
     resetForm();
-    navigate('/recipes');
+    navigate("/recipes");
   };
 
   const stepComponents = [
@@ -143,20 +135,12 @@ export function RecipeStepper() {
   ];
 
   return (
-    <Box
-      style={{
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Header with title and stepper - Fixed height */}
-      <Box 
-        style={{ 
+    <Stack gap={0}>
+      {/* Header with title and stepper */}
+      <Box
+        style={{
           backgroundColor: isDark ? theme.colors.dark[7] : theme.white,
           borderBottom: `1px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[2]}`,
-          flexShrink: 0,
           boxShadow: theme.other.shadows.xs,
         }}
       >
@@ -164,21 +148,25 @@ export function RecipeStepper() {
           <Stack gap="sm">
             <Group justify="space-between" align="center">
               <div>
-                <Title order={3} size="h4">{t("recipes:creation.title")}</Title>
+                <Title order={3} size="h4">
+                  {t("recipes:creation.title")}
+                </Title>
                 <Text size="xs" c="dimmed" mt={2}>
                   {t("recipes:creation.description")}
                 </Text>
               </div>
-              <Button 
-                variant="subtle" 
-                color="red" 
+              <Button
+                variant="subtle"
+                color="red"
                 onClick={handleCancel}
                 size="xs"
                 radius="md"
                 style={{
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    backgroundColor: isDark ? theme.colors.dark[6] : theme.colors.red[0],
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    backgroundColor: isDark
+                      ? theme.colors.dark[6]
+                      : theme.colors.red[0],
                   },
                 }}
               >
@@ -192,51 +180,57 @@ export function RecipeStepper() {
               size="sm"
               color="cyan"
               styles={(theme) => ({
-                root: { maxWidth: '100%' },
-                steps: { 
-                  display: 'flex',
-                  flexWrap: 'nowrap',
-                  overflowX: 'auto',
-                  gap: '1rem'
+                root: { maxWidth: "100%" },
+                steps: {
+                  display: "flex",
+                  flexWrap: "nowrap",
+                  overflowX: "auto",
+                  gap: "1rem",
                 },
                 step: {
-                  minWidth: 'auto',
-                  flex: '1 1 auto',
-                  padding: '0.5rem',
+                  minWidth: "auto",
+                  flex: "1 1 auto",
+                  padding: "0.5rem",
                   borderRadius: theme.radius.md,
-                  transition: 'all 0.2s ease',
-                  '&[data-progress]': {
-                    backgroundColor: isDark ? theme.colors.dark[6] : theme.colors.gray[0],
+                  transition: "all 0.2s ease",
+                  "&[data-progress]": {
+                    backgroundColor: isDark
+                      ? theme.colors.dark[6]
+                      : theme.colors.gray[0],
                   },
-                  '&[data-completed]': {
-                    backgroundColor: isDark ? theme.colors.dark[6] : theme.colors.cyan[0],
+                  "&[data-completed]": {
+                    backgroundColor: isDark
+                      ? theme.colors.dark[6]
+                      : theme.colors.cyan[0],
                   },
                 },
                 stepIcon: {
                   borderWidth: 2,
-                  transition: 'all 0.2s ease',
-                  '&[data-completed]': {
+                  transition: "all 0.2s ease",
+                  "&[data-completed]": {
                     borderColor: theme.colors.cyan[6],
                     backgroundColor: theme.colors.cyan[6],
                   },
-                  '&[data-progress]': {
+                  "&[data-progress]": {
                     borderColor: theme.colors.cyan[6],
                   },
                 },
                 stepLabel: {
-                  fontSize: '0.875rem',
+                  fontSize: "0.875rem",
                   fontWeight: 600,
                   color: isDark ? theme.white : theme.black,
                 },
                 stepDescription: {
-                  fontSize: '0.75rem',
-                  marginTop: '0.25rem',
+                  fontSize: "0.75rem",
+                  marginTop: "0.25rem",
                   color: isDark ? theme.colors.dark[2] : theme.colors.gray[6],
                 },
                 separator: {
-                  marginLeft: '0.5rem',
-                  marginRight: '0.5rem',
-                  backgroundColor: isDark ? theme.colors.dark[4] : theme.colors.gray[3],
+                  marginLeft: "0.5rem",
+                  marginRight: "0.5rem",
+                  backgroundColor: isDark
+                    ? theme.colors.dark[4]
+                    : theme.colors.gray[3],
                 },
                 separatorActive: {
                   backgroundColor: theme.colors.cyan[6],
@@ -244,18 +238,42 @@ export function RecipeStepper() {
               })}
             >
               <MantineStepper.Step
-                label={activeStep === 0 ? t("recipes:creation.stepper.taskWithVideo") : "Task & Video"}
-                description={activeStep === 0 ? t("recipes:creation.stepper.taskWithVideoDesc") : null}
+                label={
+                  activeStep === 0
+                    ? t("recipes:creation.stepper.taskWithVideo")
+                    : "Task & Video"
+                }
+                description={
+                  activeStep === 0
+                    ? t("recipes:creation.stepper.taskWithVideoDesc")
+                    : null
+                }
                 completedIcon={<IconCheck size={16} />}
               />
               <MantineStepper.Step
-                label={activeStep === 1 ? t("recipes:creation.stepper.regionSetup") : "Regions"}
-                description={activeStep === 1 ? t("recipes:creation.stepper.regionSetupDesc") : null}
+                label={
+                  activeStep === 1
+                    ? t("recipes:creation.stepper.regionSetup")
+                    : "Regions"
+                }
+                description={
+                  activeStep === 1
+                    ? t("recipes:creation.stepper.regionSetupDesc")
+                    : null
+                }
                 completedIcon={<IconCheck size={16} />}
               />
               <MantineStepper.Step
-                label={activeStep === 2 ? t("recipes:creation.stepper.modelConfig") : "Model"}
-                description={activeStep === 2 ? t("recipes:creation.stepper.modelConfigDesc") : null}
+                label={
+                  activeStep === 2
+                    ? t("recipes:creation.stepper.modelConfig")
+                    : "Model"
+                }
+                description={
+                  activeStep === 2
+                    ? t("recipes:creation.stepper.modelConfigDesc")
+                    : null
+                }
                 completedIcon={<IconCheck size={16} />}
               />
             </MantineStepper>
@@ -263,25 +281,16 @@ export function RecipeStepper() {
         </Box>
       </Box>
 
-      {/* Content Area - Flexible height, takes remaining space */}
-      <Box 
-        style={{ 
-          flex: 1,
-          minHeight: 0, // This is crucial for proper flex behavior
-          overflow: 'auto',
-        }}
-      >
-        <Box maw={1200} mx="auto" px="md" py="md">
-          {stepComponents[activeStep]}
-        </Box>
+      {/* Content Area */}
+      <Box maw={1200} mx="auto" px="md" py="md">
+        {stepComponents[activeStep]}
       </Box>
 
-      {/* Footer Navigation - Fixed height, always visible */}
-      <Box 
-        style={{ 
+      {/* Footer Navigation */}
+      <Box
+        style={{
           borderTop: `1px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[2]}`,
           backgroundColor: isDark ? theme.colors.dark[7] : theme.white,
-          flexShrink: 0,
           boxShadow: `0 -2px 4px ${theme.other.ui.shadow}`,
         }}
       >
@@ -295,10 +304,12 @@ export function RecipeStepper() {
                 size="md"
                 radius="md"
                 style={{
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    backgroundColor: isDark ? theme.colors.dark[6] : theme.colors.gray[0],
-                    transform: 'translateX(-2px)',
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    backgroundColor: isDark
+                      ? theme.colors.dark[6]
+                      : theme.colors.gray[0],
+                    transform: "translateX(-2px)",
                   },
                 }}
               >
@@ -317,13 +328,15 @@ export function RecipeStepper() {
                 radius="md"
                 variant="filled"
                 style={{
-                  transition: 'all 0.2s ease',
-                  ...(!stepsValid[activeStep as keyof typeof stepsValid] ? {} : {
-                    '&:hover': {
-                      transform: 'translateX(2px)',
-                      boxShadow: theme.other.shadows.sm,
-                    },
-                  }),
+                  transition: "all 0.2s ease",
+                  ...(!stepsValid[activeStep as keyof typeof stepsValid]
+                    ? {}
+                    : {
+                        "&:hover": {
+                          transform: "translateX(2px)",
+                          boxShadow: theme.other.shadows.sm,
+                        },
+                      }),
                 }}
               >
                 {t("recipes:common.next")}
@@ -337,24 +350,29 @@ export function RecipeStepper() {
                 size="md"
                 radius="md"
                 variant="gradient"
-                gradient={{ from: 'teal', to: 'cyan', deg: 60 }}
+                gradient={{ from: "teal", to: "cyan", deg: 60 }}
                 style={{
-                  transition: 'all 0.2s ease',
-                  ...(!stepsValid[activeStep as keyof typeof stepsValid] || createRecipe.isPending ? {} : {
-                    '&:hover': {
-                      boxShadow: theme.other.shadows.md,
-                      transform: 'scale(1.02)',
-                    },
-                  }),
+                  transition: "all 0.2s ease",
+                  ...(!stepsValid[activeStep as keyof typeof stepsValid] ||
+                  createRecipe.isPending
+                    ? {}
+                    : {
+                        "&:hover": {
+                          boxShadow: theme.other.shadows.md,
+                          transform: "scale(1.02)",
+                        },
+                      }),
                 }}
               >
-                {createRecipe.isPending ? t("recipes:review.submitting", "Creating...") : t("recipes:review.submit")}
+                {createRecipe.isPending
+                  ? t("recipes:review.submitting", "Creating...")
+                  : t("recipes:review.submit")}
               </Button>
             )}
           </Group>
         </Box>
       </Box>
-      
+
       {/* Cancel Confirmation Modal */}
       <Modal
         opened={showCancelModal}
@@ -368,10 +386,7 @@ export function RecipeStepper() {
             Are you sure you want to cancel? All your progress will be lost.
           </Text>
           <Group justify="flex-end">
-            <Button
-              variant="outline"
-              onClick={() => setShowCancelModal(false)}
-            >
+            <Button variant="outline" onClick={() => setShowCancelModal(false)}>
               Continue Editing
             </Button>
             <Button color="red" onClick={confirmCancel}>
@@ -380,6 +395,6 @@ export function RecipeStepper() {
           </Group>
         </Stack>
       </Modal>
-    </Box>
+    </Stack>
   );
 }
