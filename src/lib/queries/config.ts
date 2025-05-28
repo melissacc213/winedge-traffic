@@ -11,7 +11,7 @@ export type SiteConfig = {
 
 // Using a simple mock since we don't have a real API yet
 const siteConfig: SiteConfig = {
-  name: "WinEdge-Traffic",
+  name: "WinEdge",
   copyright: "© 2025 AIWin. All rights reserved.",
   theme: {
     primaryColor: "blue",

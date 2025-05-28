@@ -248,7 +248,7 @@ export function Layout({ children }: LayoutProps) {
                 marginLeft: rem(8),
               }}
             >
-              {siteConfig?.name || "WinEdge-Traffic"}
+              {siteConfig?.name || "WinEdge"}
             </Title>
           </Group>
 
