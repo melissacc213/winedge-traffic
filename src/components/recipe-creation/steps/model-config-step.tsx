@@ -30,52 +30,40 @@ import { useDisclosure } from "@mantine/hooks";
 import { useRecipeStore } from "../../../lib/store/recipe-store";
 import { useModels } from "../../../lib/queries/model";
 import { ModelUploadDialog } from "../../model-config-editor/model-upload-dialog";
+import { LabelEditor } from "../../model-config-editor/label-editor";
 import type { ModelLabel, ModelConfig } from "../../../types/model";
 
 // Mock data for model labels - in a real app this would come from the selected model's config
 const MOCK_LABELS: ModelLabel[] = [
-  { id: "1", name: "Person", color: "#FF6B6B", confidence: 0.7, enabled: true },
+  { id: "1", name: "Person", color: "#ff6b6b", confidence: 0.7, width_threshold: 32, height_threshold: 32, enabled: true },
   {
     id: "2",
     name: "Vehicle",
-    color: "#4ECDC4",
+    color: "#06b6d4",
     confidence: 0.75,
+    width_threshold: 32,
+    height_threshold: 32,
     enabled: true,
   },
-  { id: "3", name: "Truck", color: "#45B7D1", confidence: 0.8, enabled: true },
+  { id: "3", name: "Truck", color: "#1890ff", confidence: 0.8, width_threshold: 32, height_threshold: 32, enabled: true },
   {
     id: "4",
     name: "Motorcycle",
-    color: "#FFA07A",
+    color: "#fa9c46",
     confidence: 0.65,
+    width_threshold: 32,
+    height_threshold: 32,
     enabled: false,
   },
   {
     id: "5",
     name: "Bicycle",
-    color: "#98D8C8",
+    color: "#13c2c2",
     confidence: 0.6,
+    width_threshold: 32,
+    height_threshold: 32,
     enabled: true,
   },
-];
-
-// Available colors for labels
-const LABEL_COLORS = [
-  "#FF6B6B",
-  "#4ECDC4",
-  "#45B7D1",
-  "#FFA07A",
-  "#98D8C8",
-  "#F7DC6F",
-  "#BB8FCE",
-  "#85C1E2",
-  "#F8C471",
-  "#AED6F1",
-  "#ABEBC6",
-  "#F5B7B1",
-  "#D7BDE2",
-  "#A9DFBF",
-  "#FAD7A0",
 ];
 
 export function ModelConfigStep() {
@@ -127,19 +115,13 @@ export function ModelConfigStep() {
     );
   };
 
-  const handleAddLabel = () => {
-    const newLabel: ModelLabel = {
-      id: Date.now().toString(),
-      name: `Label ${labels.length + 1}`,
-      color: LABEL_COLORS[labels.length % LABEL_COLORS.length],
-      confidence: 0.7,
-      enabled: true,
-    };
-    setLabels((prev) => [...prev, newLabel]);
-  };
 
-  const handleDeleteLabel = (labelId: string) => {
-    setLabels((prev) => prev.filter((label) => label.id !== labelId));
+  const handleToggleEnabled = (labelId: string) => {
+    setLabels((prev) =>
+      prev.map((label) =>
+        label.id === labelId ? { ...label, enabled: !label.enabled } : label
+      )
+    );
   };
 
   const handleModelConfigured = (config: ModelConfig) => {
@@ -349,112 +331,19 @@ export function ModelConfigStep() {
                         their confidence thresholds
                       </Text>
                     </div>
-                    {/* <Button 
-                      leftSection={<Icons.Plus size={16} />}
-                      onClick={handleAddLabel}
-                    >
-                      Add Label
-                    </Button> */}
                   </Group>
 
                   <ScrollArea h={400} offsetScrollbars>
-                    <Stack gap="md">
+                    <Stack gap="sm">
                       {labels.map((label, index) => (
-                        <Paper key={label.id} withBorder p="md" radius="md">
-                          <Stack gap="sm">
-                            <Group justify="space-between">
-                              <Group gap="xs">
-                                <ColorSwatch color={label.color} size={24} />
-                                <TextInput
-                                  value={label.name}
-                                  onChange={(e) =>
-                                    handleLabelUpdate(label.id, {
-                                      name: e.currentTarget.value,
-                                    })
-                                  }
-                                  placeholder="Label name"
-                                  style={{ width: 200 }}
-                                />
-                              </Group>
-                              <Group gap="xs">
-                                <Switch
-                                  checked={label.enabled}
-                                  onChange={(e) =>
-                                    handleLabelUpdate(label.id, {
-                                      enabled: e.currentTarget.checked,
-                                    })
-                                  }
-                                  label="Enabled"
-                                />
-                                <ActionIcon
-                                  color="red"
-                                  variant="subtle"
-                                  onClick={() => handleDeleteLabel(label.id)}
-                                >
-                                  <Icons.X size={16} />
-                                </ActionIcon>
-                              </Group>
-                            </Group>
-
-                            <Group grow>
-                              <NumberInput
-                                label="Confidence Threshold"
-                                value={label.confidence * 100}
-                                onChange={(value) =>
-                                  handleLabelUpdate(label.id, {
-                                    confidence: Number(value) / 100,
-                                  })
-                                }
-                                min={0}
-                                max={100}
-                                step={5}
-                                decimalScale={0}
-                                suffix="%"
-                                leftSection={<Icons.Settings size={16} />}
-                              />
-                              <NumberInput
-                                label="Min Width (px)"
-                                value={label.width_threshold || 0}
-                                onChange={(value) =>
-                                  handleLabelUpdate(label.id, {
-                                    width_threshold: Number(value),
-                                  })
-                                }
-                                min={0}
-                                leftSection={<Icons.Settings size={16} />}
-                              />
-                              <NumberInput
-                                label="Min Height (px)"
-                                value={label.height_threshold || 0}
-                                onChange={(value) =>
-                                  handleLabelUpdate(label.id, {
-                                    height_threshold: Number(value),
-                                  })
-                                }
-                                min={0}
-                                leftSection={<Icons.Settings size={16} />}
-                              />
-                            </Group>
-
-                            <Group gap="xs">
-                              {LABEL_COLORS.map((color) => (
-                                <ActionIcon
-                                  key={color}
-                                  variant={
-                                    label.color === color ? "filled" : "subtle"
-                                  }
-                                  color={color}
-                                  onClick={() =>
-                                    handleLabelUpdate(label.id, { color })
-                                  }
-                                  size="sm"
-                                >
-                                  <ColorSwatch color={color} size={16} />
-                                </ActionIcon>
-                              ))}
-                            </Group>
-                          </Stack>
-                        </Paper>
+                        <LabelEditor
+                          key={label.id}
+                          label={label}
+                          index={index}
+                          onUpdate={handleLabelUpdate}
+                          onToggleEnabled={handleToggleEnabled}
+                          showReorderControls={false}
+                        />
                       ))}
                     </Stack>
                   </ScrollArea>

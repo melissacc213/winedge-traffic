@@ -1,6 +1,7 @@
 // Mock configuration - set to true to use mock data
 // To disable mock mode and use real API, set this to false
 export const USE_MOCK_API = true;
+export const USE_MOCK_DATA = USE_MOCK_API; // Alias for backward compatibility
 
 // Mock user for authentication
 export const MOCK_USER = {

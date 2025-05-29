@@ -17,6 +17,7 @@ import {
   Tooltip,
   ScrollArea,
   Timeline,
+  useMantineTheme,
 } from "@mantine/core";
 import { Icons } from "@/components/icons";
 import { PageLayout } from "@/components/page-layout/page-layout";
@@ -33,14 +34,15 @@ export function ModelDetailsPage() {
   const { modelId } = useParams<{ modelId: string }>();
   const navigate = useNavigate();
   const { colorScheme, theme } = useTheme();
+  const mantineTheme = useMantineTheme();
   const [isDeleting, setIsDeleting] = useState(false);
 
   const { data: model, isLoading, error } = useModelDetails(modelId!);
   const deleteModelMutation = useDeleteModel();
 
   const isDark = colorScheme === "dark";
-  const cardBg = isDark ? theme.colors.gray[9] : "white";
-  const surfaceBg = isDark ? theme.colors.gray[8] : theme.colors.gray[0];
+  const cardBg = isDark ? theme.colors.dark[7] : theme.white;
+  const surfaceBg = isDark ? theme.colors.dark[6] : theme.colors.gray[0];
 
   // Format file size to human readable
   const formatSize = (bytes: number) => {
@@ -117,11 +119,8 @@ export function ModelDetailsPage() {
     });
   };
 
-  if (isLoading) {
-    return <PageLoader />;
-  }
-
-  if (error || !model) {
+  // Guard against invalid modelId
+  if (!modelId) {
     return (
       <PageLayout>
         <Alert
@@ -129,8 +128,41 @@ export function ModelDetailsPage() {
           title={t("models:details.error.title")}
           color="red"
         >
-          {error?.message || t("models:details.error.not_found")}
+          {t("models:details.error.not_found")}
         </Alert>
+      </PageLayout>
+    );
+  }
+
+  if (isLoading) {
+    return <PageLoader />;
+  }
+
+  if (error || !model) {
+    return (
+      <PageLayout>
+        <Stack gap="lg">
+          <Paper p="lg" radius="md" withBorder>
+            <Group>
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                size="lg"
+                onClick={() => navigate("/models")}
+              >
+                <Icons.ArrowLeft size={20} />
+              </ActionIcon>
+              <Title order={3}>Model Details</Title>
+            </Group>
+          </Paper>
+          <Alert
+            icon={<Icons.AlertCircle size={16} />}
+            title={t("models:details.error.title")}
+            color="red"
+          >
+            {error?.message || t("models:details.error.not_found")}
+          </Alert>
+        </Stack>
       </PageLayout>
     );
   }
@@ -190,14 +222,6 @@ export function ModelDetailsPage() {
                 disabled={model.status !== "active" && model.status !== "available"}
               >
                 {t("models:actions.edit")}
-              </Button>
-              <Button
-                variant="light"
-                color="green"
-                leftSection={<Icons.Download size={16} />}
-                disabled={model.status !== "active" && model.status !== "available"}
-              >
-                {t("models:actions.download")}
               </Button>
               <Button
                 variant="light"
@@ -332,7 +356,7 @@ export function ModelDetailsPage() {
                 <Stack gap="md">
                   <Card p="sm" radius="sm" style={{ backgroundColor: surfaceBg }}>
                     <Group>
-                      <Icons.Cpu size={20} color={theme.colors.blue[6]} />
+                      <Icons.Cpu size={20} color={mantineTheme.colors.blue[6]} />
                       <Box style={{ flex: 1 }}>
                         <Text size="xs" c="dimmed">
                           {t("models:details.model_type")}
@@ -346,7 +370,7 @@ export function ModelDetailsPage() {
 
                   <Card p="sm" radius="sm" style={{ backgroundColor: surfaceBg }}>
                     <Group>
-                      <Icons.Database size={20} color={theme.colors.green[6]} />
+                      <Icons.Database size={20} color={mantineTheme.colors.green[6]} />
                       <Box style={{ flex: 1 }}>
                         <Text size="xs" c="dimmed">
                           {t("models:details.storage_size")}
@@ -360,7 +384,7 @@ export function ModelDetailsPage() {
 
                   <Card p="sm" radius="sm" style={{ backgroundColor: surfaceBg }}>
                     <Group>
-                      <Icons.FileZip size={20} color={theme.colors.orange[6]} />
+                      <Icons.FileZip size={20} color={mantineTheme.colors.orange[6]} />
                       <Box style={{ flex: 1 }}>
                         <Text size="xs" c="dimmed">
                           {t("models:details.file_format")}
@@ -374,7 +398,7 @@ export function ModelDetailsPage() {
 
                   <Card p="sm" radius="sm" style={{ backgroundColor: surfaceBg }}>
                     <Group>
-                      <Icons.Tag size={20} color={theme.colors.violet[6]} />
+                      <Icons.Tag size={20} color={mantineTheme.colors.violet[6]} />
                       <Box style={{ flex: 1 }}>
                         <Text size="xs" c="dimmed">
                           {t("models:details.version")}

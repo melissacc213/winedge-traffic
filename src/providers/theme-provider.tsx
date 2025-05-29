@@ -70,7 +70,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
   return (
     <ThemeContext.Provider value={contextValue}>
-      <MantineProvider theme={theme}>
+      <MantineProvider theme={theme} defaultColorScheme={colorScheme} withCssVariables>
         {children}
       </MantineProvider>
     </ThemeContext.Provider>

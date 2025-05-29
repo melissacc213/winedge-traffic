@@ -36,24 +36,11 @@ import {
   IconPlus,
 } from "@tabler/icons-react";
 import { useRecipes } from "../../lib/queries/recipe";
+import { getTaskTypeColor } from "@/lib/utils";
 import type { RecipeResponse } from "../../lib/validator/recipe";
 import type { Region } from "@/types/recipe";
 
 // Helper functions outside of component to prevent re-creation on each render
-const getTaskTypeColor = (type: string) => {
-  switch (type) {
-    case "detection":
-      return "blue";
-    case "classification":
-      return "green";
-    case "counting":
-      return "orange";
-    case "tracking":
-      return "violet";
-    default:
-      return "gray";
-  }
-};
 
 const getStatusColor = (status: string) => {
   switch (status) {

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import {
   Stack,
   Text,
@@ -17,50 +17,28 @@ import {
   ScrollArea,
 } from "@mantine/core";
 import {
-  IconDownload,
-  IconPlus,
-  IconEye,
-  IconEyeOff,
   IconSettings,
 } from "@tabler/icons-react";
 import { useTheme } from "@/providers/theme-provider";
 import { LabelEditor } from "./label-editor";
 import type { ModelConfig, ModelLabel } from "@/types/model";
-import { v4 as uuidv4 } from "uuid";
 
 interface ModelConfigEditorProps {
-  config: ModelConfig;
+  config: ModelConfig | null;
   onConfigChange: (config: ModelConfig) => void;
-  onExport?: () => void;
   onSave?: () => void;
 }
 
 export function ModelConfigEditor({
   config,
   onConfigChange,
-  onExport,
   onSave,
 }: ModelConfigEditorProps) {
   const { colorScheme, theme } = useTheme();
-  const [showOnlyEnabled, setShowOnlyEnabled] = useState(false);
-  const [newlyAddedLabelId, setNewlyAddedLabelId] = useState<string | null>(
-    null
-  );
-
-  const isDark = colorScheme === "dark";
-  const cardBg = isDark ? theme.colors.gray[9] : "white";
-  const surfaceBg = isDark ? theme.colors.gray[8] : theme.colors.gray[0];
-
-  const enabledLabels = config.labels.filter(
-    (label) => label.enabled !== false
-  );
-  const disabledLabels = config.labels.filter(
-    (label) => label.enabled === false
-  );
-  const visibleLabels = showOnlyEnabled ? enabledLabels : config.labels;
 
   const handleUpdateLabel = useCallback(
     (id: string, updates: Partial<ModelLabel>) => {
+      if (!config) return;
       const updatedLabels = config.labels.map((label) =>
         label.id === id ? { ...label, ...updates } : label
       );
@@ -69,16 +47,9 @@ export function ModelConfigEditor({
     [config, onConfigChange]
   );
 
-  const handleDeleteLabel = useCallback(
-    (id: string) => {
-      const updatedLabels = config.labels.filter((label) => label.id !== id);
-      onConfigChange({ ...config, labels: updatedLabels });
-    },
-    [config, onConfigChange]
-  );
-
   const handleToggleEnabled = useCallback(
     (id: string) => {
+      if (!config) return;
       const updatedLabels = config.labels.map((label) =>
         label.id === id ? { ...label, enabled: !label.enabled } : label
       );
@@ -87,24 +58,10 @@ export function ModelConfigEditor({
     [config, onConfigChange]
   );
 
-  const handleAddLabel = useCallback(() => {
-    const newLabel: ModelLabel = {
-      id: uuidv4(),
-      name: `New Label ${config.labels.length + 1}`,
-      color: generateRandomColor(),
-      confidence: 0.5,
-      width_threshold: 32,
-      height_threshold: 32,
-      enabled: true,
-    };
-    // Add new label at the beginning
-    onConfigChange({ ...config, labels: [newLabel, ...config.labels] });
-    setNewlyAddedLabelId(newLabel.id);
-    // Clear the newly added flag after a short delay
-    setTimeout(() => setNewlyAddedLabelId(null), 3000);
-  }, [config, onConfigChange]);
+  // Delete functionality removed
 
   const handleToggleAllEnabled = useCallback(() => {
+    if (!config) return;
     const allEnabled = config.labels.every((label) => label.enabled !== false);
     const updatedLabels = config.labels.map((label) => ({
       ...label,
@@ -112,6 +69,22 @@ export function ModelConfigEditor({
     }));
     onConfigChange({ ...config, labels: updatedLabels });
   }, [config, onConfigChange]);
+
+  const isDark = colorScheme === "dark";
+  const cardBg = isDark ? theme.colors.gray[9] : "white";
+  const surfaceBg = isDark ? theme.colors.gray[8] : theme.colors.gray[0];
+
+  // Guard against null config
+  if (!config || !config.labels) {
+    return null;
+  }
+
+  const enabledLabels = config.labels.filter(
+    (label) => label.enabled !== false
+  );
+  const disabledLabels = config.labels.filter(
+    (label) => label.enabled === false
+  );
 
   return (
     <Stack gap="lg">
@@ -191,44 +164,18 @@ export function ModelConfigEditor({
           <Group justify="space-between" align="center">
             <Title order={4}>Label Configuration</Title>
 
-            <Group gap="sm">
-              <Tooltip label="Toggle visibility filter">
-                <ActionIcon
-                  variant={showOnlyEnabled ? "filled" : "light"}
-                  color="blue"
-                  onClick={() => setShowOnlyEnabled(!showOnlyEnabled)}
-                >
-                  {showOnlyEnabled ? (
-                    <IconEye size={16} />
-                  ) : (
-                    <IconEyeOff size={16} />
-                  )}
-                </ActionIcon>
-              </Tooltip>
-
-              <Tooltip label="Toggle all labels">
-                <ActionIcon
-                  variant="light"
-                  color="orange"
-                  onClick={handleToggleAllEnabled}
-                >
-                  <IconSettings size={16} />
-                </ActionIcon>
-              </Tooltip>
-
-              {/* <Button
-                leftSection={<IconPlus size={16} />}
+            <Tooltip label="Toggle all labels">
+              <ActionIcon
                 variant="light"
-                color="green"
-                onClick={handleAddLabel}
-                size="sm"
+                color="orange"
+                onClick={handleToggleAllEnabled}
               >
-                Add Label
-              </Button> */}
-            </Group>
+                <IconSettings size={16} />
+              </ActionIcon>
+            </Tooltip>
           </Group>
 
-          {disabledLabels.length > 0 && !showOnlyEnabled && (
+          {disabledLabels.length > 0 && (
             <Alert variant="light" color="orange">
               <Text size="sm">
                 {disabledLabels.length} label
@@ -242,28 +189,25 @@ export function ModelConfigEditor({
 
           <ScrollArea.Autosize mah={500}>
             <Stack gap="sm">
-              {visibleLabels.length === 0 ? (
+              {config.labels.length === 0 ? (
                 <Paper
                   p="xl"
                   radius="md"
                   style={{ backgroundColor: surfaceBg }}
                 >
                   <Text ta="center" c="dimmed">
-                    {showOnlyEnabled
-                      ? "No enabled labels"
-                      : "No labels configured"}
+                    No labels configured
                   </Text>
                 </Paper>
               ) : (
-                visibleLabels.map((label, index) => (
+                config.labels.map((label, index) => (
                   <LabelEditor
                     key={label.id}
                     label={label}
                     index={index}
                     onUpdate={handleUpdateLabel}
-                    onDelete={handleDeleteLabel}
                     onToggleEnabled={handleToggleEnabled}
-                    isNew={label.id === newlyAddedLabelId}
+                    isNew={false}
                     showReorderControls={false}
                   />
                 ))
@@ -274,25 +218,4 @@ export function ModelConfigEditor({
       </Paper>
     </Stack>
   );
-}
-
-function generateRandomColor(): string {
-  const hue = Math.floor(Math.random() * 360);
-  const saturation = 70 + Math.floor(Math.random() * 20); // 70-90%
-  const lightness = 45 + Math.floor(Math.random() * 20); // 45-65%
-
-  return hslToHex(hue, saturation, lightness);
-}
-
-function hslToHex(h: number, s: number, l: number): string {
-  l /= 100;
-  const a = (s * Math.min(l, 1 - l)) / 100;
-  const f = (n: number) => {
-    const k = (n + h / 30) % 12;
-    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-    return Math.round(255 * color)
-      .toString(16)
-      .padStart(2, "0");
-  };
-  return `#${f(0)}${f(8)}${f(4)}`;
 }

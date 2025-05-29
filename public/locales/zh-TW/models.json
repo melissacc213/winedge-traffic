@@ -37,8 +37,10 @@
   "actions": {
     "upload": "上傳模型",
     "create": "創建模型",
+    "createTitle": "新增模型",
     "delete": "刪除",
     "edit": "編輯模型",
+    "editTitle": "編輯模型設定",
     "view_details": "查看詳情",
     "download": "下載"
   },
@@ -60,6 +62,13 @@
     "fileSize": "文件大小必須小於 {{max}}",
     "fileType": "不支持的文件類型。請上傳 ONNX 或 Protocol Buffer 模型文件。",
     "genericError": "文件有錯誤。"
+  },
+  "form": {
+    "modelDetails": "模型詳情",
+    "modelName": "模型名稱",
+    "modelNamePlaceholder": "輸入模型名稱",
+    "taskType": "任務類型",
+    "taskTypePlaceholder": "選擇此模型的任務類型"
   },
   "errors": {
     "loadFailed": "加載模型失敗",

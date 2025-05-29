@@ -14,7 +14,6 @@ import {
   Radio,
   Title,
   useMantineTheme,
-  Modal,
   Center,
   rem,
 } from "@mantine/core";
@@ -25,13 +24,21 @@ import useImage from "use-image";
 import { useTheme } from "../../../providers/theme-provider";
 import type { TaskType, FrameData } from "../../../types/recipe";
 import { UnifiedVideoPlayer } from "../../video-player/unified-video-player";
+import { ConfirmationModal } from "../../ui";
 
 const STAGE_WIDTH = 500;
 const STAGE_HEIGHT = 300;
 
 export function TaskTypeWithVideoStep() {
   const { t } = useTranslation(["recipes", "common"]);
-  const { formValues, setTaskType, setVideo, updateForm, setExtractedFrame, clearVideoData } = useRecipeStore();
+  const {
+    formValues,
+    setTaskType,
+    setVideo,
+    updateForm,
+    setExtractedFrame,
+    clearVideoData,
+  } = useRecipeStore();
   const mantineTheme = useMantineTheme();
   const { theme, colorScheme } = useTheme();
 
@@ -72,7 +79,9 @@ export function TaskTypeWithVideoStep() {
   );
   const [capturedFrame, setCapturedFrame] = useState<FrameData | null>(() => {
     try {
-      return formValues.extractedFrame ? JSON.parse(formValues.extractedFrame) : null;
+      return formValues.extractedFrame
+        ? JSON.parse(formValues.extractedFrame)
+        : null;
     } catch {
       return null;
     }
@@ -83,7 +92,10 @@ export function TaskTypeWithVideoStep() {
   const taskTypes = [
     {
       id: "trafficStatistics" as TaskType,
-      label: t("recipes:creation.taskType.types.trafficStatistics", "Traffic Statistics"),
+      label: t(
+        "recipes:creation.taskType.types.trafficStatistics",
+        "Traffic Statistics"
+      ),
       icon: <Icons.ChartBar size={20} />,
       color: "teal",
       description: t(
@@ -93,10 +105,16 @@ export function TaskTypeWithVideoStep() {
     },
     {
       id: "trainDetection" as TaskType,
-      label: t("recipes:creation.taskType.types.trainDetection", "Train Detection"),
+      label: t(
+        "recipes:creation.taskType.types.trainDetection",
+        "Train Detection"
+      ),
       icon: <Icons.Train size={20} />,
       color: "blue",
-      description: t("recipes:creation.taskType.descriptions.trainDetection", "Detect and track trains in railway environments"),
+      description: t(
+        "recipes:creation.taskType.descriptions.trainDetection",
+        "Detect and track trains in railway environments"
+      ),
     },
   ];
 
@@ -130,9 +148,14 @@ export function TaskTypeWithVideoStep() {
           <Paper p="md" radius="md" withBorder>
             <Stack gap="sm">
               <div>
-                <Title order={4} fw={600}>{t("recipes:creation.taskType.title", "Select Task Type")}</Title>
+                <Title order={4} fw={600}>
+                  {t("recipes:creation.taskType.title", "Select Task Type")}
+                </Title>
                 <Text size="sm" c="dimmed" mt="xs">
-                  {t("recipes:creation.taskType.description", "Choose the type of analysis task for this recipe")}
+                  {t(
+                    "recipes:creation.taskType.description",
+                    "Choose the type of analysis task for this recipe"
+                  )}
                 </Text>
               </div>
               <Stack gap="sm">
@@ -158,7 +181,10 @@ export function TaskTypeWithVideoStep() {
                       transition: "all 200ms ease",
                     }}
                     onClick={() => {
-                      if (formValues.extractedFrame && item.id !== formValues.taskType) {
+                      if (
+                        formValues.extractedFrame &&
+                        item.id !== formValues.taskType
+                      ) {
                         setPendingTaskType(item.id);
                         setShowTaskChangeModal(true);
                       } else {
@@ -171,11 +197,11 @@ export function TaskTypeWithVideoStep() {
                         style={{
                           width: rem(20),
                           height: rem(20),
-                          borderRadius: '50%',
+                          borderRadius: "50%",
                           border: `2px solid ${formValues.taskType === item.id ? mantineTheme.colors[item.color][5] : mantineTheme.colors.gray[4]}`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                           flexShrink: 0,
                         }}
                       >
@@ -184,8 +210,9 @@ export function TaskTypeWithVideoStep() {
                             style={{
                               width: rem(10),
                               height: rem(10),
-                              borderRadius: '50%',
-                              backgroundColor: mantineTheme.colors[item.color][5],
+                              borderRadius: "50%",
+                              backgroundColor:
+                                mantineTheme.colors[item.color][5],
                             }}
                           />
                         )}
@@ -201,7 +228,10 @@ export function TaskTypeWithVideoStep() {
                         {item.icon}
                       </ThemeIcon>
                       <Box style={{ flex: 1 }}>
-                        <Text fw={formValues.taskType === item.id ? 600 : 500} size="sm">
+                        <Text
+                          fw={formValues.taskType === item.id ? 600 : 500}
+                          size="sm"
+                        >
                           {item.label}
                         </Text>
                         <Text size="xs" c="dimmed" mt={2}>
@@ -224,19 +254,33 @@ export function TaskTypeWithVideoStep() {
                 </Title>
                 <Text size="sm" c="dimmed" mt="xs">
                   {formValues.taskType
-                    ? t("recipes:creation.importVideo.description", "Please select a task type first")
-                    : t("recipes:creation.importVideo.selectTaskFirst", "Please select a task type first")}
+                    ? t(
+                        "recipes:creation.importVideo.description",
+                        "Please select a task type first"
+                      )
+                    : t(
+                        "recipes:creation.importVideo.selectTaskFirst",
+                        "Please select a task type first"
+                      )}
                 </Text>
               </div>
 
               {!formValues.taskType ? (
                 <Center style={{ flex: 1, minHeight: 200 }}>
                   <Stack align="center" gap="sm">
-                    <ThemeIcon size={64} radius="xl" variant="light" color="gray">
+                    <ThemeIcon
+                      size={64}
+                      radius="xl"
+                      variant="light"
+                      color="gray"
+                    >
                       <Icons.Video size={32} />
                     </ThemeIcon>
                     <Text size="sm" fw={500} c="dimmed" ta="center">
-                      {t("recipes:creation.importVideo.selectTaskToBegin", "Select a task type to begin video import")}
+                      {t(
+                        "recipes:creation.importVideo.selectTaskToBegin",
+                        "Select a task type to begin video import"
+                      )}
                     </Text>
                   </Stack>
                 </Center>
@@ -246,12 +290,29 @@ export function TaskTypeWithVideoStep() {
                     <Group justify="space-between">
                       <Group gap="xs">
                         <Text fw={600}>
-                          {capturedFrame ? t("recipes:creation.importVideo.capturedFrame", "Captured Frame") : t("recipes:creation.importVideo.videoPreview", "Video Preview")}
+                          {capturedFrame
+                            ? t(
+                                "recipes:creation.importVideo.capturedFrame",
+                                "Captured Frame"
+                              )
+                            : t(
+                                "recipes:creation.importVideo.videoPreview",
+                                "Video Preview"
+                              )}
                         </Text>
                         {capturedFrame && (
-                          <Text size="sm" c="dimmed">
-                            {t("recipes:creation.importVideo.time", "Time")}: {capturedFrame.frameTime.toFixed(2)}s
-                          </Text>
+                          <>
+                            <Text size="sm" c="dimmed">
+                              {t("recipes:creation.importVideo.time", "Time")}:{" "}
+                              {capturedFrame.frameTime.toFixed(2)}s
+                            </Text>
+                            <Text size="sm" c="dimmed">
+                              •
+                            </Text>
+                            <Text size="sm" c="dimmed">
+                              {STAGE_WIDTH} × {STAGE_HEIGHT} px
+                            </Text>
+                          </>
                         )}
                       </Group>
                       <Group gap="xs">
@@ -261,7 +322,10 @@ export function TaskTypeWithVideoStep() {
                             variant="subtle"
                             onClick={() => setCapturedFrame(null)}
                           >
-                            {t("recipes:creation.importVideo.backToVideo", "Back to Video")}
+                            {t(
+                              "recipes:creation.importVideo.backToVideo",
+                              "Back to Video"
+                            )}
                           </Button>
                         )}
                         <Button
@@ -278,7 +342,10 @@ export function TaskTypeWithVideoStep() {
                             }
                           }}
                         >
-                          {t("recipes:creation.importVideo.changeVideo", "Change Video")}
+                          {t(
+                            "recipes:creation.importVideo.changeVideo",
+                            "Change Video"
+                          )}
                         </Button>
                       </Group>
                     </Group>
@@ -323,18 +390,18 @@ export function TaskTypeWithVideoStep() {
                         width={STAGE_WIDTH}
                         height={STAGE_HEIGHT}
                         onFrameCaptured={handleFrameCaptured}
+                        fastMode={true}
                       />
                     )}
-
                   </Stack>
                 </Box>
               ) : (
                 <Dropzone
                   onDrop={(files) => handleFileChange(files[0])}
                   accept={{
-                    'video/mp4': ['.mp4'],
-                    'video/x-matroska': ['.mkv'],
-                    'video/webm': ['.webm']
+                    "video/mp4": [".mp4"],
+                    "video/x-matroska": [".mkv"],
+                    "video/webm": [".webm"],
                   }}
                   maxSize={500 * 1024 * 1024}
                   disabled={!formValues.taskType}
@@ -343,17 +410,28 @@ export function TaskTypeWithVideoStep() {
                       border: `1px dashed ${colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[4]}`,
                       borderRadius: "8px",
                       padding: "24px",
-                      backgroundColor: colorScheme === "dark" ? theme.colors.dark[7] : theme.colors.gray[0],
+                      backgroundColor:
+                        colorScheme === "dark"
+                          ? theme.colors.dark[7]
+                          : theme.colors.gray[0],
                       cursor: formValues.taskType ? "pointer" : "not-allowed",
                       opacity: formValues.taskType ? 1 : 0.6,
                       transition: "all 0.2s ease",
-                      "&:hover": formValues.taskType ? {
-                        borderColor: colorScheme === "dark" ? theme.colors.dark[3] : theme.colors.gray[5],
-                        backgroundColor: colorScheme === "dark" ? theme.colors.dark[6] : theme.colors.gray[1],
-                      } : {},
+                      "&:hover": formValues.taskType
+                        ? {
+                            borderColor:
+                              colorScheme === "dark"
+                                ? theme.colors.dark[3]
+                                : theme.colors.gray[5],
+                            backgroundColor:
+                              colorScheme === "dark"
+                                ? theme.colors.dark[6]
+                                : theme.colors.gray[1],
+                          }
+                        : {},
                     },
                     inner: {
-                      backgroundColor: 'transparent !important',
+                      backgroundColor: "transparent !important",
                     },
                   })}
                 >
@@ -363,7 +441,12 @@ export function TaskTypeWithVideoStep() {
                     style={{ flexDirection: "column", minHeight: 200 }}
                     gap="sm"
                   >
-                    <ThemeIcon size={64} radius="xl" variant="light" color="blue">
+                    <ThemeIcon
+                      size={64}
+                      radius="xl"
+                      variant="light"
+                      color="blue"
+                    >
                       <Icons.Video size={32} />
                     </ThemeIcon>
                     <Stack gap="xs" align="center">
@@ -380,7 +463,10 @@ export function TaskTypeWithVideoStep() {
                         {t("recipes:creation.importVideo.or", "or")}
                       </Text>
                       <Button variant="filled" color="blue" size="sm">
-                        {t("recipes:creation.importVideo.browse", "Browse Files")}
+                        {t(
+                          "recipes:creation.importVideo.browse",
+                          "Browse Files"
+                        )}
                       </Button>
                     </Stack>
                   </Group>
@@ -392,81 +478,46 @@ export function TaskTypeWithVideoStep() {
       </Grid>
 
       {/* Confirmation Modals */}
-      <Modal
+      <ConfirmationModal
         opened={showVideoChangeModal}
         onClose={() => setShowVideoChangeModal(false)}
+        onConfirm={() => {
+          setSelectedVideoFile(null);
+          setCapturedFrame(null);
+          clearVideoData();
+          setShowVideoChangeModal(false);
+        }}
         title="Change Video?"
-        centered
-      >
-        <Stack gap="md">
-          <Text size="sm">
-            Changing the video will remove the captured frame. Are you sure you
-            want to continue?
-          </Text>
-          <Group justify="flex-end" gap="sm">
-            <Button
-              variant="subtle"
-              onClick={() => setShowVideoChangeModal(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              color="red"
-              onClick={() => {
-                setSelectedVideoFile(null);
-                setCapturedFrame(null);
-                clearVideoData();
-                setShowVideoChangeModal(false);
-              }}
-            >
-              Change Video
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+        message="Changing the video will remove the captured frame. Are you sure you want to continue?"
+        confirmText="Change Video"
+        cancelText="Cancel"
+        confirmColor="red"
+        icon="warning"
+      />
 
-      <Modal
+      <ConfirmationModal
         opened={showTaskChangeModal}
         onClose={() => {
           setShowTaskChangeModal(false);
           setPendingTaskType(null);
         }}
+        onConfirm={() => {
+          if (pendingTaskType) {
+            setTaskType(pendingTaskType);
+            setSelectedVideoFile(null);
+            setCapturedFrame(null);
+            clearVideoData();
+          }
+          setShowTaskChangeModal(false);
+          setPendingTaskType(null);
+        }}
         title="Change Task Type?"
-        centered
-      >
-        <Stack gap="md">
-          <Text size="sm">
-            Changing the task type will remove the captured frame and video. Are
-            you sure you want to continue?
-          </Text>
-          <Group justify="flex-end" gap="sm">
-            <Button
-              variant="subtle"
-              onClick={() => {
-                setShowTaskChangeModal(false);
-                setPendingTaskType(null);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              color="red"
-              onClick={() => {
-                if (pendingTaskType) {
-                  setTaskType(pendingTaskType);
-                  setSelectedVideoFile(null);
-                  setCapturedFrame(null);
-                  clearVideoData();
-                }
-                setShowTaskChangeModal(false);
-                setPendingTaskType(null);
-              }}
-            >
-              Change Task Type
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+        message="Changing the task type will remove the captured frame and video. Are you sure you want to continue?"
+        confirmText="Change Task Type"
+        cancelText="Cancel"
+        confirmColor="red"
+        icon="warning"
+      />
     </Box>
   );
 }

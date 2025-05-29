@@ -44,6 +44,7 @@
   "actions": {
     "create": "Create Recipe",
     "view": "View Recipe",
+    "viewDetails": "View Details",
     "edit": "Edit Recipe",
     "delete": "Delete Recipe",
     "run": "Run Recipe"
@@ -183,5 +184,98 @@
     "previous": "Previous",
     "save": "Save",
     "cancel": "Cancel"
+  },
+  "details": {
+    "notFound": "Recipe Not Found",
+    "notFoundDescription": "The recipe you're looking for doesn't exist or has been deleted.",
+    "createdOn": "Created on {{date}}",
+    "tabs": {
+      "overview": "Overview",
+      "configuration": "Configuration", 
+      "regions": "Regions",
+      "model": "Model",
+      "usage": "Usage"
+    },
+    "description": "Description",
+    "metrics": "Key Metrics",
+    "totalTasks": "Total Tasks",
+    "successRate": "Success Rate",
+    "quickInfo": "Quick Information",
+    "processingTime": "Avg Processing Time",
+    "lastUsed": "Last Used",
+    "modelSize": "Model Size",
+    "recentActivity": "Recent Activity",
+    "taskConfiguration": "Task Configuration",
+    "frameInterval": "Frame Interval",
+    "confidenceThreshold": "Confidence Threshold",
+    "speedEstimation": "Speed Estimation",
+    "vehicleClasses": "Vehicle Classes",
+    "countingLines": "Counting Lines",
+    "regionConfiguration": "Region Configuration",
+    "modelConfiguration": "Model Configuration",
+    "detectionLabels": "Detection Labels",
+    "usageHistory": "Usage History",
+    "performanceStats": "Performance Statistics",
+    "recommendations": "Recommendations",
+    "processEveryFrames": "Process every {{count}} frames",
+    "regionVisualization": "Region Visualization",
+    "pointsCount": "{{count}} points",
+    "type": "Type",
+    "version": "Version",
+    "size": "Size",
+    "label": "Label",
+    "color": "Color",
+    "confidence": "Confidence",
+    "status": "Status",
+    "date": "Date",
+    "tasksRun": "Tasks Run",
+    "successRateColumn": "Success Rate",
+    "averageProcessingTime": "Average Processing Time",
+    "totalProcessingHours": "Total Processing Hours",
+    "dataProcessed": "Data Processed",
+    "recommendationBicycle": "Consider lowering confidence threshold for better bicycle detection",
+    "recommendationExcellent": "This recipe has {{rate}}% success rate - excellent performance!"
+  },
+  "actions": {
+    "createTask": "Create Task"
+  },
+  "confirmDelete": {
+    "title": "Delete Recipe",
+    "message": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+  },
+  "notifications": {
+    "deleteSuccess": "Recipe Deleted",
+    "deleteSuccessMessage": "The recipe has been deleted successfully.",
+    "deleteError": "Failed to delete recipe",
+    "updateSuccess": "Recipe Updated",
+    "updateSuccessMessage": "The recipe has been updated successfully."
+  },
+  "edit": {
+    "title": "Edit Recipe",
+    "description": "Modify recipe configuration",
+    "save": "Save Changes",
+    "unsaved_changes": "Unsaved Changes",
+    "unsavedChanges": {
+      "title": "Unsaved Changes",
+      "message": "You have unsaved changes. Do you want to discard them?"
+    },
+    "tabs": {
+      "regions": "Edit Regions",
+      "model": "Edit Model"
+    },
+    "regionConfiguration": "Region Configuration",
+    "regionDescription": "Modify the detection regions for this recipe using the saved capture image.",
+    "modelConfiguration": "Model Configuration", 
+    "modelDescription": "Configure the AI model settings and detection parameters.",
+    "configureModel": "Configure Model",
+    "editModelConfiguration": "Edit Model Configuration",
+    "error": {
+      "title": "Error Loading Recipe",
+      "not_found": "Recipe not found"
+    }
+  },
+  "taskType": {
+    "trafficStatistics": "Traffic Statistics",
+    "trainDetection": "Train Detection"
   }
 }

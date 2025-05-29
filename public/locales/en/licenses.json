@@ -14,7 +14,8 @@
     "licenseFile": "License File",
     "setAsDefault": "Set as Default License",
     "setAsDefaultDescription": "Use this license as the system default",
-    "uploadLicense": "Upload License"
+    "uploadLicense": "Upload License",
+    "filePathPlaceholder": "Enter local file path"
   },
   
   "upload": {
@@ -29,7 +30,14 @@
     "licenseInformationDescription": "Enter a descriptive name for this license and configure its settings",
     "uploadLicenseFile": "Upload License File",
     "uploadDescription": "Select or drag a valid license file to upload",
-    "infoMessage": "The license file will be validated upon upload. Make sure it's a valid license file from your vendor."
+    "infoMessage": "The license file will be validated upon upload. Make sure it's a valid license file from your vendor.",
+    "taskConfiguration": "Task Configuration",
+    "taskConfigurationDescription": "Select the type of task to execute and configure the license file path",
+    "taskType": {
+      "title": "Task Type",
+      "placeholder": "Select task type"
+    },
+    "localFilePath": "Local File Path"
   },
   
   "table": {
@@ -91,11 +99,31 @@
   "actions": {
     "download": "Download",
     "delete": "Delete",
-    "setAsDefault": "Set as Default"
+    "setAsDefault": "Set as Default",
+    "createLicense": "Upload License"
   },
   
   "delete": {
     "title": "Delete License",
     "message": "Are you sure you want to delete the license \"{{name}}\"? This action cannot be undone."
-  }
+  },
+  
+  "confirmDelete": {
+    "title": "Delete License",
+    "message": "Are you sure you want to delete the license \"{{name}}\"? This action cannot be undone."
+  },
+  
+  "notifications": {
+    "deleteSuccess": "License Deleted",
+    "deleteSuccessMessage": "License has been deleted successfully",
+    "deleteError": "Failed to delete license",
+    "defaultSet": "Default License Set",
+    "defaultSetMessage": "License has been set as default",
+    "updateError": "Failed to update license",
+    "createSuccess": "License Created",
+    "createSuccessMessage": "License has been uploaded successfully",
+    "createError": "Failed to upload license"
+  },
+  
+  "error": "Error"
 }

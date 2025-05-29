@@ -49,6 +49,7 @@ import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage as KonvaStage } from "konva/lib/Stage";
 import useImage from "use-image";
 import { RoadTypeIcon } from "../../road-config/road-type-icon";
+import { ConfirmationModal } from "../../ui/confirmation-modal";
 
 interface RoadTypeOption {
   value: RoadType;
@@ -793,7 +794,14 @@ export function RegionSetupStep() {
                     </Text>
                   </Group>
                 )}
-                {!isDrawing && !isEditMode && <div />}
+                {!isDrawing && !isEditMode && (
+                  <Group gap="xs" align="center">
+                    <Icons.Camera size={14} color={theme.colors.gray[6]} />
+                    <Text size="xs" c="dimmed">
+                      Frame: {videoSize.width} × {videoSize.height} px
+                    </Text>
+                  </Group>
+                )}
                 
                 {/* Buttons on the right */}
                 <Group gap="xs">
@@ -1300,7 +1308,7 @@ export function RegionSetupStep() {
                           Position
                         </Text>
                         <Text size="sm" fw={500}>
-                          ({formValues.roi.x1}, {formValues.roi.y1})
+                          ({Math.round(formValues.roi.x1)}, {Math.round(formValues.roi.y1)})
                         </Text>
                       </Box>
                       <Box>
@@ -1308,8 +1316,8 @@ export function RegionSetupStep() {
                           Size
                         </Text>
                         <Text size="sm" fw={500}>
-                          {Math.abs(formValues.roi.x2 - formValues.roi.x1)} ×{" "}
-                          {Math.abs(formValues.roi.y2 - formValues.roi.y1)}
+                          {Math.round(Math.abs(formValues.roi.x2 - formValues.roi.x1))} ×{" "}
+                          {Math.round(Math.abs(formValues.roi.y2 - formValues.roi.y1))} px
                         </Text>
                       </Box>
                     </Group>
@@ -1682,67 +1690,34 @@ export function RegionSetupStep() {
       </Flex>
 
       {/* Modals */}
-      <Modal
+      <ConfirmationModal
         opened={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
+        onConfirm={() => {
+          performRegionDeletion(regionToDelete!.id);
+          setShowDeleteModal(false);
+        }}
         title="Delete Region"
-        centered
+        message={`The region "${regionToDelete?.name}" has ${regionToDelete?.connections.length} connection(s). Deleting this region will also remove all its connections.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmColor="red"
+        icon="danger"
         size="sm"
-      >
-        <Stack gap="md">
-          <Text size="sm">
-            The region "<strong>{regionToDelete?.name}</strong>" has{" "}
-            {regionToDelete?.connections.length} connection(s). Deleting this
-            region will also remove all its connections.
-          </Text>
-          <Group justify="flex-end">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowDeleteModal(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              color="red"
-              size="sm"
-              onClick={() => {
-                performRegionDeletion(regionToDelete!.id);
-                setShowDeleteModal(false);
-              }}
-            >
-              Delete
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+      />
 
-      <Modal
+      <ConfirmationModal
         opened={showRoadTypeModal}
         onClose={() => setShowRoadTypeModal(false)}
+        onConfirm={confirmRoadTypeChange}
         title="Change Road Type"
-        centered
+        message={`Changing the road type will remove all existing regions (${regions.length}) and connections (${connections.length}).`}
+        confirmText="Change"
+        cancelText="Cancel"
+        confirmColor="red"
+        icon="warning"
         size="sm"
-      >
-        <Stack gap="md">
-          <Text size="sm">
-            Changing the road type will remove all existing regions (
-            {regions.length}) and connections ({connections.length}).
-          </Text>
-          <Group justify="flex-end">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowRoadTypeModal(false)}
-            >
-              Cancel
-            </Button>
-            <Button color="red" size="sm" onClick={confirmRoadTypeChange}>
-              Change
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+      />
     </Paper>
   );
 }

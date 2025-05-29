@@ -43,12 +43,12 @@ export const IconMemo = memo(function IconMemo({
   const sizeValue = typeof size === 'string' ? sizeMap[size] : size;
   
   // Clone the icon element with new props
-  const styledIcon = icon
+  const styledIcon = icon && icon.props
     ? {
         ...icon,
         props: {
           ...icon.props,
-          className: cn(icon.props.className, className),
+          className: cn(icon.props?.className, className),
           width: sizeValue,
           height: sizeValue,
           ...(color && { color }),
@@ -57,18 +57,11 @@ export const IconMemo = memo(function IconMemo({
       }
     : null;
   
-  return (
-    <div 
-      {...props}
-      className={cn('flex items-center justify-center', className)}
-      style={{ 
-        width: sizeValue, 
-        height: sizeValue,
-      }}
-    >
-      {styledIcon}
-    </div>
-  );
+  if (!styledIcon) {
+    return null;
+  }
+
+  return <>{styledIcon}</>;
 });
 
 export default IconMemo;

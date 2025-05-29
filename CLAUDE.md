@@ -27,6 +27,13 @@ This is the development guide for WinEdge, a sophisticated traffic statistics an
 - **clsx v2.1.1 + tailwind-merge v3.3.0** - Conditional CSS class utilities
 - **use-image v1.1.2** - Image loading hook for Konva
 
+### Video Processing
+
+- **FFmpeg.wasm** - WebAssembly-based video processing for browser-side video manipulation
+  - Reference implementation: https://github.com/ffmpegwasm/ffmpeg.wasm/tree/main/apps/react-vite-app
+  - Used for client-side video transcoding, format conversion, and frame extraction
+  - Enables processing traffic videos without server-side dependencies
+
 ## Project Structure
 
 ### Key Directories
@@ -947,3 +954,198 @@ When multiple instructions are provided in a prompt, follow UI/UX best practices
 3. **Visual enhancements** - Styling, animations, and polish come after core functionality
 4. **Performance optimizations** - Fine-tune after features are working correctly
 5. **Edge cases and error handling** - Complete coverage after main paths work
+
+## Video Processing with FFmpeg.wasm
+
+### Implementation Guide
+
+WinEdge uses FFmpeg.wasm for client-side video processing in traffic analysis tasks. This enables powerful video manipulation directly in the browser without server dependencies.
+
+#### Setup and Configuration
+
+```typescript
+// lib/ffmpeg/ffmpeg-service.ts
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { toBlobURL } from '@ffmpeg/util';
+
+class FFmpegService {
+  private ffmpeg: FFmpeg | null = null;
+  private loaded = false;
+
+  async load() {
+    if (this.loaded) return;
+
+    this.ffmpeg = new FFmpeg();
+    
+    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+    
+    await this.ffmpeg.load({
+      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+    });
+    
+    this.loaded = true;
+  }
+
+  async extractFrames(videoFile: File, interval: number = 1): Promise<Blob[]> {
+    await this.load();
+    if (!this.ffmpeg) throw new Error('FFmpeg not loaded');
+
+    // Write video file to FFmpeg's virtual file system
+    const videoData = await videoFile.arrayBuffer();
+    await this.ffmpeg.writeFile('input.mp4', new Uint8Array(videoData));
+
+    // Extract frames at specified interval
+    await this.ffmpeg.exec([
+      '-i', 'input.mp4',
+      '-vf', `fps=1/${interval}`,
+      'frame_%04d.png'
+    ]);
+
+    // Read extracted frames
+    const frames: Blob[] = [];
+    let frameIndex = 1;
+    
+    while (true) {
+      try {
+        const frameData = await this.ffmpeg.readFile(`frame_${String(frameIndex).padStart(4, '0')}.png`);
+        frames.push(new Blob([frameData], { type: 'image/png' }));
+        frameIndex++;
+      } catch {
+        break;
+      }
+    }
+
+    return frames;
+  }
+
+  async convertVideo(videoFile: File, outputFormat: string): Promise<Blob> {
+    await this.load();
+    if (!this.ffmpeg) throw new Error('FFmpeg not loaded');
+
+    const videoData = await videoFile.arrayBuffer();
+    await this.ffmpeg.writeFile('input.mp4', new Uint8Array(videoData));
+
+    await this.ffmpeg.exec([
+      '-i', 'input.mp4',
+      `output.${outputFormat}`
+    ]);
+
+    const outputData = await this.ffmpeg.readFile(`output.${outputFormat}`);
+    return new Blob([outputData], { type: `video/${outputFormat}` });
+  }
+}
+
+export const ffmpegService = new FFmpegService();
+```
+
+#### Integration with Video Components
+
+```typescript
+// components/video-player/ffmpeg-video-player.tsx
+import { useState, useCallback } from 'react';
+import { ffmpegService } from '@/lib/ffmpeg/ffmpeg-service';
+import { Progress, Button, Stack, Text } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+
+export function FFmpegVideoPlayer({ file }: { file: File }) {
+  const [processing, setProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [frames, setFrames] = useState<Blob[]>([]);
+
+  const handleExtractFrames = useCallback(async () => {
+    setProcessing(true);
+    try {
+      const extractedFrames = await ffmpegService.extractFrames(file, 5); // Extract frame every 5 seconds
+      setFrames(extractedFrames);
+      notifications.show({
+        title: 'Frames Extracted',
+        message: `Successfully extracted ${extractedFrames.length} frames`,
+        color: 'green',
+      });
+    } catch (error) {
+      notifications.show({
+        title: 'Extraction Failed',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        color: 'red',
+      });
+    } finally {
+      setProcessing(false);
+    }
+  }, [file]);
+
+  return (
+    <Stack>
+      <Button 
+        onClick={handleExtractFrames} 
+        loading={processing}
+        disabled={processing}
+      >
+        Extract Frames for Analysis
+      </Button>
+      
+      {processing && (
+        <Progress value={progress} animated />
+      )}
+      
+      {frames.length > 0 && (
+        <Text size="sm">
+          Extracted {frames.length} frames ready for object detection
+        </Text>
+      )}
+    </Stack>
+  );
+}
+```
+
+#### Use Cases in WinEdge
+
+1. **Pre-processing Traffic Videos**
+   - Convert various video formats to standardized MP4
+   - Extract key frames for object detection
+   - Resize videos for optimal processing
+
+2. **Frame Extraction for Analysis**
+   - Extract frames at specific intervals for traffic counting
+   - Generate thumbnails for task previews
+   - Create frame sequences for region configuration
+
+3. **Video Optimization**
+   - Compress large videos before uploading
+   - Adjust video quality based on network conditions
+   - Trim videos to specific time ranges
+
+#### Best Practices
+
+1. **Memory Management**
+   - Clean up FFmpeg file system after operations
+   - Process videos in chunks for large files
+   - Monitor memory usage and provide user feedback
+
+2. **Performance Optimization**
+   - Load FFmpeg.wasm lazily when first needed
+   - Cache processed results when possible
+   - Use Web Workers for heavy processing
+
+3. **Error Handling**
+   - Provide clear error messages for unsupported formats
+   - Handle browser compatibility issues gracefully
+   - Implement fallback options for older browsers
+
+4. **User Experience**
+   - Show progress indicators for long operations
+   - Allow cancellation of processing tasks
+   - Provide estimates for processing time
+
+#### Browser Compatibility
+
+FFmpeg.wasm requires:
+- Modern browsers with WebAssembly support
+- SharedArrayBuffer support (may require specific headers)
+- Sufficient memory for video processing
+
+For production deployment, ensure proper CORS headers:
+```
+Cross-Origin-Embedder-Policy: require-corp
+Cross-Origin-Opener-Policy: same-origin
+```

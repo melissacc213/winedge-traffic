@@ -5,8 +5,10 @@ export interface ModelLabel {
   confidence?: number;
   widthThreshold?: number;  // For UI consistency
   heightThreshold?: number; // For UI consistency
+  areaThreshold?: number;   // For UI consistency
   width_threshold?: number;  // For API payload
   height_threshold?: number; // For API payload
+  area_threshold?: number;   // For API payload
   enabled?: boolean;
 }
 

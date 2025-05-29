@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { Region, TaskType, RecipeStatus, RegionConnection } from "../../types/recipe";
 import type { RecipeResponse } from "../validator/recipe";
 import type { ModelLabel } from "../../types/model";
+import { getMockModelConfig } from "@/lib/config/mock-model-config";
 
 // API payload types
 export interface TrainTypePayload {
@@ -180,6 +181,9 @@ interface RecipeState {
   
   // Model configuration
   setModel: (modelId: string, modelName?: string) => void;
+  
+  // Edit mode
+  loadRecipeForEdit: (recipeId: string) => void;
   setConfidenceThreshold: (threshold: number) => void;
   setClassFilter: (classes: string[]) => void;
   setModelConfig: (config: RecipeFormValues['modelConfig']) => void;
@@ -504,5 +508,84 @@ export const useRecipeStore = create<RecipeState>((set) => ({
     }
     
     return null;
+  },
+
+  // Load recipe data for editing
+  loadRecipeForEdit: (recipeId: string) => {
+    // In production, this would fetch from API
+    // For now, we'll use mock data or find from existing recipes
+    const state = useRecipeStore.getState();
+    const existingRecipe = state.recipes.find(r => r.id === recipeId);
+    
+    if (existingRecipe) {
+      // Convert API response back to form values
+      set({
+        formValues: {
+          name: existingRecipe.name,
+          description: existingRecipe.description || "",
+          taskType: existingRecipe.task_type as TaskType,
+          sceneType: "",
+          roadType: existingRecipe.task_type === "trafficStatistics" ? "Cross" : "",
+          videoId: "video_123",
+          videoName: "traffic_sample.mp4",
+          extractedFrame: JSON.stringify({
+            imageDataUrl: "/api/placeholder/800/600",
+            timestamp: 45.5,
+            filename: "frame_capture.jpg"
+          }),
+          extractedFrameTime: 45.5,
+          extractedFrameFilename: "frame_capture.jpg",
+          regions: existingRecipe.task_type === "trafficStatistics" ? [
+            {
+              id: "region-1",
+              name: "北向車道",
+              points: [
+                { x: 100, y: 300 },
+                { x: 700, y: 300 },
+              ],
+              type: "counting_line",
+              color: "#FF6B6B",
+            },
+            {
+              id: "region-2",
+              name: "南向車道",
+              points: [
+                { x: 100, y: 400 },
+                { x: 700, y: 400 },
+              ],
+              type: "counting_line",
+              color: "#4ECDC4",
+            },
+          ] : [],
+          connections: [],
+          roi: existingRecipe.task_type === "trainDetection" ? {
+            x1: 50,
+            y1: 50,
+            x2: 750,
+            y2: 550,
+          } : undefined,
+          modelId: "1",
+          modelName: "YOLOv8 Traffic Model",
+          confidenceThreshold: 0.7,
+          classFilter: ["car", "truck", "bus", "person"],
+          inferenceStep: 3,
+          modelConfig: {
+            modelId: "1",
+            confidence: 0.7,
+            labels: getMockModelConfig(
+              { name: "YOLOv8 Traffic Model", type: "object_detection" },
+              existingRecipe.task_type
+            ).labels,
+          },
+        },
+        isDirty: false,
+        activeStep: 0, // Start at regions step for editing
+        stepCompleted: {
+          step0: true, // Task type already selected
+          step1: true, // Regions configured
+          step2: true, // Model configured
+        },
+      });
+    }
   },
 }));

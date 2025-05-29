@@ -9,4 +9,9 @@ export * from "./data-table";
 export * from "../task-video-stream";
 export * from "../video-player";
 export * from "./app-loader";
-export * from "./error-boundary";
+export * from "./color-palette";
+export * from "./color-picker";
+export * from "./confirmation-modal";
+
+// Explicit export for confirmation modal to avoid any import issues
+export { ConfirmationModal } from "./confirmation-modal";

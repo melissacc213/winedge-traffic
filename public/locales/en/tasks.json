@@ -33,6 +33,7 @@
   "noDescription": "No description",
   "action": {
     "view": "View Task",
+    "viewDetails": "View Details",
     "cancel": "Cancel Task",
     "delete": "Delete Task",
     "viewMetrics": "View Metrics",
@@ -59,7 +60,17 @@
     "processedFrames": "Processed Frames",
     "objectsDetected": "Objects Detected",
     "averageConfidence": "Average Confidence",
-    "processingTime": "Processing Time"
+    "processingTime": "Processing Time",
+    "performanceMetrics": "Performance Metrics",
+    "noMetricsAvailable": "No metrics available",
+    "detectionRate": "Detection Rate",
+    "modelConfidence": "Model confidence",
+    "totalObjects": "Total Objects",
+    "processingSpeed": "Processing Speed",
+    "fps": "FPS",
+    "objectDistribution": "Object Distribution",
+    "percentOfTotal": "% of total",
+    "noObjectDistributionData": "No object distribution data available"
   },
   "table": {
     "title": "Tasks",
@@ -135,5 +146,15 @@
       "message": "Are you sure you want to delete the task '{{name}}'? This action cannot be undone.",
       "confirm": "Delete Task"
     }
+  },
+  "createTask": "Create Task",
+  "createTaskDescription": "Create a new traffic analysis task",
+  "video": {
+    "noVideoLoaded": "No video loaded",
+    "prevFrame": "Prev Frame",
+    "nextFrame": "Next Frame",
+    "customVideo": "Custom Video",
+    "sampleVideo": "Sample Video",
+    "frame": "Frame"
   }
 }

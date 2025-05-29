@@ -798,3 +798,42 @@ export function useRecommendedModels(taskType?: string) {
     enabled: !!taskType,
   });
 }
+
+// Hook for updating a recipe
+export function useUpdateRecipe() {
+  const queryClient = useQueryClient();
+  const updateRecipe = useRecipeStore((state) => state.updateRecipe);
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: RecipeFormValues }) => {
+      // In production, use the actual API service
+      // return await recipeService.updateRecipe(id, data);
+
+      // Using mock implementation for development
+      console.log("Updating recipe with id:", id, "data:", data);
+
+      // Simulate API call
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          const mockResponse = {
+            id,
+            name: data.name,
+            description: data.description,
+            task_type: data.taskType,
+            status: "active" as const,
+            created_at: new Date().toISOString(),
+          };
+          resolve(mockResponse);
+        }, 500);
+      });
+    },
+    onSuccess: (data: any, variables) => {
+      // Update the recipe in the store
+      updateRecipe(variables.id, data);
+      
+      // Invalidate queries
+      queryClient.invalidateQueries({ queryKey: ["recipes"] });
+      queryClient.invalidateQueries({ queryKey: ["recipe", variables.id] });
+    },
+  });
+}

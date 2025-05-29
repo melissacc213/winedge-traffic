@@ -33,6 +33,7 @@
   "noDescription": "無描述",
   "action": {
     "view": "查看任務",
+    "viewDetails": "查看詳情",
     "cancel": "取消任務",
     "delete": "刪除任務",
     "viewMetrics": "查看指標",
@@ -59,7 +60,17 @@
     "processedFrames": "已處理幀數",
     "objectsDetected": "已檢測物體",
     "averageConfidence": "平均置信度",
-    "processingTime": "處理時間"
+    "processingTime": "處理時間",
+    "performanceMetrics": "性能指標",
+    "noMetricsAvailable": "沒有可用的指標",
+    "detectionRate": "檢測率",
+    "modelConfidence": "模型置信度",
+    "totalObjects": "總物件數",
+    "processingSpeed": "處理速度",
+    "fps": "FPS",
+    "objectDistribution": "物件分佈",
+    "percentOfTotal": "% 佔總數",
+    "noObjectDistributionData": "沒有可用的物件分佈數據"
   },
   "table": {
     "title": "任務",
@@ -86,5 +97,74 @@
     "localPathPlaceholder": "輸入影片檔案路徑",
     "startImmediately": "立即啟動辨識",
     "createTask": "建立任務"
+  },
+  "taskDetails": "任務詳情",
+  "taskDetailsDescription": "查看任務狀態和指標",
+  "taskInformation": "任務資訊",
+  "recipeId": "配方ID",
+  "taskType": "任務類型",
+  "taskTypes": {
+    "trafficStatistics": "交通量統計",
+    "trainDetection": "列車偵測"
+  },
+  "createdAgo": "{{time}} 前建立",
+  "startedAgo": "{{time}} 前開始",
+  "endedAgo": "{{time}} 前結束",
+  "error": "錯誤",
+  "progress": "進度",
+  "processingSpeed": "處理速度",
+  "objectsCounted": "物件計數",
+  "startTask": "開始任務",
+  "stopTask": "停止任務",
+  "deleteTask": "刪除任務",
+  "refreshTaskData": "重新整理任務資料",
+  "taskNotFound": "找不到任務",
+  "backToTasks": "返回任務",
+  "videoWillAppearWhenStarted": "任務開始時將顯示影片串流",
+  "taskFailedNoVideo": "任務失敗 - 沒有可用的影片",
+  "taskCompletedVideoEnded": "任務已完成 - 影片串流結束",
+  "taskStoppedVideoEnded": "任務已停止 - 影片串流結束",
+  "notifications": {
+    "taskStarted": "任務已開始",
+    "taskStartedMessage": "任務 '{{name}}' 已成功開始",
+    "taskStartError": "啟動任務失敗",
+    "taskStopped": "任務已停止",
+    "taskStoppedMessage": "任務 '{{name}}' 已成功停止",
+    "taskStopError": "停止任務失敗",
+    "taskDeleted": "任務已刪除",
+    "taskDeletedMessage": "任務 '{{name}}' 已成功刪除",
+    "taskDeleteError": "刪除任務失敗",
+    "deleteSuccess": "刪除成功",
+    "deleteSuccessMessage": "任務已成功刪除",
+    "deleteError": "刪除失敗"
+  },
+  "modals": {
+    "stopTask": {
+      "title": "停止任務",
+      "message": "您確定要停止任務 '{{name}}' 嗎？此操作無法復原。",
+      "confirm": "停止任務"
+    },
+    "deleteTask": {
+      "title": "刪除任務",
+      "message": "您確定要刪除任務 '{{name}}' 嗎？此操作無法復原。",
+      "confirm": "刪除任務"
+    }
+  },
+  "confirmDelete": {
+    "title": "確認刪除",
+    "message": "您確定要刪除任務 '{{name}}' 嗎？"
+  },
+  "action": {
+    "viewDetails": "查看詳情"
+  },
+  "createTask": "建立任務",
+  "createTaskDescription": "建立新的交通分析任務",
+  "video": {
+    "noVideoLoaded": "沒有載入影片",
+    "prevFrame": "上一幀",
+    "nextFrame": "下一幀",
+    "customVideo": "自訂影片",
+    "sampleVideo": "範例影片",
+    "frame": "幀"
   }
 }

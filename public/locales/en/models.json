@@ -47,8 +47,10 @@
   "actions": {
     "upload": "Upload Model",
     "create": "Create Model",
+    "createTitle": "Create New Model",
     "delete": "Delete",
     "edit": "Edit Model",
+    "editTitle": "Edit Model Configuration",
     "view_details": "View Details",
     "download": "Download"
   },
@@ -70,6 +72,13 @@
     "fileSize": "File size must be less than {{max}}",
     "fileType": "Unsupported file type. Please upload an ONNX or Protocol Buffer model file.",
     "genericError": "There was an error with the file."
+  },
+  "form": {
+    "modelDetails": "Model Details",
+    "modelName": "Model Name",
+    "modelNamePlaceholder": "Enter a name for your model",
+    "taskType": "Task Type",
+    "taskTypePlaceholder": "Select the task type for this model"
   },
   "create": {
     "title": "Create New Model",

@@ -28,6 +28,7 @@ import { Icons } from "../../components/icons";
 import type { RecipeResponse } from "../../lib/validator/recipe";
 import { TableLoading } from "../../components/ui";
 import { useNavigate } from "react-router-dom";
+import { getTaskTypeColor } from "@/lib/utils";
 import type { Region } from "@/types/recipe";
 
 interface RecipesTableProps {
@@ -52,17 +53,6 @@ export function RecipesTable({
     pageSize: 10,
   });
 
-  // Get badge color based on task type
-  const getTaskTypeColor = (type: string) => {
-    switch (type) {
-      case "trafficStatistics":
-        return "cyan";
-      case "trainDetection":
-        return "indigo";
-      default:
-        return "gray";
-    }
-  };
 
   // Get task type label
   const getTaskTypeLabel = (type: string) => {

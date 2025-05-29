@@ -313,8 +313,8 @@ export async function setupMocks() {
 
     // Get licenses list
     if (
-      url.includes("/api/v1/license") &&
-      !url.match(/\/license\/\d+/) &&
+      url.includes("/api/v1/key") &&
+      !url.match(/\/key\/\d+/) &&
       init?.method === "GET"
     ) {
       await delay(500);
@@ -338,7 +338,7 @@ export async function setupMocks() {
     }
 
     // Get single license
-    if (url.match(/\/api\/v1\/license\/(\d+)$/) && init?.method === "GET") {
+    if (url.match(/\/api\/v1\/key\/(\d+)$/) && init?.method === "GET") {
       await delay(300);
       const userId = checkAuth(init.headers as any);
       if (!userId) {
@@ -348,7 +348,7 @@ export async function setupMocks() {
         });
       }
 
-      const match = url.match(/\/license\/(\d+)$/);
+      const match = url.match(/\/key\/(\d+)$/);
       const id = parseInt(match![1]);
       const license = getMockLicense(id);
 
@@ -366,7 +366,7 @@ export async function setupMocks() {
     }
 
     // Upload license (multipart form data)
-    if (url.includes("/api/v1/license") && init?.method === "POST") {
+    if (url.includes("/api/v1/key") && init?.method === "POST") {
       await delay(1000);
       const userId = checkAuth(init.headers as any);
       if (!userId) {
@@ -412,7 +412,7 @@ export async function setupMocks() {
     }
 
     // Update license
-    if (url.match(/\/api\/v1\/license\/(\d+)$/) && init?.method === "PATCH") {
+    if (url.match(/\/api\/v1\/key\/(\d+)$/) && init?.method === "PATCH") {
       await delay(600);
       const userId = checkAuth(init.headers as any);
       if (!userId) {
@@ -422,7 +422,7 @@ export async function setupMocks() {
         });
       }
 
-      const match = url.match(/\/license\/(\d+)$/);
+      const match = url.match(/\/key\/(\d+)$/);
       const id = parseInt(match![1]);
 
       try {
@@ -449,7 +449,7 @@ export async function setupMocks() {
     }
 
     // Delete license
-    if (url.match(/\/api\/v1\/license\/(\d+)$/) && init?.method === "DELETE") {
+    if (url.match(/\/api\/v1\/key\/(\d+)$/) && init?.method === "DELETE") {
       await delay(500);
       const userId = checkAuth(init.headers as any);
       if (!userId) {
@@ -459,7 +459,7 @@ export async function setupMocks() {
         });
       }
 
-      const match = url.match(/\/license\/(\d+)$/);
+      const match = url.match(/\/key\/(\d+)$/);
       const id = parseInt(match![1]);
       const success = deleteMockLicense(id);
 

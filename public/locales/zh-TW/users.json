@@ -10,7 +10,8 @@
   
   "status": {
     "active": "啟用",
-    "inactive": "停用"
+    "inactive": "停用",
+    "disabled": "已停用"
   },
   
   "form": {
@@ -24,7 +25,8 @@
     "confirmPasswordPlaceholder": "再次輸入密碼",
     "role": "角色",
     "rolePlaceholder": "選擇使用者角色",
-    "createUser": "建立使用者"
+    "createUser": "建立使用者",
+    "editUser": "編輯使用者"
   },
   
   "table": {
@@ -73,5 +75,37 @@
   "actions": {
     "activate": "啟用使用者",
     "deactivate": "停用使用者"
-  }
+  },
+  
+  "action": {
+    "disable": "停用使用者",
+    "enable": "啟用使用者",
+    "viewRelationships": "查看關聯性"
+  },
+  
+  "role": {
+    "admin": "管理員",
+    "Operator": "操作員"
+  },
+  
+  "notifications": {
+    "createSuccess": "使用者已建立",
+    "createSuccessMessage": "使用者已成功建立",
+    "updateSuccess": "使用者已更新",
+    "updateSuccessMessage": "使用者已成功更新",
+    "deleteSuccess": "使用者已刪除",
+    "deleteSuccessMessage": "使用者已成功刪除",
+    "deleteError": "刪除使用者失敗",
+    "statusUpdated": "狀態已更新",
+    "userEnabled": "使用者已啟用",
+    "userDisabled": "使用者已停用",
+    "statusUpdateError": "更新使用者狀態失敗"
+  },
+  
+  "confirmDelete": {
+    "title": "刪除使用者",
+    "message": "您確定要刪除使用者 {{username}} 嗎？此操作無法復原。"
+  },
+  
+  "noUsers": "找不到使用者"
 }

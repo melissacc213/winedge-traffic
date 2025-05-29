@@ -82,3 +82,26 @@ export function formatDate(dateString: string): string {
     minute: '2-digit',
   }).format(date);
 }
+
+// Get task type color - consistent across the app
+export function getTaskTypeColor(taskType: string): string {
+  // Map task types to Mantine color names for consistent colors across the app
+  // These should match the theme.other.taskTypes values but return just the color name
+  switch (taskType) {
+    case "trafficStatistics":
+      return "teal";
+    case "trainDetection":
+      return "indigo";
+    // Legacy task type names (if needed)
+    case "detection":
+      return "blue";
+    case "classification":
+      return "green";
+    case "counting":
+      return "orange";
+    case "tracking":
+      return "violet";
+    default:
+      return "gray";
+  }
+}

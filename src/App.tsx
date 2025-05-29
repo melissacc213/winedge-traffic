@@ -3,6 +3,8 @@ import { useEffect } from 'react';
 import '@mantine/core/styles.css'; // Import Mantine styles
 import { Notifications } from '@mantine/notifications';
 import '@mantine/notifications/styles.css'; // Import Notifications styles
+import '@mantine/dates/styles.css'; // Import Dates styles (includes ColorPicker)
+import '@mantine/dropzone/styles.css'; // Import Dropzone styles
 import { ModalsProvider } from '@mantine/modals';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import '@/lib/i18n';
@@ -50,13 +52,11 @@ function MantineWrapper() {
 
 function App() {
   return (
-    <MantineProvider defaultColorScheme="light" withCssVariables>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <MantineWrapper />
-        </ThemeProvider>
-      </QueryClientProvider>
-    </MantineProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <MantineWrapper />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 

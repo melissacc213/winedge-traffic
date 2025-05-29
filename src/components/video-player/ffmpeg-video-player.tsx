@@ -26,13 +26,15 @@ interface FFmpegVideoPlayerProps {
   onFrameCaptured?: (frame: FrameData) => void;
   width?: number;
   height?: number;
+  fastMode?: boolean; // Enable ultra-fast conversion mode
 }
 
 export function FFmpegVideoPlayer({ 
   file, 
   onFrameCaptured,
   width = 500,
-  height = 300 
+  height = 300,
+  fastMode = false
 }: FFmpegVideoPlayerProps) {
   const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -130,16 +132,23 @@ export function FFmpegVideoPlayer({
     setLoadingMessage('Processing video...');
     
     try {
-      const baseURL = "https://unpkg.com/@ffmpeg/core-mt@0.12.10/dist/esm";
+      // Use the latest multi-threaded core for better performance
+      const baseURL = "https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm";
       const ffmpeg = ffmpegRef.current;
       
       // Listen to log event like in the example
       ffmpeg.on("log", ({ message }) => {
+        // Extract more detailed progress information from logs
+        const progressMatch = message.match(/time=(\d{2}):(\d{2}):(\d{2}\.\d+)/);
+        if (progressMatch && messageRef.current) {
+          const time = `${progressMatch[1]}:${progressMatch[2]}:${progressMatch[3]}`;
+          setLoadingMessage(`Converting: ${time} processed`);
+        }
       });
       
       setLoadingMessage('Loading FFmpeg...');
       
-      // Load with multi-threaded core and worker
+      // Load with multi-threaded core and worker for maximum performance
       await ffmpeg.load({
         coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
         wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
@@ -210,8 +219,43 @@ export function FFmpegVideoPlayer({
       
       setLoadingMessage('Converting to MP4...');
       
-      // Remove timeout since we have progress now
-      await ffmpeg.exec(["-i", inputName, "output.mp4"]);
+      // Different conversion parameters based on speed preference
+      let ffmpegArgs: string[];
+      
+      if (fastMode) {
+        // Ultra-fast mode: prioritize speed over quality
+        ffmpegArgs = [
+          "-i", inputName,
+          "-c:v", "libx264",           // H.264 codec
+          "-preset", "ultrafast",      // Fastest possible preset
+          "-crf", "28",               // Lower quality for faster encoding
+          "-c:a", "aac",              // AAC audio
+          "-b:a", "64k",              // Lower audio bitrate
+          "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2", // Ensure even dimensions
+          "-movflags", "+faststart",   // Web optimization
+          "-threads", "0",            // Use all CPU threads
+          "-tune", "fastdecode",      // Fast decoding
+          "-f", "mp4",               // Force MP4 format
+          "output.mp4"
+        ];
+      } else {
+        // Balanced mode: good quality with optimized speed
+        ffmpegArgs = [
+          "-i", inputName,
+          "-c:v", "libx264",           // Use H.264 codec for maximum compatibility
+          "-preset", "veryfast",       // Fast encoding preset
+          "-crf", "23",               // Constant Rate Factor for good quality/speed balance
+          "-c:a", "aac",              // AAC audio codec
+          "-b:a", "128k",             // Audio bitrate
+          "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2", // Ensure even dimensions
+          "-movflags", "+faststart",   // Optimize for web streaming
+          "-threads", "0",            // Use all available CPU threads
+          "-tune", "fastdecode",      // Optimize for fast decoding
+          "output.mp4"
+        ];
+      }
+      
+      await ffmpeg.exec(ffmpegArgs);
       
       setLoadingMessage('Finalizing...');
       setTranscodeProgress(98);
@@ -332,12 +376,24 @@ export function FFmpegVideoPlayer({
             </ThemeIcon>
             
             <Stack align="center" gap="xs">
-              <Text fw={600} size="lg">
-                Processing Video
-              </Text>
+              <Group gap="xs" align="center">
+                <Text fw={600} size="lg">
+                  Processing Video
+                </Text>
+                {fastMode && (
+                  <Badge size="xs" color="orange" variant="light">
+                    FAST MODE
+                  </Badge>
+                )}
+              </Group>
               <Text size="sm" c="dimmed" ta="center">
                 {loadingMessage || 'Please wait while we prepare your video'}
               </Text>
+              {fastMode && (
+                <Text size="xs" c="dimmed" ta="center">
+                  Using ultra-fast conversion settings
+                </Text>
+              )}
             </Stack>
             
             {/* Progress bar */}

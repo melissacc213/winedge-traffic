@@ -14,7 +14,7 @@ import {
 import { getMockLicenses, getMockLicense, uploadMockLicense, updateMockLicense, deleteMockLicense } from '../../mocks/data/licenses';
 
 const api = clients.v1.private;
-const USE_MOCK_DATA = false; // Toggle this to switch between mock and real API
+const USE_MOCK_DATA = true; // Toggle this to switch between mock and real API
 
 export const licenseService = {
   // Upload a new license

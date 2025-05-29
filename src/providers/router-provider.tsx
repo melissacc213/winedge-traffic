@@ -43,6 +43,7 @@ const router = createBrowserRouter([
       </Layout>
     ),
     errorElement: <ErrorPage />,
+    HydrateFallback: LoadingFallback,
     children: [
       {
         index: true,
@@ -58,24 +59,9 @@ const router = createBrowserRouter([
       // Users page
       {
         path: 'users',
-        element: <UsersPage />
-      },
-      {
-        path: 'users/:userId',
         async lazy() {
-          const { UserDetailView } = await import('../components/user/UserDetailView');
           return {
-            Component: UserDetailView,
-            HydrateFallback: LoadingFallback,
-          };
-        },
-      },
-      {
-        path: 'users/:userId/edit',
-        async lazy() {
-          const { UserEdit } = await import('../components/user/UserEdit');
-          return {
-            Component: UserEdit,
+            Component: UsersPage,
             HydrateFallback: LoadingFallback,
           };
         },
@@ -83,24 +69,9 @@ const router = createBrowserRouter([
       // License page
       {
         path: 'licenses',
-        element: <LicensesPage />
-      },
-      {
-        path: 'licenses/:licenseId',
         async lazy() {
-          const { LicenseDetailView } = await import('../components/license/LicenseDetailView');
           return {
-            Component: LicenseDetailView,
-            HydrateFallback: LoadingFallback,
-          };
-        },
-      },
-      {
-        path: 'licenses/:licenseId/edit',
-        async lazy() {
-          const { LicenseEdit } = await import('../components/license/LicenseEdit');
-          return {
-            Component: LicenseEdit,
+            Component: LicensesPage,
             HydrateFallback: LoadingFallback,
           };
         },
@@ -108,7 +79,12 @@ const router = createBrowserRouter([
       // Tasks routes
       {
         path: 'tasks',
-        element: <TasksPage />
+        async lazy() {
+          return {
+            Component: TasksPage,
+            HydrateFallback: LoadingFallback,
+          };
+        },
       },
       {
         path: 'tasks/create',
@@ -122,7 +98,12 @@ const router = createBrowserRouter([
       },
       {
         path: 'tasks/:taskId',
-        element: <TaskDetailsPage />
+        async lazy() {
+          return {
+            Component: TaskDetailsPage,
+            HydrateFallback: LoadingFallback,
+          };
+        },
       },
       {
         path: 'tasks/create-demo',
@@ -135,16 +116,61 @@ const router = createBrowserRouter([
         },
       },
       {
+        path: 'tasks/websocket-demo',
+        async lazy() {
+          const { TaskWebSocketDemoPage } = await import('../pages/tasks-page/task-websocket-demo');
+          return {
+            Component: TaskWebSocketDemoPage,
+            HydrateFallback: LoadingFallback,
+          };
+        },
+      },
+      {
         path: 'recipes',
-        element: <RecipesPage />
+        async lazy() {
+          return {
+            Component: RecipesPage,
+            HydrateFallback: LoadingFallback,
+          };
+        },
       },
       {
         path: 'recipes/create',
-        element: <RecipeCreationPage />
+        async lazy() {
+          return {
+            Component: RecipeCreationPage,
+            HydrateFallback: LoadingFallback,
+          };
+        },
+      },
+      {
+        path: 'recipes/:recipeId',
+        async lazy() {
+          const { RecipeDetailsPage } = await import('../pages/recipes-page/recipe-details-page');
+          return {
+            Component: RecipeDetailsPage,
+            HydrateFallback: LoadingFallback,
+          };
+        },
+      },
+      {
+        path: 'recipes/:recipeId/edit',
+        async lazy() {
+          const { RecipeEditPage } = await import('../pages/recipes-page/recipe-edit-page');
+          return {
+            Component: RecipeEditPage,
+            HydrateFallback: LoadingFallback,
+          };
+        },
       },
       {
         path: 'models',
-        element: <ModelsPage />
+        async lazy() {
+          return {
+            Component: ModelsPage,
+            HydrateFallback: LoadingFallback,
+          };
+        },
       },
       {
         path: 'models/:modelId',
@@ -168,13 +194,23 @@ const router = createBrowserRouter([
       },
       {
         path: 'profile',
-        element: <div className="p-4">Profile Page</div>
+        async lazy() {
+          return {
+            Component: () => <div className="p-4">Profile Page</div>,
+            HydrateFallback: LoadingFallback,
+          };
+        },
       }
     ],
   },
   {
     path: '*',
-    element: <ErrorPage defaultCode="404" defaultMessage="Page not found" />,
+    async lazy() {
+      return {
+        Component: () => <ErrorPage defaultCode="404" defaultMessage="Page not found" />,
+        HydrateFallback: LoadingFallback,
+      };
+    },
   },
 ]);
 

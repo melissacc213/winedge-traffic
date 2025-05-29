@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   Modal,
   Stack,
@@ -11,9 +11,11 @@ import {
   FileButton,
   Box,
   Title,
+  useMantineTheme,
 } from "@mantine/core";
 import { IconUpload, IconCheck, IconX, IconFileZip } from "@tabler/icons-react";
 import { useTheme } from "@/providers/theme-provider";
+import { useTranslation } from "react-i18next";
 import { ModelParser } from "@/lib/model-parser";
 import { ModelConfigEditor } from "./model-config-editor";
 import type { ModelConfig } from "@/types/model";
@@ -23,6 +25,8 @@ interface ModelUploadDialogProps {
   onClose: () => void;
   onModelConfigured?: (config: ModelConfig) => void;
   title?: string;
+  isEditMode?: boolean;
+  initialConfig?: ModelConfig;
 }
 
 export function ModelUploadDialog({
@@ -30,15 +34,39 @@ export function ModelUploadDialog({
   onClose,
   onModelConfigured,
   title = "Upload & Configure Model",
+  isEditMode = false,
+  initialConfig,
 }: ModelUploadDialogProps) {
   const { colorScheme, theme } = useTheme();
+  const mantineTheme = useMantineTheme();
+  const { t } = useTranslation(["models", "common"]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [modelConfig, setModelConfig] = useState<ModelConfig | null>(null);
+  const [modelConfig, setModelConfig] = useState<ModelConfig | null>(
+    isEditMode && initialConfig ? initialConfig : null
+  );
   const [error, setError] = useState<string | null>(null);
 
   const isDark = colorScheme === "dark";
-  const surfaceBg = isDark ? theme.colors.gray[8] : theme.colors.gray[0];
+  const surfaceBg = isDark ? theme.colors.dark[6] : theme.colors.gray[0];
+  
+  // If in edit mode with initial config, we should show the editor directly
+  const shouldShowUploadScreen = !isEditMode || !initialConfig;
+  
+  // Update modelConfig when modal opens or props change
+  useEffect(() => {
+    if (opened) {
+      if (isEditMode && initialConfig) {
+        setModelConfig(initialConfig);
+      } else if (!isEditMode) {
+        // Reset to null for create mode
+        setModelConfig(null);
+        setError(null);
+        setUploadProgress(0);
+        setIsUploading(false);
+      }
+    }
+  }, [isEditMode, initialConfig, opened]);
 
   const handleFileUpload = useCallback(async (file: File | null) => {
     if (!file) return;
@@ -78,46 +106,21 @@ export function ModelUploadDialog({
     }
   }, []);
 
-  const handleSaveConfig = useCallback(() => {
-    if (modelConfig && onModelConfigured) {
-      onModelConfigured(modelConfig);
-      handleClose();
-    }
-  }, [modelConfig, onModelConfigured]);
-
-  const handleExportConfig = useCallback(() => {
-    if (!modelConfig) return;
-
-    const exported = ModelParser.exportModelConfig(modelConfig);
-
-    // Create and download label file
-    const labelBlob = new Blob([exported.labelFile], { type: "text/plain" });
-    const labelUrl = URL.createObjectURL(labelBlob);
-    const labelLink = document.createElement("a");
-    labelLink.href = labelUrl;
-    labelLink.download = "model.label";
-    labelLink.click();
-    URL.revokeObjectURL(labelUrl);
-
-    // Create and download config file
-    const configBlob = new Blob([exported.configFile], {
-      type: "application/json",
-    });
-    const configUrl = URL.createObjectURL(configBlob);
-    const configLink = document.createElement("a");
-    configLink.href = configUrl;
-    configLink.download = "model_info.json";
-    configLink.click();
-    URL.revokeObjectURL(configUrl);
-  }, [modelConfig]);
-
   const handleClose = useCallback(() => {
+    // Reset all state when closing
     setModelConfig(null);
     setError(null);
     setUploadProgress(0);
     setIsUploading(false);
     onClose();
   }, [onClose]);
+
+  const handleSaveConfig = useCallback(() => {
+    if (modelConfig && onModelConfigured) {
+      onModelConfigured(modelConfig);
+      handleClose();
+    }
+  }, [modelConfig, onModelConfigured, handleClose]);
 
   return (
     <Modal
@@ -126,31 +129,38 @@ export function ModelUploadDialog({
       title={title}
       size="xl"
       centered
+      withinPortal
       overlayProps={{
         backgroundOpacity: 0.5,
         blur: 3,
       }}
+      zIndex={9999}
       styles={{
         content: {
-          backgroundColor: isDark ? theme.colors.gray[9] : "white",
-          border: `1px solid ${isDark ? theme.colors.gray[7] : theme.colors.gray[3]}`,
+          backgroundColor: isDark ? theme.colors.dark[7] : theme.white,
+          border: `1px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[3]}`,
+          zIndex: 9999,
         },
         header: {
-          backgroundColor: isDark ? theme.colors.gray[9] : "white",
-          borderBottom: `1px solid ${isDark ? theme.colors.gray[7] : theme.colors.gray[3]}`,
+          backgroundColor: isDark ? theme.colors.dark[7] : theme.white,
+          borderBottom: `1px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[3]}`,
+        },
+        root: {
+          zIndex: 9999,
         },
       }}
     >
       <Stack gap="lg">
-        {!modelConfig ? (
+        {!modelConfig && shouldShowUploadScreen ? (
           <>
+
             {/* Upload Section */}
             <Paper
               p="xl"
               radius="md"
               style={{
                 backgroundColor: surfaceBg,
-                border: `2px dashed ${isDark ? theme.colors.gray[6] : theme.colors.gray[4]}`,
+                border: `2px dashed ${isDark ? theme.colors.dark[4] : theme.colors.gray[4]}`,
                 textAlign: "center",
               }}
             >
@@ -161,21 +171,21 @@ export function ModelUploadDialog({
                     height: 60,
                     borderRadius: "50%",
                     backgroundColor: isDark
-                      ? theme.colors.blue[9]
-                      : theme.colors.blue[0],
+                      ? mantineTheme.colors.blue[9]
+                      : mantineTheme.colors.blue[0],
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
-                  <IconFileZip size={30} color={theme.colors.blue[6]} />
+                  <IconFileZip size={30} color={mantineTheme.colors.blue[6]} />
                 </Box>
 
                 <div>
                   <Title order={4} mb="xs">
                     Upload Model Archive
                   </Title>
-                  <Text size="sm" c="dimmed">
+                  <Text size="sm" c="dimmed" mb="xs">
                     Select a .zip file containing model.label and
                     model_info.json
                   </Text>
@@ -193,6 +203,7 @@ export function ModelUploadDialog({
                       variant="filled"
                       size="lg"
                       loading={isUploading}
+                      disabled={false}
                     >
                       Choose File
                     </Button>
@@ -237,23 +248,26 @@ export function ModelUploadDialog({
           </>
         ) : (
           <>
-            {/* Success Message */}
-            <Alert
-              color="green"
-              title="Model Loaded Successfully"
-              icon={<IconCheck size={16} />}
-              variant="light"
-            >
-              Model configuration loaded with {modelConfig.labels.length}{" "}
-              labels. You can now customize the settings below.
-            </Alert>
+            {/* Success Message - only show for upload mode */}
+            {!isEditMode && modelConfig && (
+              <Alert
+                color="green"
+                title="Model Loaded Successfully"
+                icon={<IconCheck size={16} />}
+                variant="light"
+              >
+                Model configuration loaded with {modelConfig.labels?.length || 0}{" "}
+                labels. You can now customize the settings below.
+              </Alert>
+            )}
 
             {/* Model Configuration Editor */}
-            <ModelConfigEditor
-              config={modelConfig}
-              onConfigChange={setModelConfig}
-              onExport={handleExportConfig}
-            />
+            {modelConfig && (
+              <ModelConfigEditor
+                config={modelConfig}
+                onConfigChange={setModelConfig}
+              />
+            )}
 
             {/* Action Buttons */}
             <Group justify="flex-end" gap="sm">
@@ -261,7 +275,7 @@ export function ModelUploadDialog({
                 Cancel
               </Button>
               <Button variant="filled" color="blue" onClick={handleSaveConfig}>
-                Use This Configuration
+                {isEditMode ? "Save Changes" : "Use This Configuration"}
               </Button>
             </Group>
           </>

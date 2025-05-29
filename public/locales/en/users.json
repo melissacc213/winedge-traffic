@@ -10,7 +10,8 @@
   
   "status": {
     "active": "Active",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "disabled": "Disabled"
   },
   
   "form": {
@@ -24,7 +25,8 @@
     "confirmPasswordPlaceholder": "Re-enter password",
     "role": "Role",
     "rolePlaceholder": "Select user role",
-    "createUser": "Create User"
+    "createUser": "Create User",
+    "editUser": "Edit User"
   },
   
   "table": {
@@ -73,5 +75,37 @@
   "actions": {
     "activate": "Activate User",
     "deactivate": "Deactivate User"
-  }
+  },
+  
+  "action": {
+    "disable": "Disable User",
+    "enable": "Enable User",
+    "viewRelationships": "View Relationships"
+  },
+  
+  "role": {
+    "admin": "Administrator",
+    "Operator": "Operator"
+  },
+  
+  "notifications": {
+    "createSuccess": "User Created",
+    "createSuccessMessage": "User has been created successfully",
+    "updateSuccess": "User Updated",
+    "updateSuccessMessage": "User has been updated successfully",
+    "deleteSuccess": "User Deleted",
+    "deleteSuccessMessage": "User has been deleted successfully",
+    "deleteError": "Failed to delete user",
+    "statusUpdated": "Status Updated",
+    "userEnabled": "User has been enabled",
+    "userDisabled": "User has been disabled",
+    "statusUpdateError": "Failed to update user status"
+  },
+  
+  "confirmDelete": {
+    "title": "Delete User",
+    "message": "Are you sure you want to delete user {{username}}? This action cannot be undone."
+  },
+  
+  "noUsers": "No users found"
 }

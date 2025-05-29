@@ -6,53 +6,65 @@ import {
   Stack,
   Button,
   Group,
-  Paper,
-  Text,
 } from '@mantine/core';
-import {
-  IconUser,
-  IconMail,
-  IconLock,
-  IconUserCircle,
-} from '@tabler/icons-react';
+import { Icons } from '@/components/icons';
 import { useTranslation } from 'react-i18next';
 import type { CreateUserRequest, UserRole } from '../../lib/validator/user';
 import { createUserSchema } from '../../lib/validator/user';
 
 interface UserFormProps {
-  onSubmit: (values: CreateUserRequest) => void;
+  onSubmit: (values: any) => void;
   isLoading?: boolean;
   onCancel?: () => void;
+  submitLabel?: string;
+  isEdit?: boolean;
+  initialValues?: Partial<CreateUserRequest & { username: string; email: string }>;
 }
 
-export function UserForm({ onSubmit, isLoading, onCancel }: UserFormProps) {
+export function UserForm({ 
+  onSubmit, 
+  isLoading, 
+  onCancel, 
+  submitLabel,
+  isEdit = false,
+  initialValues 
+}: UserFormProps) {
   const { t } = useTranslation(['users', 'common']);
 
   const form = useForm<CreateUserRequest>({
     initialValues: {
-      username: '',
-      email: '',
+      username: initialValues?.username || '',
+      email: initialValues?.email || '',
       password: '',
       password2: '',
-      role: 'Viewer',
+      role: initialValues?.role || 'Operator',
     },
-    validate: zodResolver(createUserSchema),
+    validate: isEdit ? undefined : zodResolver(createUserSchema),
   });
 
   const roleOptions: { value: UserRole; label: string }[] = [
-    { value: 'Admin', label: t('users:roles.admin') },
-    { value: 'Operator', label: t('users:roles.operator') },
-    { value: 'Viewer', label: t('users:roles.viewer') },
+    { value: 'admin', label: t('users:role.admin') },
+    { value: 'Operator', label: t('users:role.Operator') },
   ];
 
+  const handleSubmit = (values: CreateUserRequest) => {
+    if (isEdit) {
+      // For edit, only pass the fields that can be changed
+      onSubmit({ role: values.role });
+    } else {
+      onSubmit(values);
+    }
+  };
+
   return (
-    <form onSubmit={form.onSubmit(onSubmit)}>
+    <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack gap="md">
         <TextInput
           label={t('users:form.username')}
           placeholder={t('users:form.usernamePlaceholder')}
-          leftSection={<IconUser size={16} />}
-          required
+          leftSection={<Icons.User size={16} />}
+          required={!isEdit}
+          disabled={isEdit}
           {...form.getInputProps('username')}
         />
 
@@ -60,31 +72,36 @@ export function UserForm({ onSubmit, isLoading, onCancel }: UserFormProps) {
           label={t('users:form.email')}
           placeholder={t('users:form.emailPlaceholder')}
           type="email"
-          leftSection={<IconMail size={16} />}
-          required
+          leftSection={<Icons.Mail size={16} />}
+          required={!isEdit}
+          disabled={isEdit}
           {...form.getInputProps('email')}
         />
 
-        <PasswordInput
-          label={t('users:form.password')}
-          placeholder={t('users:form.passwordPlaceholder')}
-          leftSection={<IconLock size={16} />}
-          required
-          {...form.getInputProps('password')}
-        />
+        {!isEdit && (
+          <>
+            <PasswordInput
+              label={t('users:form.password')}
+              placeholder={t('users:form.passwordPlaceholder')}
+              leftSection={<Icons.Lock size={16} />}
+              required
+              {...form.getInputProps('password')}
+            />
 
-        <PasswordInput
-          label={t('users:form.confirmPassword')}
-          placeholder={t('users:form.confirmPasswordPlaceholder')}
-          leftSection={<IconLock size={16} />}
-          required
-          {...form.getInputProps('password2')}
-        />
+            <PasswordInput
+              label={t('users:form.confirmPassword')}
+              placeholder={t('users:form.confirmPasswordPlaceholder')}
+              leftSection={<Icons.Lock size={16} />}
+              required
+              {...form.getInputProps('password2')}
+            />
+          </>
+        )}
 
         <Select
           label={t('users:form.role')}
           placeholder={t('users:form.rolePlaceholder')}
-          leftSection={<IconUserCircle size={16} />}
+          leftSection={<Icons.UserCircle size={16} />}
           data={roleOptions}
           required
           {...form.getInputProps('role')}
@@ -97,7 +114,7 @@ export function UserForm({ onSubmit, isLoading, onCancel }: UserFormProps) {
             </Button>
           )}
           <Button type="submit" loading={isLoading}>
-            {t('users:form.createUser')}
+            {submitLabel || t('users:form.createUser')}
           </Button>
         </Group>
       </Stack>

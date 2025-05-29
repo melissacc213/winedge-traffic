@@ -14,7 +14,8 @@
     "licenseFile": "授權檔案",
     "setAsDefault": "設為預設授權",
     "setAsDefaultDescription": "將此授權設為系統預設",
-    "uploadLicense": "上傳授權"
+    "uploadLicense": "上傳授權",
+    "filePathPlaceholder": "輸入本地檔案路徑"
   },
   
   "upload": {
@@ -29,7 +30,14 @@
     "licenseInformationDescription": "輸入此授權的描述性名稱並配置其設定",
     "uploadLicenseFile": "上傳授權檔案",
     "uploadDescription": "選擇或拖放有效的授權檔案以上傳",
-    "infoMessage": "授權檔案將在上傳時進行驗證。請確保這是來自您供應商的有效授權檔案。"
+    "infoMessage": "授權檔案將在上傳時進行驗證。請確保這是來自您供應商的有效授權檔案。",
+    "taskConfiguration": "任務配置",
+    "taskConfigurationDescription": "選擇要執行的任務類型並配置授權檔案路徑",
+    "taskType": {
+      "title": "任務類型",
+      "placeholder": "選擇任務類型"
+    },
+    "localFilePath": "本地檔案路徑"
   },
   
   "table": {
@@ -91,11 +99,31 @@
   "actions": {
     "download": "下載",
     "delete": "刪除",
-    "setAsDefault": "設為預設"
+    "setAsDefault": "設為預設",
+    "createLicense": "上傳授權"
   },
   
   "delete": {
     "title": "刪除授權",
     "message": "確定要刪除授權「{{name}}」嗎？此操作無法復原。"
-  }
+  },
+  
+  "confirmDelete": {
+    "title": "刪除授權",
+    "message": "確定要刪除授權「{{name}}」嗎？此操作無法復原。"
+  },
+  
+  "notifications": {
+    "deleteSuccess": "授權已刪除",
+    "deleteSuccessMessage": "授權已成功刪除",
+    "deleteError": "刪除授權失敗",
+    "defaultSet": "已設定預設授權",
+    "defaultSetMessage": "授權已設為預設",
+    "updateError": "更新授權失敗",
+    "createSuccess": "授權已建立",
+    "createSuccessMessage": "授權已成功上傳",
+    "createError": "上傳授權失敗"
+  },
+  
+  "error": "錯誤"
 }

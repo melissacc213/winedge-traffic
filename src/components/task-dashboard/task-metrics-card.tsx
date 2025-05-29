@@ -15,19 +15,22 @@ import {
   IconUser,
   IconBike,
 } from "@tabler/icons-react";
+import { useTranslation } from 'react-i18next';
 
 interface TaskMetricsCardProps {
   metrics: Record<string, any> | undefined;
 }
 
 export function TaskMetricsCard({ metrics }: TaskMetricsCardProps) {
+  const { t } = useTranslation('tasks');
+  
   if (!metrics) {
     return (
       <Card padding="md" radius="md" withBorder>
         <Text fw={500} size="lg" mb="md">
-          Performance Metrics
+          {t('metrics.performanceMetrics')}
         </Text>
-        <Text c="dimmed">No metrics available</Text>
+        <Text c="dimmed">{t('metrics.noMetricsAvailable')}</Text>
       </Card>
     );
   }
@@ -56,7 +59,7 @@ export function TaskMetricsCard({ metrics }: TaskMetricsCardProps) {
   return (
     <Card padding="md" radius="md" withBorder>
       <Text fw={500} size="lg" mb="md">
-        Performance Metrics
+        {t('metrics.performanceMetrics')}
       </Text>
 
       <Grid gutter="md">
@@ -82,9 +85,9 @@ export function TaskMetricsCard({ metrics }: TaskMetricsCardProps) {
               }
             />
             <div>
-              <Text fw={700}>Detection Rate</Text>
+              <Text fw={700}>{t('metrics.detectionRate')}</Text>
               <Text size="sm" c="dimmed">
-                Model confidence
+                {t('metrics.modelConfidence')}
               </Text>
             </div>
           </Group>
@@ -92,7 +95,7 @@ export function TaskMetricsCard({ metrics }: TaskMetricsCardProps) {
           <Group grow>
             <Paper withBorder p="md" radius="md">
               <Text size="xs" c="dimmed" fw={500}>
-                Total Objects
+                {t('metrics.totalObjects')}
               </Text>
               <Text fw={700} size="xl">
                 {objectsCounted || 0}
@@ -101,13 +104,13 @@ export function TaskMetricsCard({ metrics }: TaskMetricsCardProps) {
 
             <Paper withBorder p="md" radius="md">
               <Text size="xs" c="dimmed" fw={500}>
-                Processing Speed
+                {t('metrics.processingSpeed')}
               </Text>
               <Text fw={700} size="xl">
                 {processingFps ? `${processingFps.toFixed(1)}` : "N/A"}
               </Text>
               <Text size="xs" c="dimmed">
-                FPS
+                {t('metrics.fps')}
               </Text>
             </Paper>
           </Group>
@@ -116,7 +119,7 @@ export function TaskMetricsCard({ metrics }: TaskMetricsCardProps) {
         {/* Object Distribution */}
         <Grid.Col span={{ base: 12, md: 7 }}>
           <Text fw={500} mb="xs">
-            Object Distribution
+            {t('metrics.objectDistribution')}
           </Text>
 
           {totalObjects && Object.keys(totalObjects).length > 0 ? (
@@ -141,7 +144,7 @@ export function TaskMetricsCard({ metrics }: TaskMetricsCardProps) {
                     </Group>
 
                     <Text size="xs" c="dimmed">
-                      {percentage}% of total
+                      {percentage}{t('metrics.percentOfTotal')}
                     </Text>
                     <div
                       style={{
@@ -157,7 +160,7 @@ export function TaskMetricsCard({ metrics }: TaskMetricsCardProps) {
               })}
             </SimpleGrid>
           ) : (
-            <Text c="dimmed">No object distribution data available</Text>
+            <Text c="dimmed">{t('metrics.noObjectDistributionData')}</Text>
           )}
         </Grid.Col>
       </Grid>

@@ -26,6 +26,7 @@ interface UnifiedVideoPlayerProps {
   onFrameCaptured?: (frame: FrameData) => void;
   width?: number;
   height?: number;
+  fastMode?: boolean; // Enable ultra-fast conversion mode
 }
 
 type LoadingState =
@@ -56,6 +57,7 @@ export function UnifiedVideoPlayer({
   onFrameCaptured,
   width = 500,
   height = 300,
+  fastMode = false,
 }: UnifiedVideoPlayerProps) {
   // Unified loading state
   const [loadingStatus, setLoadingStatus] = useState<LoadingStatus>({
@@ -88,11 +90,10 @@ export function UnifiedVideoPlayer({
         const ffmpeg = new FFmpeg();
         ffmpegRef.current = ffmpeg;
 
-        const baseURL = "https://unpkg.com/@ffmpeg/core-mt@0.12.10/dist/esm";
+        const baseURL = "https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm";
 
         // Set up event listeners
-        ffmpeg.on("log", ({ message }) => {
-        });
+        ffmpeg.on("log", ({ message }) => {});
 
         ffmpeg.on("progress", ({ progress }) => {
           setLoadingStatus((prev) => ({
@@ -140,7 +141,6 @@ export function UnifiedVideoPlayer({
     };
   }, []);
 
-
   // Process video when file changes
   useEffect(() => {
     if (!file) {
@@ -163,7 +163,7 @@ export function UnifiedVideoPlayer({
     try {
       // Create a unique key for this file
       const fileKey = `${videoFile.name}_${videoFile.size}_${videoFile.lastModified}`;
-      
+
       // Check if we have a cached URL for this file
       const cached = videoCache.get(fileKey);
       if (cached) {
@@ -231,8 +231,7 @@ export function UnifiedVideoPlayer({
             message: "Video loaded successfully",
           });
           return;
-        } catch (e) {
-        }
+        } catch (e) {}
       }
 
       // Process with FFmpeg
@@ -260,21 +259,64 @@ export function UnifiedVideoPlayer({
         message: "Converting video format...",
       }));
 
-      await ffmpeg.exec([
-        "-i",
-        inputName,
-        "-c:v",
-        "libx264",
-        "-preset",
-        "fast",
-        "-crf",
-        "22",
-        "-c:a",
-        "aac",
-        "-movflags",
-        "+faststart",
-        "output.mp4",
-      ]);
+      // Optimized conversion parameters based on speed preference
+      let ffmpegArgs: string[];
+
+      if (fastMode) {
+        // Ultra-fast mode: prioritize speed over quality
+        ffmpegArgs = [
+          "-i",
+          inputName,
+          "-c:v",
+          "libx264", // H.264 codec
+          "-preset",
+          "ultrafast", // Fastest possible preset
+          "-crf",
+          "28", // Lower quality for faster encoding
+          "-c:a",
+          "aac", // AAC audio
+          "-b:a",
+          "64k", // Lower audio bitrate
+          "-vf",
+          "scale=trunc(iw/2)*2:trunc(ih/2)*2", // Ensure even dimensions
+          "-movflags",
+          "+faststart", // Web optimization
+          "-threads",
+          "0", // Use all CPU threads
+          "-tune",
+          "fastdecode", // Fast decoding
+          "-f",
+          "mp4", // Force MP4 format
+          "output.mp4",
+        ];
+      } else {
+        // Balanced mode: good quality with optimized speed
+        ffmpegArgs = [
+          "-i",
+          inputName,
+          "-c:v",
+          "libx264", // Use H.264 codec for maximum compatibility
+          "-preset",
+          "veryfast", // Fast encoding preset
+          "-crf",
+          "23", // Constant Rate Factor for good quality/speed balance
+          "-c:a",
+          "aac", // AAC audio codec
+          "-b:a",
+          "128k", // Audio bitrate
+          "-vf",
+          "scale=trunc(iw/2)*2:trunc(ih/2)*2", // Ensure even dimensions
+          "-movflags",
+          "+faststart", // Optimize for web streaming
+          "-threads",
+          "0", // Use all available CPU threads
+          "-tune",
+          "fastdecode", // Optimize for fast decoding
+          "output.mp4",
+        ];
+      }
+
+      await ffmpeg.exec(ffmpegArgs);
 
       // Read output
       setLoadingStatus((prev) => ({
@@ -290,7 +332,7 @@ export function UnifiedVideoPlayer({
       // Cache the processed video URL
       manageCacheSize();
       videoCache.set(fileKey, { url, timestamp: Date.now() });
-      
+
       setVideoUrl(url);
       setLoadingStatus({
         state: "ready",
@@ -313,14 +355,14 @@ export function UnifiedVideoPlayer({
       // Find and remove the oldest entry
       let oldestKey = "";
       let oldestTime = Date.now();
-      
+
       videoCache.forEach((value, key) => {
         if (value.timestamp < oldestTime) {
           oldestTime = value.timestamp;
           oldestKey = key;
         }
       });
-      
+
       if (oldestKey) {
         const cached = videoCache.get(oldestKey);
         if (cached) {
@@ -351,7 +393,6 @@ export function UnifiedVideoPlayer({
 
     onFrameCaptured(frame);
   }, [width, height, onFrameCaptured]);
-
 
   // Render empty state
   if (!file) {
@@ -404,14 +445,7 @@ export function UnifiedVideoPlayer({
 
             <Box w="100%">
               {isIndeterminate ? (
-                <Progress
-                  size="lg"
-                  radius="xl"
-                  animated
-                  striped
-                  indeterminate
-                  color="blue"
-                />
+                <Progress size="lg" radius="xl" animated striped color="blue" />
               ) : (
                 <Progress
                   value={loadingStatus.progress}
@@ -508,15 +542,15 @@ export function UnifiedVideoPlayer({
 
       {/* Controls */}
       <Paper p="sm" radius="md" withBorder>
-        <Group justify="space-between" align="center">
-          <Group gap="xs">
+        <Group justify="end" align="center">
+          {/* <Group gap="xs">
             <Text size="sm" fw={600}>
               Video Controls
             </Text>
             <Text size="xs" c="dimmed">
               {currentTime.toFixed(2)}s / {duration.toFixed(2)}s
             </Text>
-          </Group>
+          </Group> */}
 
           <Tooltip label="Capture current frame" withArrow>
             <Button

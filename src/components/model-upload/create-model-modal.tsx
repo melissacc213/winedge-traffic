@@ -223,6 +223,7 @@ export function CreateModelModal({ opened, onClose }: CreateModelModalProps) {
       size="lg"
       centered
       withCloseButton
+      withinPortal
       overlayProps={{
         backgroundOpacity: 0.55,
         blur: 3,

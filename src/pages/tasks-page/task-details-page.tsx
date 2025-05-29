@@ -19,7 +19,6 @@ import { useTranslation } from "react-i18next";
 import { modals } from "@/lib/modal";
 import { notifications } from "@mantine/notifications";
 import { Icons } from "@/components/icons";
-import { PageLayout } from "@/components/page-layout/page-layout";
 import {
   useTask,
   useStopTask,
@@ -31,7 +30,8 @@ import { TaskStatusBadge } from "@/components/task-dashboard/task-status-badge";
 import { TaskProgress } from "@/components/task-dashboard/task-progress";
 import { TaskVideoStream } from "@/components/task-video-stream";
 import { TaskMetricsCard } from "@/components/task-dashboard/task-metrics-card";
-import { formatDistanceToNow } from "@/lib/utils";
+import { CompactTaskControl } from "@/components/task-control";
+import { formatDistanceToNow, getTaskTypeColor } from "@/lib/utils";
 import { taskService } from "@/lib/api/task-service";
 import { useTheme } from "@/providers/theme-provider";
 import type { TaskMetrics } from "@/types/task-metrics";
@@ -88,7 +88,7 @@ export function TaskDetailsPage() {
     if (!task) return;
 
     try {
-      const updatedTask = await taskService.startTask(task.id);
+      await taskService.startTask(task.id);
       notifications.show({
         title: t("tasks:notifications.taskStarted"),
         message: t("tasks:notifications.taskStartedMessage", {
@@ -100,6 +100,28 @@ export function TaskDetailsPage() {
     } catch (error) {
       notifications.show({
         title: t("tasks:notifications.taskStartError"),
+        message:
+          error instanceof Error ? error.message : t("common:errorOccurred"),
+        color: "red",
+      });
+    }
+  };
+
+  const handleRestartTask = async () => {
+    if (!task) return;
+
+    try {
+      // In a real implementation, this would call a restart API endpoint
+      await taskService.startTask(task.id);
+      notifications.show({
+        title: "Task Restarted",
+        message: `${task.name} has been restarted`,
+        color: "blue",
+      });
+      refetch();
+    } catch (error) {
+      notifications.show({
+        title: "Restart Failed",
         message:
           error instanceof Error ? error.message : t("common:errorOccurred"),
         color: "red",
@@ -192,23 +214,17 @@ export function TaskDetailsPage() {
 
   if (isLoading) {
     return (
-      <PageLayout
-        title={t("tasks:taskDetails")}
-        description={t("tasks:taskDetailsDescription")}
-      >
+      <div style={{ padding: '2rem' }}>
         <Center style={{ height: 300 }}>
           <Loader size="md" />
         </Center>
-      </PageLayout>
+      </div>
     );
   }
 
   if (error || !task) {
     return (
-      <PageLayout
-        title={t("tasks:taskDetails")}
-        description={t("tasks:taskDetailsDescription")}
-      >
+      <div style={{ padding: '2rem' }}>
         <Center style={{ height: 300, flexDirection: "column" }}>
           <Text c="red" mb="md">
             {error instanceof Error ? error.message : t("tasks:taskNotFound")}
@@ -221,211 +237,256 @@ export function TaskDetailsPage() {
             {t("tasks:backToTasks")}
           </Button>
         </Center>
-      </PageLayout>
+      </div>
     );
   }
 
   return (
-    <PageLayout
-      title={task.name}
-      description={task.description || t("tasks:taskDetailsDescription")}
-      actions={
-        <Group>
-          {/* <Tooltip label={t('tasks:refreshTaskData')}>
-            <ActionIcon
-              variant="subtle"
-              aria-label="Refresh"
-              onClick={() => refetch()}
-            >
-              <Icons.Refresh size={16} />
-            </ActionIcon>
-          </Tooltip> */}
-
-          {(task.status === "pending" || task.status === "failed") && (
-            <Button
-              color="green"
-              leftSection={<Icons.PlayerPlay size={16} />}
-              onClick={handleStartTask}
-              loading={isStartingTask}
-              disabled={isStartingTask}
-            >
-              {t("tasks:startTask")}
-            </Button>
-          )}
-
-          {task.status === "running" && (
-            <Button
-              color="yellow"
-              leftSection={<Icons.PlayerStop size={16} />}
-              onClick={handleStopTask}
-              loading={isStoppingTask}
-              disabled={isStoppingTask}
-            >
-              {t("tasks:stopTask")}
-            </Button>
-          )}
-
-          <Button
-            color="red"
-            variant="outline"
-            leftSection={<Icons.Trash size={16} />}
-            onClick={handleDeleteTask}
-            loading={isDeletingTask}
-            disabled={isDeletingTask || task.status === "running"}
-          >
-            {t("tasks:deleteTask")}
-          </Button>
-        </Group>
-      }
-    >
-      <Stack gap="lg">
-        {/* Task Status and Info Card */}
-        <Card p="lg" radius="md" withBorder>
-          <Group justify="space-between" mb="md">
-            <div>
-              <Title order={3}>{t("tasks:taskInformation")}</Title>
-            </div>
-            <TaskStatusBadge status={task.status} />
-          </Group>
-
-          <Grid>
-            <Grid.Col span={{ base: 12, sm: 6 }}>
-              <Stack gap="xs">
-                <Group>
-                  <Text fw={500}>{t("tasks:recipeId")}:</Text>
-                  <Text>{task.recipeId}</Text>
+    <div style={{ padding: '1rem', maxWidth: '1200px', margin: '0 auto', minHeight: '100vh' }}>
+      {/* Page Header */}
+      <Paper 
+        p="lg" 
+        radius="md" 
+        withBorder 
+        mb="lg"
+        style={{
+          backgroundColor: isDark ? theme.colors.dark[8] : theme.white,
+          borderColor: isDark ? theme.colors.dark[5] : theme.colors.gray[2],
+        }}
+      >
+        <Stack gap="md">
+          {/* Top Row: Navigation and Actions */}
+          <Group justify="space-between" align="flex-start">
+            <Group gap="md">
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                size="xl"
+                onClick={handleBack}
+              >
+                <Icons.ArrowLeft size={24} />
+              </ActionIcon>
+              <div>
+                <Group gap="sm" mb="xs">
+                  <Title order={1} size="h2">{task.name}</Title>
+                  <TaskStatusBadge status={task.status} size="lg" />
                 </Group>
-
-                <Group>
-                  <Text fw={500}>{t("tasks:taskType")}:</Text>
+                <Group gap="md">
                   <Badge
-                    color="blue"
-                    radius="sm"
-                    style={{ textTransform: "capitalize" }}
+                    size="md"
+                    color={getTaskTypeColor(task.resultType || "trafficStatistics")}
+                    variant="light"
                   >
-                    {t(
-                      `tasks:taskTypes.${task.resultType || "trafficStatistics"}`
-                    )}
+                    {task.resultType === "trainDetection" ? "Train Detection" : "Traffic Statistics"}
                   </Badge>
-                </Group>
-
-                <Group>
-                  <Icons.Clock size={16} />
-                  <Text size="sm">
-                    {t("tasks:createdAgo", {
-                      time: formatDistanceToNow(new Date(task.createdAt)),
-                    })}
+                  <Text size="sm" c="dimmed">
+                    Created {formatDistanceToNow(new Date(task.createdAt))} ago
                   </Text>
+                  {task.startedAt && (
+                    <Text size="sm" c="dimmed">
+                      • Started {formatDistanceToNow(new Date(task.startedAt))} ago
+                    </Text>
+                  )}
                 </Group>
-
-                {task.startedAt && (
-                  <Group>
-                    <Icons.Clock size={16} />
-                    <Text size="sm">
-                      {t("tasks:startedAgo", {
-                        time: formatDistanceToNow(new Date(task.startedAt)),
-                      })}
-                    </Text>
-                  </Group>
-                )}
-
-                {task.completedAt && (
-                  <Group>
-                    <Icons.Clock size={16} />
-                    <Text size="sm">
-                      {t("tasks:endedAgo", {
-                        time: formatDistanceToNow(new Date(task.completedAt)),
-                      })}
-                    </Text>
-                  </Group>
-                )}
-
-                {task.error && (
-                  <Text c="red" mt="xs">
-                    {t("tasks:error")}: {task.error}
+                {task.description && (
+                  <Text size="sm" c="dimmed" mt="xs" style={{ maxWidth: '600px' }}>
+                    {task.description}
                   </Text>
+                )}
+              </div>
+            </Group>
+            
+            <Group gap="sm">
+              {(task.status === "pending" || task.status === "failed") && (
+                <Button
+                  color="green"
+                  leftSection={<Icons.PlayerPlay size={16} />}
+                  onClick={handleStartTask}
+                  loading={isStartingTask}
+                  size="md"
+                >
+                  {t("tasks:startTask")}
+                </Button>
+              )}
+              
+              {task.status === "running" && (
+                <Button
+                  color="yellow"
+                  leftSection={<Icons.PlayerStop size={16} />}
+                  onClick={handleStopTask}
+                  loading={isStoppingTask}
+                  size="md"
+                >
+                  {t("tasks:stopTask")}
+                </Button>
+              )}
+              
+              {(task.status === "completed" || task.status === "failed" || task.status === "stopped") && (
+                <Button
+                  color="blue"
+                  variant="outline"
+                  leftSection={<Icons.Refresh size={16} />}
+                  onClick={handleRestartTask}
+                  loading={isStartingTask}
+                  size="md"
+                >
+                  Restart
+                </Button>
+              )}
+              
+              <Button
+                color="red"
+                variant="outline"
+                leftSection={<Icons.Trash size={16} />}
+                onClick={handleDeleteTask}
+                loading={isDeletingTask}
+                disabled={isDeletingTask || task.status === "running"}
+                size="md"
+              >
+                {t("tasks:deleteTask")}
+              </Button>
+            </Group>
+          </Group>
+          
+          {/* Progress Bar (for active tasks) */}
+          {(task.status === "running" || task.progress > 0) && (
+            <div>
+              <Group justify="space-between" mb="xs">
+                <Text size="sm" fw={500}>Progress</Text>
+                <Text size="sm" c="dimmed" fw={500}>
+                  {Math.round(task.progress * 100)}% complete
+                </Text>
+              </Group>
+              <TaskProgress 
+                progress={task.progress * 100} 
+                status={task.status}
+                size="lg"
+                showLabel={false}
+              />
+            </div>
+          )}
+        </Stack>
+      </Paper>
+      
+      {/* Main Content Grid */}
+      <Grid gutter="lg">
+        {/* Left Column: Video/Stream */}
+        <Grid.Col span={{ base: 12, lg: task.status === "running" ? 8 : 12 }}>
+          {task.status === "running" ? (
+            <TaskVideoStream task={task} />
+          ) : (
+            <Card p="xl" radius="md" withBorder style={{ height: '500px' }}>
+              <Center style={{ height: '100%', flexDirection: "column" }}>
+                <Icons.Video size={72} style={{ opacity: 0.3 }} />
+                <Text size="xl" fw={600} c="dimmed" mt="lg" ta="center">
+                  {task.status === "pending" && "Video will appear when task starts"}
+                  {task.status === "failed" && "Task failed - no video available"}
+                  {task.status === "completed" && "Task completed - video stream ended"}
+                  {task.status === "stopped" && "Task stopped - video stream ended"}
+                </Text>
+                <Text size="md" c="dimmed" mt="sm" ta="center" style={{ maxWidth: '500px' }}>
+                  {task.status === "pending" && "Click the Start button above to begin processing"}
+                  {task.status === "failed" && "Check the task logs for error details"}
+                  {task.status === "completed" && "Task completed successfully. You can restart to run again."}
+                  {task.status === "stopped" && "Task was manually stopped. You can restart to continue."}
+                </Text>
+              </Center>
+            </Card>
+          )}
+        </Grid.Col>
+        
+        {/* Right Column: Metrics (only when running) */}
+        {task.status === "running" && mockMetrics && (
+          <Grid.Col span={{ base: 12, lg: 4 }}>
+            <TaskMetricsCard metrics={mockMetrics} />
+          </Grid.Col>
+        )}
+        
+        {/* Task Information Panel (when not running) */}
+        {task.status !== "running" && (
+          <Grid.Col span={12}>
+            <Card p="lg" radius="md" withBorder>
+              <Stack gap="md">
+                <Group justify="space-between" align="center">
+                  <Title order={3}>Task Information</Title>
+                  <Group gap="xs">
+                    <Badge variant="light" color="gray">
+                      ID: {task.id.slice(0, 8)}
+                    </Badge>
+                    {task.recipeId && (
+                      <Badge variant="light" color="blue">
+                        Recipe: {task.recipeId.slice(0, 8)}
+                      </Badge>
+                    )}
+                  </Group>
+                </Group>
+                
+                <Grid>
+                  <Grid.Col span={6}>
+                    <Stack gap="xs">
+                      <Text size="sm" fw={500} c="dimmed">Status</Text>
+                      <TaskStatusBadge status={task.status} size="md" />
+                    </Stack>
+                  </Grid.Col>
+                  <Grid.Col span={6}>
+                    <Stack gap="xs">
+                      <Text size="sm" fw={500} c="dimmed">Task Type</Text>
+                      <Badge
+                        size="md"
+                        color={getTaskTypeColor(task.resultType || "trafficStatistics")}
+                        variant="light"
+                      >
+                        {task.resultType === "trainDetection" ? "Train Detection" : "Traffic Statistics"}
+                      </Badge>
+                    </Stack>
+                  </Grid.Col>
+                  <Grid.Col span={6}>
+                    <Stack gap="xs">
+                      <Text size="sm" fw={500} c="dimmed">Created</Text>
+                      <Text size="sm">{new Date(task.createdAt).toLocaleString()}</Text>
+                    </Stack>
+                  </Grid.Col>
+                  {task.startedAt && (
+                    <Grid.Col span={6}>
+                      <Stack gap="xs">
+                        <Text size="sm" fw={500} c="dimmed">Started</Text>
+                        <Text size="sm">{new Date(task.startedAt).toLocaleString()}</Text>
+                      </Stack>
+                    </Grid.Col>
+                  )}
+                  {task.completedAt && (
+                    <Grid.Col span={6}>
+                      <Stack gap="xs">
+                        <Text size="sm" fw={500} c="dimmed">Completed</Text>
+                        <Text size="sm">{new Date(task.completedAt).toLocaleString()}</Text>
+                      </Stack>
+                    </Grid.Col>
+                  )}
+                  <Grid.Col span={6}>
+                    <Stack gap="xs">
+                      <Text size="sm" fw={500} c="dimmed">Priority</Text>
+                      <Badge
+                        size="sm"
+                        color={task.priority === "high" ? "red" : task.priority === "medium" ? "yellow" : "gray"}
+                        variant="light"
+                      >
+                        {task.priority}
+                      </Badge>
+                    </Stack>
+                  </Grid.Col>
+                </Grid>
+                
+                {task.description && (
+                  <div>
+                    <Text size="sm" fw={500} c="dimmed" mb="xs">Description</Text>
+                    <Text size="sm">{task.description}</Text>
+                  </div>
                 )}
               </Stack>
-            </Grid.Col>
-
-            <Grid.Col span={{ base: 12, sm: 6 }}>
-              <Paper
-                p="md"
-                radius="md"
-                withBorder
-                h="100%"
-                style={{
-                  backgroundColor: isDark
-                    ? theme.colors.dark[7]
-                    : theme.colors.gray[0],
-                }}
-              >
-                <Group mb="sm">
-                  <Icons.ChartBar size={20} />
-                  <Text fw={500}>{t("tasks:progress")}</Text>
-                </Group>
-
-                <TaskProgress
-                  progress={task.progress}
-                  status={task.status}
-                  size="lg"
-                />
-
-                {mockMetrics && mockMetrics.processingFps && (
-                  <Group mt="md">
-                    <Text size="sm" fw={500}>
-                      {t("tasks:processingSpeed")}:
-                    </Text>
-                    <Text size="sm">
-                      {mockMetrics.processingFps.toFixed(1)} FPS
-                    </Text>
-                  </Group>
-                )}
-
-                {mockMetrics && mockMetrics.objectsCounted && (
-                  <Group mt="xs">
-                    <Text size="sm" fw={500}>
-                      {t("tasks:objectsCounted")}:
-                    </Text>
-                    <Text size="sm">{mockMetrics.objectsCounted}</Text>
-                  </Group>
-                )}
-              </Paper>
-            </Grid.Col>
-          </Grid>
-        </Card>
-
-        {/* Video Stream and Metrics */}
-        <Grid gutter="lg">
-          <Grid.Col span={{ base: 12, md: task.status === "running" ? 7 : 12 }}>
-            {/* Show video stream when task is running */}
-            {task.status === "running" ? (
-              <TaskVideoStream task={task} />
-            ) : (
-              <Card p="lg" radius="md" withBorder>
-                <Center style={{ height: 400, flexDirection: "column" }}>
-                  <Icons.Video size={64} style={{ opacity: 0.3 }} />
-                  <Text size="lg" c="dimmed" mt="md">
-                    {task.status === "pending" &&
-                      t("tasks:videoWillAppearWhenStarted")}
-                    {task.status === "failed" && t("tasks:taskFailedNoVideo")}
-                    {task.status === "completed" &&
-                      t("tasks:taskCompletedVideoEnded")}
-                    {task.status === "stopped" &&
-                      t("tasks:taskStoppedVideoEnded")}
-                  </Text>
-                </Center>
-              </Card>
-            )}
+            </Card>
           </Grid.Col>
-
-          {task.status === "running" && mockMetrics && (
-            <Grid.Col span={{ base: 12, md: 5 }}>
-              <TaskMetricsCard metrics={mockMetrics} />
-            </Grid.Col>
-          )}
-        </Grid>
-      </Stack>
-    </PageLayout>
+        )}
+      </Grid>
+    </div>
   );
 }

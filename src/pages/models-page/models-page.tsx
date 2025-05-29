@@ -19,6 +19,7 @@ import { useModelUpload } from "../../hooks/use-model-upload";
 import { ModelsTable } from "../../pages/models-page/models-table";
 import { PageLayout } from "@/components/page-layout/page-layout";
 import { ModelUploadDialog } from "@/components/model-config-editor";
+import type { Model } from "../../lib/store/model-store";
 
 // Create custom styles for the full-page dropzone
 const useStyles = () => {
@@ -81,6 +82,7 @@ const useStyles = () => {
 
 export function ModelsPage() {
   const [createModalOpened, setCreateModalOpened] = useState(false);
+  const [editingModel, setEditingModel] = useState<Model | null>(null);
   const { t } = useTranslation(["models", "common"]);
   const { theme, colorScheme } = useTheme();
   const mantineTheme = useMantineTheme();
@@ -166,6 +168,12 @@ export function ModelsPage() {
 
   const handleManualUpload = () => {
     // Instead of opening dropzone, open create model modal
+    setEditingModel(null); // Clear any previous editing model
+    setCreateModalOpened(true);
+  };
+
+  const handleEdit = (model: Model) => {
+    setEditingModel(model);
     setCreateModalOpened(true);
   };
 
@@ -302,27 +310,55 @@ export function ModelsPage() {
             isLoading={isLoading}
             onDelete={handleDelete}
             onDownload={handleDownload}
+            onEdit={handleEdit}
           />
         </Stack>
       </Box>
       
-      {/* Create Model Modal */}
+      {/* Create/Edit Model Modal */}
       <ModelUploadDialog 
         opened={createModalOpened} 
-        onClose={() => setCreateModalOpened(false)}
-        title="Create New Model"
+        onClose={() => {
+          setCreateModalOpened(false);
+          setEditingModel(null);
+        }}
+        title={editingModel ? t("models:actions.editTitle") : t("models:actions.createTitle")}
+        isEditMode={!!editingModel}
+        initialConfig={editingModel ? {
+          id: 1,
+          name: editingModel.name,
+          description: editingModel.description || "",
+          task: editingModel.type,
+          labels: [
+            {
+              id: "1",
+              name: "Vehicle",
+              color: "#FF6B6B",
+              confidence: 0.7,
+              enabled: true
+            }
+          ]
+        } : undefined}
         onModelConfigured={(config) => {
-          console.log('Model configured:', config);
+          console.log(editingModel ? 'Model updated:' : 'Model created:', config);
           // Show success notification
           notifications.show({
-            title: 'Model Created Successfully',
-            message: `${config.name} with ${config.labels.length} labels has been configured`,
+            title: editingModel ? 'Model Updated Successfully' : 'Model Created Successfully',
+            message: editingModel 
+              ? `${config.name} configuration has been updated`
+              : `${config.name} with ${config.labels.length} labels has been configured`,
             color: 'green',
             icon: <IconCheck size={16} />
           });
           // Here you can integrate with your model storage system
-          // For example: saveModelToBackend(config);
+          // For example: 
+          // if (editingModel) {
+          //   updateModelInBackend(editingModel.id, config);
+          // } else {
+          //   saveModelToBackend(config);
+          // }
           setCreateModalOpened(false);
+          setEditingModel(null);
         }}
       />
     </PageLayout>

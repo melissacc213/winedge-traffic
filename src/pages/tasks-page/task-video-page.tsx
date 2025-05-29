@@ -36,7 +36,7 @@ const STAGE_WIDTH = 600;
 const STAGE_HEIGHT = 400;
 
 export function TaskVideoPage() {
-  const { t } = useTranslation(['common', 'recipes']);
+  const { t } = useTranslation(['common', 'recipes', 'tasks']);
   const mantineTheme = useMantineTheme();
   const { theme, colorScheme } = useTheme();
   
@@ -302,7 +302,7 @@ export function TaskVideoPage() {
                           variant="outline"
                           onClick={() => stepFrame('backward')}
                         >
-                          Prev Frame
+                          {t('tasks:video.prevFrame')}
                         </Button>
                         <Button
                           rightSection={<IconChevronRight size={16} />}
@@ -310,7 +310,7 @@ export function TaskVideoPage() {
                           variant="outline"
                           onClick={() => stepFrame('forward')}
                         >
-                          Next Frame
+                          {t('tasks:video.nextFrame')}
                         </Button>
                       </Group>
 
@@ -338,7 +338,7 @@ export function TaskVideoPage() {
                       <ThemeIcon size={64} radius="xl" variant="light" color="gray">
                         <IconVideo size={32} />
                       </ThemeIcon>
-                      <Text c="dimmed">No video loaded</Text>
+                      <Text c="dimmed">{t('tasks:video.noVideoLoaded')}</Text>
                     </Stack>
                   </Center>
                 )}
@@ -346,11 +346,11 @@ export function TaskVideoPage() {
                 {currentVideoSrc && (
                   <Group justify="center" mt="md" gap="xs">
                     <Badge color="blue" leftSection={<IconVideo size={12} />}>
-                      {uploadedFile ? 'Custom' : 'Sample'} Video
+                      {uploadedFile ? t('tasks:video.customVideo') : t('tasks:video.sampleVideo')}
                     </Badge>
                     {capturedFrame && (
                       <Badge color="green">
-                        Frame: {capturedFrame.frameTime.toFixed(2)}s
+                        {t('tasks:video.frame')}: {capturedFrame.frameTime.toFixed(2)}s
                       </Badge>
                     )}
                   </Group>

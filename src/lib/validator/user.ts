@@ -4,15 +4,18 @@ export const selfSchema = z.object({
   id: z.string(),
   username: z.string(),
   email: z.string(),
+  role: z.string().optional(),
   date_joined: z.string().nullish(),
   is_superuser: z.boolean().nullish(),
-  is_owner: z.boolean().nullish(),
+  is_active: z.boolean().nullish(),
+  first_name: z.string().nullish(),
+  last_name: z.string().nullish(),
   expiry_time: z.string().nullish(),
 });
 export type Self = z.infer<typeof selfSchema>;
 
-// User role enum
-export const userRoleSchema = z.enum(['Admin', 'Operator', 'Viewer']);
+// User role enum - matching API exactly
+export const userRoleSchema = z.enum(['admin', 'Operator']);
 export type UserRole = z.infer<typeof userRoleSchema>;
 
 // Create user schema
@@ -20,7 +23,7 @@ export const createUserSchema = z.object({
   username: z.string()
     .min(3, 'Username must be at least 3 characters')
     .max(50, 'Username must be less than 50 characters')
-    .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens'),
+    .regex(/^[a-zA-Z0-9_.-]+$/, 'Username can only contain letters, numbers, dots, underscores, and hyphens'),
   email: z.string()
     .email('Invalid email address')
     .max(100, 'Email must be less than 100 characters'),
@@ -45,15 +48,22 @@ export const updateUserSchema = z.object({
 
 export type UpdateUserRequest = z.infer<typeof updateUserSchema>;
 
-// User response schema
+// User response schema - matching API structure
 export const userSchema = z.object({
-  id: z.number(),
+  id: z.string(),
   username: z.string(),
   email: z.string(),
   role: userRoleSchema,
-  active: z.boolean(),
-  created_at: z.string(),
-  updated_at: z.string(),
+  is_superuser: z.boolean().optional(),
+  first_name: z.string().optional(),
+  last_name: z.string().optional(),
+  is_active: z.boolean().optional(),
+  date_joined: z.string().optional(),
+  expiry_time: z.string().nullable().optional(),
+  // For backwards compatibility with mock data
+  active: z.boolean().optional(),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
   last_login: z.string().nullable().optional(),
 });
 

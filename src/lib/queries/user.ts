@@ -173,21 +173,34 @@ export function useToggleUserStatus() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ id, active }: { id: number; active: boolean }) => 
+    mutationFn: ({ id, active }: { id: string; active: boolean }) => 
       userManagementService.toggleUserStatus(id, active),
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: userKeys.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: userKeys.lists() });
-      notifications.show({
-        title: 'Success',
-        message: `User ${variables.active ? 'activated' : 'deactivated'} successfully`,
-        color: 'green',
-      });
     },
     onError: (error: any) => {
       notifications.show({
         title: 'Error',
         message: error.response?.data?.message || 'Failed to update user status',
+        color: 'red',
+      });
+    },
+  });
+}
+
+// Delete user mutation
+export function useDeleteUser() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (id: string) => userManagementService.deleteUser(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+    },
+    onError: (error: any) => {
+      notifications.show({
+        title: 'Error',
+        message: error.response?.data?.message || 'Failed to delete user',
         color: 'red',
       });
     },

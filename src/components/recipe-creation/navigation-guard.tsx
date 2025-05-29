@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useBlocker, useNavigate } from "react-router-dom";
-import { Modal, Text, Button, Group, Stack } from "@mantine/core";
 import { useRecipeStore } from "../../lib/store/recipe-store";
+import { ConfirmationModal } from "../ui/confirmation-modal";
 
 export function RecipeNavigationGuard() {
   const { isDirty, resetForm } = useRecipeStore();
@@ -70,35 +70,17 @@ export function RecipeNavigationGuard() {
   }, [resetForm]);
 
   return (
-    <Modal
+    <ConfirmationModal
       opened={showModal}
       onClose={handleCancel}
+      onConfirm={handleConfirm}
       title="Leave Recipe Creation?"
-      centered
+      message="You have unsaved changes in your recipe. Are you sure you want to leave? All your progress will be lost."
+      confirmText="Leave Without Saving"
+      cancelText="Continue Editing"
+      confirmColor="red"
+      icon="warning"
       size="md"
-    >
-      <Stack gap="md">
-        <Text size="sm">
-          You have unsaved changes in your recipe. Are you sure you want to
-          leave? All your progress will be lost.
-        </Text>
-        <Group justify="space-between" gap="sm" wrap="nowrap">
-          <Button
-            variant="outline"
-            onClick={handleCancel}
-            style={{ whiteSpace: "nowrap" }}
-          >
-            Continue Editing
-          </Button>
-          <Button
-            color="red"
-            onClick={handleConfirm}
-            style={{ whiteSpace: "nowrap" }}
-          >
-            Leave Without Saving
-          </Button>
-        </Group>
-      </Stack>
-    </Modal>
+    />
   );
 }

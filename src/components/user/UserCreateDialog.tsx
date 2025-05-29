@@ -34,6 +34,7 @@ export function UserCreateDialog({ opened, onClose, onSuccess }: UserCreateDialo
       }
       size="md"
       centered
+      withinPortal
     >
       <UserForm 
         onSubmit={handleSubmit} 

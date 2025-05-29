@@ -118,7 +118,7 @@ export function TaskCreationForm() {
             />
           );
         },
-        size: 40,
+        size: 50,
         enableSorting: false,
       }),
       columnHelper.accessor("name", {
@@ -234,83 +234,50 @@ export function TaskCreationForm() {
   };
 
   return (
-    <div
-      style={{
-        height: "calc(100vh - 176px)", // Full viewport minus header/padding
-        display: "flex",
-        flexDirection: "column",
-        gap: "1rem", // Use CSS value instead of theme
-      }}
-    >
-      {/* Top Section: Task Configuration + Task Settings */}
-      <div style={{ display: "flex", gap: "1rem", flexShrink: 0 }}>
-        {/* Task Configuration */}
+    <form onSubmit={form.onSubmit(handleSubmit)}>
+      <Stack gap="lg">
+        {/* Task Configuration Section */}
         <Paper
-          p="md"
+          p="lg"
           radius="md"
           withBorder
           style={{
             backgroundColor: isDark ? theme.colors.dark[8] : theme.white,
             borderColor: isDark ? theme.colors.dark[5] : theme.colors.gray[2],
-            flex: 1,
           }}
         >
-          <Stack gap="sm">
+          <Stack gap="md">
             <div>
-              <Text size="md" fw={600} mb={4}>
+              <Text size="lg" fw={600} mb={4}>
                 {t("tasks:creation.taskConfiguration")}
               </Text>
-              <Text size="xs" c="dimmed">
+              <Text size="sm" c="dimmed">
                 {t("tasks:creation.taskConfigurationDescription")}
               </Text>
             </div>
 
-            <Select
-              label={t("tasks:taskType.title")}
-              placeholder={t("tasks:taskType.placeholder")}
-              data={[
-                {
-                  value: "trafficStatistics",
-                  label: t("tasks:taskType.trafficStatistics"),
-                },
-                {
-                  value: "trainDetection",
-                  label: t("tasks:taskType.trainDetection"),
-                },
-              ]}
-              leftSection={<Icons.Target size={16} />}
-              size="sm"
-              {...form.getInputProps("taskType")}
-              onChange={(value) =>
-                handleTaskTypeChange(value as TaskType | null)
-              }
-            />
-          </Stack>
-        </Paper>
-
-        {/* Task Settings */}
-        <Paper
-          p="md"
-          radius="md"
-          withBorder
-          style={{
-            backgroundColor: isDark ? theme.colors.dark[8] : theme.white,
-            borderColor: isDark ? theme.colors.dark[5] : theme.colors.gray[2],
-            flex: 1,
-          }}
-        >
-          <form onSubmit={form.onSubmit(handleSubmit)}>
-            <Stack gap="sm">
-              <div>
-                <Text size="md" fw={600} mb={4}>
-                  {t("tasks:creation.taskSettings")}
-                </Text>
-                <Text size="xs" c="dimmed">
-                  {t("tasks:creation.taskSettingsDescription")}
-                </Text>
-              </div>
-
-              {/* Local File Path */}
+            <Group grow align="flex-start" gap="md">
+              <Select
+                label={t("tasks:taskType.title")}
+                placeholder={t("tasks:taskType.placeholder")}
+                data={[
+                  {
+                    value: "trafficStatistics",
+                    label: t("tasks:taskType.trafficStatistics"),
+                  },
+                  {
+                    value: "trainDetection",
+                    label: t("tasks:taskType.trainDetection"),
+                  },
+                ]}
+                leftSection={<Icons.Target size={16} />}
+                size="sm"
+                {...form.getInputProps("taskType")}
+                onChange={(value) =>
+                  handleTaskTypeChange(value as TaskType | null)
+                }
+              />
+              
               <TextInput
                 label={t("tasks:creation.localPath")}
                 placeholder={t("tasks:creation.localPathPlaceholder")}
@@ -318,211 +285,82 @@ export function TaskCreationForm() {
                 size="sm"
                 {...form.getInputProps("localPath")}
               />
-
-              {/* Start Immediately Checkbox */}
-              <Checkbox
-                label={t("tasks:creation.startImmediately")}
-                size="sm"
-                {...form.getInputProps("startImmediately", {
-                  type: "checkbox",
-                })}
-              />
-
-              {/* Error Alert */}
-              {createTaskMutation.isError && (
-                <Alert
-                  variant="light"
-                  color="red"
-                  icon={<Icons.AlertCircle size={16} />}
-                  p="xs"
-                >
-                  <Text size="xs">
-                    {createTaskMutation.error?.message ||
-                      t("common:error.generic")}
-                  </Text>
-                </Alert>
-              )}
-
-              {/* Submit Button */}
-              <Group justify="flex-end" mt="xs">
-                <Button
-                  type="button"
-                  variant="default"
-                  onClick={() => navigate("/tasks")}
-                  disabled={createTaskMutation.isPending}
-                  size="sm"
-                >
-                  {t("common:cancel")}
-                </Button>
-                <Button
-                  type="submit"
-                  loading={createTaskMutation.isPending}
-                  leftSection={
-                    !createTaskMutation.isPending && <Icons.Plus size={16} />
-                  }
-                  disabled={!form.values.recipeId || !form.values.localPath}
-                  size="sm"
-                >
-                  {createTaskMutation.isPending ? (
-                    <Group gap="xs">
-                      <Loader size="xs" />
-                      <span>{t("common:saving")}</span>
-                    </Group>
-                  ) : (
-                    t("tasks:creation.createTask")
-                  )}
-                </Button>
-              </Group>
-            </Stack>
-          </form>
-        </Paper>
-      </div>
-
-      {/* Recipe Selection Section - Compact height */}
-      <Paper
-        p="md"
-        radius="md"
-        withBorder
-        style={{
-          backgroundColor: isDark ? theme.colors.dark[8] : theme.white,
-          borderColor: isDark ? theme.colors.dark[5] : theme.colors.gray[2],
-          height: "400px", // Fixed compact height
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <div style={{ marginBottom: "0.5rem", flexShrink: 0 }}>
-          <Text size="sm" fw={600} mb={2}>
-            {t("tasks:creation.selectRecipe")}
-          </Text>
-          <Text size="xs" c="dimmed">
-            {t("tasks:creation.selectRecipeDescription")}
-          </Text>
-        </div>
-
-        {!form.values.taskType ? (
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Stack align="center" gap="sm">
-              <Icons.Recipe size={40} style={{ opacity: 0.5 }} />
-              <Text size="sm" c="dimmed" ta="center">
-                {t("tasks:creation.selectTaskTypeFirst")}
-              </Text>
-              <Text size="xs" c="dimmed" ta="center">
-                {t("tasks:creation.selectTaskTypeFirstDescription")}
-              </Text>
-            </Stack>
-          </div>
-        ) : filteredRecipes.length === 0 ? (
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Stack align="center" gap="sm">
-              <Icons.AlertCircle size={40} style={{ opacity: 0.5 }} />
-              <Text size="sm" c="dimmed" ta="center">
-                {t("tasks:creation.noRecipesAvailable")}
-              </Text>
-              <Text size="xs" c="dimmed" ta="center">
-                {t("tasks:creation.noRecipesAvailableDescription")}
-              </Text>
-            </Stack>
-          </div>
-        ) : (
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              minHeight: 0,
-            }}
-          >
-            {/* Compact Table controls */}
-            <Group justify="space-between" mb="xs" style={{ flexShrink: 0 }}>
-              <Text size="xs" c="dimmed" fw={500}>
-                {t("common:pagination.showing", {
-                  from:
-                    table.getState().pagination.pageIndex *
-                      table.getState().pagination.pageSize +
-                    1,
-                  to: Math.min(
-                    (table.getState().pagination.pageIndex + 1) *
-                      table.getState().pagination.pageSize,
-                    filteredRecipes.length
-                  ),
-                  total: filteredRecipes.length,
-                })}
-              </Text>
-              <Group gap="xs">
-                <Text size="xs" c="dimmed">
-                  {t("common:pagination.itemsPerPage")}:
-                </Text>
-                <Select
-                  size="xs"
-                  w={60}
-                  value={table.getState().pagination.pageSize.toString()}
-                  onChange={handlePageSizeChange}
-                  data={["5", "10", "15", "20"]}
-                  styles={{
-                    input: {
-                      fontSize: "11px",
-                      padding: "4px 8px",
-                      height: "24px",
-                      minHeight: "24px",
-                    },
-                  }}
-                />
-              </Group>
             </Group>
+          </Stack>
+        </Paper>
 
-            {/* React Table with fixed height and internal scroll */}
-            <div
-              style={{
-                flex: 1,
-                overflow: "hidden",
-                border: `1px solid ${isDark ? theme.colors.dark[5] : theme.colors.gray[2]}`,
-                borderRadius: "0.5rem",
-              }}
-            >
-              <div
-                style={{
-                  height: "100%",
-                  overflow: "auto",
-                  backgroundColor: isDark
-                    ? theme.colors.dark[7]
-                    : theme.colors.gray[0],
-                }}
-              >
-                <Table
-                  striped
-                  highlightOnHover
-                  verticalSpacing="xs"
-                  style={{ height: "fit-content" }}
+        {/* Recipe Selection Section */}
+        <Paper
+          p="lg"
+          radius="md"
+          withBorder
+          style={{
+            backgroundColor: isDark ? theme.colors.dark[8] : theme.white,
+            borderColor: isDark ? theme.colors.dark[5] : theme.colors.gray[2],
+          }}
+        >
+          <Stack gap="md">
+            <div>
+              <Text size="lg" fw={600} mb={4}>
+                {t("tasks:creation.selectRecipe")}
+              </Text>
+              <Text size="sm" c="dimmed">
+                {t("tasks:creation.selectRecipeDescription")}
+              </Text>
+            </div>
+
+            {!form.values.taskType ? (
+              <Center h={200}>
+                <Stack align="center" gap="sm">
+                  <Icons.Recipe size={48} style={{ opacity: 0.3 }} />
+                  <Text size="sm" c="dimmed" ta="center">
+                    {t("tasks:creation.selectTaskTypeFirst")}
+                  </Text>
+                  <Text size="xs" c="dimmed" ta="center">
+                    {t("tasks:creation.selectTaskTypeFirstDescription")}
+                  </Text>
+                </Stack>
+              </Center>
+            ) : filteredRecipes.length === 0 ? (
+              <Center h={200}>
+                <Stack align="center" gap="sm">
+                  <Icons.AlertCircle size={48} style={{ opacity: 0.3 }} />
+                  <Text size="sm" c="dimmed" ta="center">
+                    {t("tasks:creation.noRecipesAvailable")}
+                  </Text>
+                  <Text size="xs" c="dimmed" ta="center">
+                    {t("tasks:creation.noRecipesAvailableDescription")}
+                  </Text>
+                </Stack>
+              </Center>
+            ) : (
+              <Stack gap="sm">
+                {/* Fixed height container for table */}
+                <div
+                  style={{
+                    height: '400px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    border: `1px solid ${isDark ? theme.colors.dark[5] : theme.colors.gray[2]}`,
+                    borderRadius: "0.5rem",
+                    overflow: "hidden",
+                  }}
                 >
-                  <Table.Thead
-                    style={{
-                      position: "sticky",
-                      top: 0,
-                      backgroundColor: isDark
-                        ? theme.colors.dark[6]
-                        : theme.colors.gray[1],
-                      zIndex: 10,
-                      boxShadow: isDark
-                        ? "0 2px 8px rgba(0, 0, 0, 0.3)"
-                        : "0 2px 8px rgba(0, 0, 0, 0.1)",
-                      borderBottom: `2px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[3]}`,
-                    }}
-                  >
+                  {/* Table wrapper with scroll */}
+                  <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+                    <Table
+                      striped
+                      highlightOnHover
+                      verticalSpacing="sm"
+                      stickyHeader
+                    >
+                    <Table.Thead
+                      style={{
+                        backgroundColor: isDark
+                          ? theme.colors.dark[6]
+                          : theme.colors.gray[1],
+                      }}
+                    >
                     {table.getHeaderGroups().map((headerGroup) => (
                       <Table.Tr key={headerGroup.id}>
                         {headerGroup.headers.map((header) => (
@@ -530,13 +368,15 @@ export function TaskCreationForm() {
                             key={header.id}
                             style={{
                               width:
-                                header.getSize() === 150
+                                header.column.id === 'select'
+                                  ? '50px'
+                                  : header.getSize() === 150
                                   ? header.getSize()
                                   : undefined,
                               cursor: header.column.getCanSort()
                                 ? "pointer"
                                 : "default",
-                              padding: "0.75rem 0.5rem",
+                              padding: header.column.id === 'select' ? "0.75rem 0.25rem 0.75rem 0.75rem" : "0.75rem 0.5rem",
                               backgroundColor: "transparent",
                               borderBottom: "none",
                               transition: "background-color 0.15s ease",
@@ -658,7 +498,7 @@ export function TaskCreationForm() {
                               <Table.Td
                                 key={cell.id}
                                 style={{
-                                  padding: "0.75rem 0.5rem",
+                                  padding: cell.column.id === 'select' ? "0.75rem 0.25rem 0.75rem 0.75rem" : "0.75rem 0.5rem",
                                   borderBottom: `1px solid ${isDark ? theme.colors.dark[5] : theme.colors.gray[2]}`,
                                   verticalAlign: "middle",
                                 }}
@@ -674,95 +514,164 @@ export function TaskCreationForm() {
                       })
                     )}
                   </Table.Tbody>
-                </Table>
-              </div>
-            </div>
-
-            {/* Compact React Table Pagination */}
-            {table.getPageCount() > 1 && (
-              <div
-                style={{
-                  flexShrink: 0,
-                  marginTop: "0.5rem",
-                  padding: "0.5rem",
-                  backgroundColor: isDark
-                    ? theme.colors.dark[6]
-                    : theme.colors.gray[1],
-                  borderTop: `1px solid ${isDark ? theme.colors.dark[5] : theme.colors.gray[2]}`,
-                  borderRadius: "0 0 0.5rem 0.5rem",
-                }}
-              >
-                <Group justify="center" gap="xs">
-                  <Button
-                    variant="subtle"
-                    size="xs"
-                    onClick={() => table.setPageIndex(0)}
-                    disabled={!table.getCanPreviousPage()}
-                    px="xs"
-                    h="28px"
-                    style={{ minWidth: "28px" }}
-                  >
-                    <Icons.ChevronsLeft size={12} />
-                  </Button>
-                  <Button
-                    variant="subtle"
-                    size="xs"
-                    onClick={() => table.previousPage()}
-                    disabled={!table.getCanPreviousPage()}
-                    px="xs"
-                    h="28px"
-                    style={{ minWidth: "28px" }}
-                  >
-                    <Icons.ChevronLeft size={12} />
-                  </Button>
-
-                  <Text
-                    size="xs"
-                    c="dimmed"
-                    fw={500}
+                    </Table>
+                  </div>
+                  
+                  {/* Pagination at bottom of table container */}
+                  <div
                     style={{
-                      minWidth: "60px",
-                      textAlign: "center",
-                      padding: "6px 12px",
-                      backgroundColor: isDark
-                        ? theme.colors.dark[8]
-                        : theme.white,
-                      borderRadius: "4px",
-                      border: `1px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[3]}`,
+                      borderTop: `1px solid ${isDark ? theme.colors.dark[5] : theme.colors.gray[2]}`,
+                      padding: '0.75rem',
+                      backgroundColor: isDark ? theme.colors.dark[7] : theme.colors.gray[0],
                     }}
                   >
-                    {table.getState().pagination.pageIndex + 1} /{" "}
-                    {table.getPageCount()}
-                  </Text>
+                    <Group justify="space-between" align="center">
+                      {/* Left side: Showing count */}
+                      <Text size="sm" c="dimmed">
+                        {t("common:pagination.showing", {
+                          from:
+                            table.getState().pagination.pageIndex *
+                              table.getState().pagination.pageSize +
+                            1,
+                          to: Math.min(
+                            (table.getState().pagination.pageIndex + 1) *
+                              table.getState().pagination.pageSize,
+                            filteredRecipes.length
+                          ),
+                          total: filteredRecipes.length,
+                        })}
+                      </Text>
+                      
+                      {/* Center: Page navigation */}
+                      <Group gap="xs">
+                        <Button
+                          variant="subtle"
+                          size="xs"
+                          onClick={() => table.setPageIndex(0)}
+                          disabled={!table.getCanPreviousPage()}
+                        >
+                          <Icons.ChevronsLeft size={14} />
+                        </Button>
+                        <Button
+                          variant="subtle"
+                          size="xs"
+                          onClick={() => table.previousPage()}
+                          disabled={!table.getCanPreviousPage()}
+                        >
+                          <Icons.ChevronLeft size={14} />
+                        </Button>
 
-                  <Button
-                    variant="subtle"
-                    size="xs"
-                    onClick={() => table.nextPage()}
-                    disabled={!table.getCanNextPage()}
-                    px="xs"
-                    h="28px"
-                    style={{ minWidth: "28px" }}
-                  >
-                    <Icons.ChevronRight size={12} />
-                  </Button>
-                  <Button
-                    variant="subtle"
-                    size="xs"
-                    onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                    disabled={!table.getCanNextPage()}
-                    px="xs"
-                    h="28px"
-                    style={{ minWidth: "28px" }}
-                  >
-                    <Icons.ChevronsRight size={12} />
-                  </Button>
-                </Group>
-              </div>
+                        <Text size="sm" c="dimmed" fw={500}>
+                          {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
+                        </Text>
+
+                        <Button
+                          variant="subtle"
+                          size="xs"
+                          onClick={() => table.nextPage()}
+                          disabled={!table.getCanNextPage()}
+                        >
+                          <Icons.ChevronRight size={14} />
+                        </Button>
+                        <Button
+                          variant="subtle"
+                          size="xs"
+                          onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                          disabled={!table.getCanNextPage()}
+                        >
+                          <Icons.ChevronsRight size={14} />
+                        </Button>
+                      </Group>
+                      
+                      {/* Right side: Items per page */}
+                      <Group gap="xs">
+                        <Text size="sm" c="dimmed">
+                          {t("common:pagination.itemsPerPage")}:
+                        </Text>
+                        <Select
+                          size="xs"
+                          w={70}
+                          value={table.getState().pagination.pageSize.toString()}
+                          onChange={handlePageSizeChange}
+                          data={["10", "20", "30", "50"]}
+                        />
+                      </Group>
+                    </Group>
+                  </div>
+                </div>
+              </Stack>
             )}
-          </div>
-        )}
-      </Paper>
-    </div>
+          </Stack>
+        </Paper>
+
+        {/* Action Section with better layout */}
+        <Paper
+          p="lg"
+          radius="md"
+          withBorder
+          style={{
+            backgroundColor: isDark ? theme.colors.dark[8] : theme.white,
+            borderColor: isDark ? theme.colors.dark[5] : theme.colors.gray[2],
+          }}
+        >
+          <Group justify="space-between" align="center">
+            {/* Left side: Start immediately checkbox */}
+            <Checkbox
+              label={t("tasks:creation.startImmediately")}
+              size="md"
+              {...form.getInputProps("startImmediately", {
+                type: "checkbox",
+              })}
+            />
+            
+            {/* Right side: Action buttons */}
+            <Group gap="sm">
+              <Button
+                type="button"
+                variant="default"
+                onClick={() => navigate("/tasks")}
+                disabled={createTaskMutation.isPending}
+                size="md"
+              >
+                {t("common:cancel")}
+              </Button>
+              <Button
+                type="submit"
+                loading={createTaskMutation.isPending}
+                leftSection={
+                  !createTaskMutation.isPending && <Icons.Plus size={18} />
+                }
+                disabled={!form.values.recipeId || !form.values.localPath}
+                size="md"
+              >
+                {createTaskMutation.isPending ? (
+                  <Group gap="xs">
+                    <Loader size="sm" />
+                    <span>{t("common:saving")}</span>
+                  </Group>
+                ) : (
+                  t("tasks:creation.createTask")
+                )}
+              </Button>
+            </Group>
+          </Group>
+          
+          {/* Error Alert */}
+          {createTaskMutation.isError && (
+            <Alert
+              variant="light"
+              color="red"
+              icon={<Icons.AlertCircle size={16} />}
+              mt="md"
+            >
+              <Text size="sm">
+                {createTaskMutation.error?.message ||
+                  t("common:error.generic")}
+              </Text>
+            </Alert>
+          )}
+        </Paper>
+      </Stack>
+    </form>
   );
 }

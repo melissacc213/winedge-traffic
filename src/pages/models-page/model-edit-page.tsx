@@ -6,26 +6,24 @@ import {
   Paper,
   Group,
   Title,
-  Button,
   Box,
   Alert,
   ActionIcon,
 } from "@mantine/core";
 import {
   IconArrowLeft,
-  IconDeviceFloppy,
-  IconX,
+  IconCheck,
   IconAlertCircle,
 } from "@tabler/icons-react";
 import { PageLayout } from "@/components/page-layout/page-layout";
 import { PageLoader } from "@/components/ui";
-import { ModelConfigEditor } from "@/components/model-config-editor";
+import { ModelUploadDialog } from "@/components/model-config-editor";
 import { useModelDetails } from "@/lib/queries/model";
 import { useModelStore } from "@/lib/store/model-store";
 import { useTheme } from "@/providers/theme-provider";
 import type { ModelConfig } from "../../types/model";
 import { notifications } from "@mantine/notifications";
-import { modals } from "@mantine/modals";
+import { getMockModelConfig } from "@/lib/config/mock-model-config";
 
 export function ModelEditPage() {
   const { t } = useTranslation(["models", "common"]);
@@ -35,146 +33,43 @@ export function ModelEditPage() {
   const updateModel = useModelStore((state) => state.updateModel);
 
   const { data: model, isLoading, error } = useModelDetails(modelId!);
-  const [config, setConfig] = useState<ModelConfig | null>(null);
-  const [hasChanges, setHasChanges] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [editModalOpened, setEditModalOpened] = useState(false);
 
   const isDark = colorScheme === "dark";
   const cardBg = isDark ? theme.colors.gray[9] : "white";
 
-  // Initialize config when model loads
+  // Open edit modal when component loads
   useEffect(() => {
-    if (model && !config) {
-      // Mock model config for demonstration
-      const mockConfig: ModelConfig = {
-        name: model.name,
-        description: model.description,
-        task: "object_detection",
-        labels: [
-          {
-            id: "1",
-            name: "car",
-            color: "#FF6B6B",
-            confidence: 0.75,
-            width_threshold: 32,
-            height_threshold: 32,
-            enabled: true,
-          },
-          {
-            id: "2",
-            name: "truck",
-            color: "#4ECDC4",
-            confidence: 0.8,
-            width_threshold: 48,
-            height_threshold: 48,
-            enabled: true,
-          },
-          {
-            id: "3",
-            name: "bus",
-            color: "#45B7D1",
-            confidence: 0.7,
-            width_threshold: 64,
-            height_threshold: 64,
-            enabled: true,
-          },
-          {
-            id: "4",
-            name: "motorcycle",
-            color: "#FFA07A",
-            confidence: 0.65,
-            width_threshold: 24,
-            height_threshold: 24,
-            enabled: false,
-          },
-          {
-            id: "5",
-            name: "bicycle",
-            color: "#98D8C8",
-            confidence: 0.6,
-            width_threshold: 20,
-            height_threshold: 20,
-            enabled: true,
-          },
-        ],
-      };
-      setConfig(mockConfig);
+    if (model && !error) {
+      setEditModalOpened(true);
     }
-  }, [model, config]);
+  }, [model, error]);
 
-  const handleConfigChange = (newConfig: ModelConfig) => {
-    setConfig(newConfig);
-    setHasChanges(true);
-  };
+  // Use the enhanced mock config function with task support
+  const getMockConfig = (model: { name: string; description?: string; type?: string; task?: string }) => 
+    getMockModelConfig(model, model?.task);
 
-  const handleSave = async () => {
-    if (!config || !model) return;
+  const handleModelConfigured = (config: ModelConfig) => {
+    // Update model in store
+    updateModel(modelId!, {
+      name: config.name,
+      description: config.description,
+    });
 
-    setIsSaving(true);
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    notifications.show({
+      title: t("models:edit.save.success"),
+      message: t("models:edit.save.success_message"),
+      color: "green",
+      icon: <IconCheck size={16} />
+    });
 
-      // Update model in store
-      updateModel(model.id, {
-        name: config.name,
-        description: config.description,
-      });
-
-      notifications.show({
-        title: t("models:edit.save.success"),
-        message: t("models:edit.save.success_message"),
-        color: "green",
-      });
-
-      setHasChanges(false);
-    } catch (error) {
-      notifications.show({
-        title: t("models:edit.save.error"),
-        message: error instanceof Error ? error.message : "Unknown error",
-        color: "red",
-      });
-    } finally {
-      setIsSaving(false);
-    }
+    // Navigate back to models page
+    navigate("/models");
   };
 
   const handleCancel = () => {
-    if (hasChanges) {
-      modals.openConfirmModal({
-        title: t("models:edit.unsaved_changes.title"),
-        children: t("models:edit.unsaved_changes.message"),
-        labels: {
-          confirm: t("common:action.discard"),
-          cancel: t("common:action.cancel"),
-        },
-        confirmProps: { color: "red" },
-        onConfirm: () => navigate(`/models/${modelId}`),
-      });
-    } else {
-      navigate(`/models/${modelId}`);
-    }
-  };
-
-  const handleExport = () => {
-    if (!config) return;
-
-    // Create JSON file for download
-    const dataStr = JSON.stringify(config, null, 2);
-    const dataUri =
-      "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
-    const exportFileDefaultName = `${config.name.replace(/\s+/g, "_")}_config.json`;
-
-    const linkElement = document.createElement("a");
-    linkElement.setAttribute("href", dataUri);
-    linkElement.setAttribute("download", exportFileDefaultName);
-    linkElement.click();
-
-    notifications.show({
-      title: t("models:edit.export.success"),
-      message: t("models:edit.export.success_message"),
-      color: "green",
-    });
+    setEditModalOpened(false);
+    navigate("/models");
   };
 
   if (isLoading) {
@@ -193,10 +88,6 @@ export function ModelEditPage() {
         </Alert>
       </PageLayout>
     );
-  }
-
-  if (!config) {
-    return <PageLoader />;
   }
 
   return (
@@ -218,48 +109,20 @@ export function ModelEditPage() {
                 <Title order={3}>{t("models:edit.title")}</Title>
               </Box>
             </Group>
-
-            <Group gap="sm">
-              <Button
-                variant="subtle"
-                color="gray"
-                leftSection={<IconX size={16} />}
-                onClick={handleCancel}
-              >
-                {t("common:action.cancel")}
-              </Button>
-              <Button
-                variant="filled"
-                color="blue"
-                leftSection={<IconDeviceFloppy size={16} />}
-                onClick={handleSave}
-                loading={isSaving}
-                disabled={!hasChanges}
-              >
-                {t("common:action.save")}
-              </Button>
-            </Group>
           </Group>
         </Paper>
 
-        {/* Show unsaved changes alert */}
-        {hasChanges && (
-          <Alert
-            icon={<IconAlertCircle size={16} />}
-            title={t("models:edit.unsaved_changes.alert")}
-            color="yellow"
-            withCloseButton={false}
-          >
-            {t("models:edit.unsaved_changes.alert_message")}
-          </Alert>
+        {/* Model Edit Dialog */}
+        {model && (
+          <ModelUploadDialog
+            opened={editModalOpened}
+            onClose={handleCancel}
+            title={t("models:edit.title")}
+            onModelConfigured={handleModelConfigured}
+            isEditMode={true}
+            initialConfig={getMockConfig(model)}
+          />
         )}
-
-        {/* Model Configuration Editor */}
-        <ModelConfigEditor
-          config={config}
-          onConfigChange={handleConfigChange}
-          onExport={handleExport}
-        />
       </Stack>
     </PageLayout>
   );

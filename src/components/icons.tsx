@@ -1,15 +1,14 @@
-import { IconMemo } from "./ui/icon-memo";
 import React from "react";
 import type { ComponentPropsWithoutRef } from "react";
 import { RawIcons } from "./ui/icon-map";
 
-// Define the icon props type based on IconMemo props
+// Define the icon props type
 export type IconProps = {
-  size?: "xs" | "sm" | "md" | "lg" | "xl" | number;
+  size?: number;
   color?: string;
   className?: string;
   stroke?: number;
-} & Omit<ComponentPropsWithoutRef<"div">, "color">;
+} & Omit<ComponentPropsWithoutRef<"svg">, "color">;
 
 // Create a type for the Icons object
 export type IconsType = {
@@ -21,23 +20,28 @@ export type IconsType = {
  * These components won't re-render unless their props change
  *
  * Usage:
- * <Icons.Task size="md" color="blue" />
+ * <Icons.Task size={24} color="blue" />
  */
 export const Icons = Object.entries(RawIcons).reduce((acc, [name, Icon]) => {
   acc[name as keyof typeof RawIcons] = React.memo(
-    ({ size, color, className, stroke, ...props }: IconProps) => (
-      <IconMemo
-        icon={
-          <Icon
-            size={size}
-            color={color}
-            stroke={stroke}
-            className={className}
-          />
-        }
-        {...props}
-      />
-    )
+    ({ size = 24, color, className, stroke, ...props }: IconProps) => {
+      // Ensure Icon is defined
+      if (!Icon) {
+        console.error(`Icon ${name} is undefined`);
+        return null;
+      }
+      
+      return (
+        <Icon
+          size={size}
+          color={color}
+          stroke={stroke}
+          className={className}
+          {...props}
+        />
+      );
+    }
   );
+  acc[name as keyof typeof RawIcons].displayName = `Icons.${name}`;
   return acc;
 }, {} as IconsType);

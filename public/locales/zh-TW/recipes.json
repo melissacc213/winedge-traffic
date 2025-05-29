@@ -44,6 +44,7 @@
   "actions": {
     "create": "創建配方",
     "view": "查看配方",
+    "viewDetails": "查看詳情",
     "edit": "編輯配方",
     "delete": "刪除配方",
     "run": "運行配方"
@@ -176,5 +177,98 @@
     "previous": "上一步",
     "save": "保存",
     "cancel": "取消"
+  },
+  "details": {
+    "notFound": "配方未找到",
+    "notFoundDescription": "您尋找的配方不存在或已被刪除。",
+    "createdOn": "創建於{{date}}",
+    "tabs": {
+      "overview": "概覽",
+      "configuration": "配置", 
+      "regions": "區域",
+      "model": "模型",
+      "usage": "使用情況"
+    },
+    "description": "描述",
+    "metrics": "關鍵指標",
+    "totalTasks": "總任務數",
+    "successRate": "成功率",
+    "quickInfo": "快速信息",
+    "processingTime": "平均處理時間",
+    "lastUsed": "最後使用",
+    "modelSize": "模型大小",
+    "recentActivity": "最近活動",
+    "taskConfiguration": "任務配置",
+    "frameInterval": "幀間隔",
+    "confidenceThreshold": "置信度閾值",
+    "speedEstimation": "速度估算",
+    "vehicleClasses": "車輛類別",
+    "countingLines": "計數線",
+    "regionConfiguration": "區域配置",
+    "modelConfiguration": "模型配置",
+    "detectionLabels": "檢測標籤",
+    "usageHistory": "使用歷史",
+    "performanceStats": "性能統計",
+    "recommendations": "建議",
+    "processEveryFrames": "每{{count}}幀處理一次",
+    "regionVisualization": "區域可視化",
+    "pointsCount": "{{count}}個點",
+    "type": "類型",
+    "version": "版本",
+    "size": "大小",
+    "label": "標籤",
+    "color": "顏色",
+    "confidence": "置信度",
+    "status": "狀態",
+    "date": "日期",
+    "tasksRun": "執行任務數",
+    "successRateColumn": "成功率",
+    "averageProcessingTime": "平均處理時間",
+    "totalProcessingHours": "總處理小時數",
+    "dataProcessed": "處理的數據",
+    "recommendationBicycle": "考慮降低置信度閾值以更好地檢測自行車",
+    "recommendationExcellent": "此配方成功率為{{rate}}% - 性能優秀！"
+  },
+  "actions": {
+    "createTask": "創建任務"
+  },
+  "confirmDelete": {
+    "title": "刪除配方",
+    "message": "確定要刪除「{{name}}」嗎？此操作無法撤銷。"
+  },
+  "notifications": {
+    "deleteSuccess": "配方已刪除",
+    "deleteSuccessMessage": "配方已成功刪除。",
+    "deleteError": "刪除配方失敗",
+    "updateSuccess": "配方已更新",
+    "updateSuccessMessage": "配方已成功更新。"
+  },
+  "edit": {
+    "title": "編輯配方",
+    "description": "修改配方配置",
+    "save": "保存更改",
+    "unsaved_changes": "未保存的更改",
+    "unsavedChanges": {
+      "title": "未保存的更改",
+      "message": "您有未保存的更改。是否要丟棄它們？"
+    },
+    "tabs": {
+      "regions": "編輯區域",
+      "model": "編輯模型"
+    },
+    "regionConfiguration": "區域配置",
+    "regionDescription": "使用保存的捕獲圖像修改此配方的檢測區域。",
+    "modelConfiguration": "模型配置",
+    "modelDescription": "配置AI模型設置和檢測參數。",
+    "configureModel": "配置模型",
+    "editModelConfiguration": "編輯模型配置",
+    "error": {
+      "title": "加載配方錯誤",
+      "not_found": "未找到配方"
+    }
+  },
+  "taskType": {
+    "trafficStatistics": "交通統計",
+    "trainDetection": "火車檢測"
   }
 }

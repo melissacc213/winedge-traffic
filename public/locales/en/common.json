@@ -23,7 +23,18 @@
     "capture": "Capture",
     "next": "Next",
     "remove": "Remove",
-    "view": "View"
+    "view": "View",
+    "continueEditing": "Continue Editing",
+    "goBack": "Go Back",
+    "stayHere": "Stay Here",
+    "exit": "Exit",
+    "create": "Create",
+    "update": "Update",
+    "submit": "Submit",
+    "close": "Close",
+    "refresh": "Refresh",
+    "export": "Export",
+    "import": "Import"
   },
   "action": {
     "search": "Search...",
@@ -33,7 +44,13 @@
     "upload": "Upload",
     "delete": "Delete",
     "cancel": "Cancel",
-    "view": "View"
+    "view": "View",
+    "edit": "Edit",
+    "save": "Save",
+    "discard": "Discard",
+    "create": "Create",
+    "update": "Update",
+    "submit": "Submit"
   },
   "of": "of",
   "stepsCompleted": "steps completed",
@@ -90,5 +107,10 @@
     "trafficStatistics": "Traffic Statistics",
     "trainDetection": "Train Detection"
   },
-  "videos": "Videos"
+  "videos": "Videos",
+  "enabled": "Enabled",
+  "disabled": "Disabled",
+  "errorOccurred": "An error occurred",
+  "cancel": "Cancel",
+  "error": "Error"
 }
