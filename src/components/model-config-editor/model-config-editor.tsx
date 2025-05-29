@@ -43,7 +43,9 @@ export function ModelConfigEditor({
 }: ModelConfigEditorProps) {
   const { colorScheme, theme } = useTheme();
   const [showOnlyEnabled, setShowOnlyEnabled] = useState(false);
-  const [newlyAddedLabelId, setNewlyAddedLabelId] = useState<string | null>(null);
+  const [newlyAddedLabelId, setNewlyAddedLabelId] = useState<string | null>(
+    null
+  );
 
   const isDark = colorScheme === "dark";
   const cardBg = isDark ? theme.colors.gray[9] : "white";
@@ -140,7 +142,7 @@ export function ModelConfigEditor({
                   Save Changes
                 </Button>
               )}
-              {onExport && (
+              {/* {onExport && (
                 <Button
                   variant="filled"
                   color="blue"
@@ -149,7 +151,7 @@ export function ModelConfigEditor({
                 >
                   Export Config
                 </Button>
-              )}
+              )} */}
             </Group>
           </Group>
 
@@ -214,7 +216,7 @@ export function ModelConfigEditor({
                 </ActionIcon>
               </Tooltip>
 
-              <Button
+              {/* <Button
                 leftSection={<IconPlus size={16} />}
                 variant="light"
                 color="green"
@@ -222,7 +224,7 @@ export function ModelConfigEditor({
                 size="sm"
               >
                 Add Label
-              </Button>
+              </Button> */}
             </Group>
           </Group>
 

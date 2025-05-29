@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 import {
   Modal,
   Stack,
@@ -10,13 +10,13 @@ import {
   Progress,
   FileButton,
   Box,
-  Title
-} from '@mantine/core';
-import { IconUpload, IconCheck, IconX, IconFileZip } from '@tabler/icons-react';
-import { useTheme } from '@/providers/theme-provider';
-import { ModelParser } from '@/lib/model-parser';
-import { ModelConfigEditor } from './model-config-editor';
-import type { ModelConfig } from '@/types/model';
+  Title,
+} from "@mantine/core";
+import { IconUpload, IconCheck, IconX, IconFileZip } from "@tabler/icons-react";
+import { useTheme } from "@/providers/theme-provider";
+import { ModelParser } from "@/lib/model-parser";
+import { ModelConfigEditor } from "./model-config-editor";
+import type { ModelConfig } from "@/types/model";
 
 interface ModelUploadDialogProps {
   opened: boolean;
@@ -29,28 +29,28 @@ export function ModelUploadDialog({
   opened,
   onClose,
   onModelConfigured,
-  title = "Upload & Configure Model"
+  title = "Upload & Configure Model",
 }: ModelUploadDialogProps) {
   const { colorScheme, theme } = useTheme();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [modelConfig, setModelConfig] = useState<ModelConfig | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
-  const isDark = colorScheme === 'dark';
+
+  const isDark = colorScheme === "dark";
   const surfaceBg = isDark ? theme.colors.gray[8] : theme.colors.gray[0];
 
   const handleFileUpload = useCallback(async (file: File | null) => {
     if (!file) return;
-    
+
     setIsUploading(true);
     setUploadProgress(0);
     setError(null);
-    
+
     try {
       // Simulate upload progress
       const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
+        setUploadProgress((prev) => {
           if (prev >= 80) {
             clearInterval(progressInterval);
             return 80;
@@ -58,22 +58,21 @@ export function ModelUploadDialog({
           return prev + 10;
         });
       }, 100);
-      
+
       // Parse the model file
       const result = await ModelParser.parseModelZip(file);
-      
+
       clearInterval(progressInterval);
       setUploadProgress(100);
-      
+
       if (result.success && result.config) {
         setModelConfig(result.config);
         setTimeout(() => setUploadProgress(0), 500);
       } else {
-        setError(result.error || 'Failed to parse model file');
+        setError(result.error || "Failed to parse model file");
       }
-      
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error occurred');
+      setError(err instanceof Error ? err.message : "Unknown error occurred");
     } finally {
       setIsUploading(false);
     }
@@ -88,24 +87,26 @@ export function ModelUploadDialog({
 
   const handleExportConfig = useCallback(() => {
     if (!modelConfig) return;
-    
+
     const exported = ModelParser.exportModelConfig(modelConfig);
-    
+
     // Create and download label file
-    const labelBlob = new Blob([exported.labelFile], { type: 'text/plain' });
+    const labelBlob = new Blob([exported.labelFile], { type: "text/plain" });
     const labelUrl = URL.createObjectURL(labelBlob);
-    const labelLink = document.createElement('a');
+    const labelLink = document.createElement("a");
     labelLink.href = labelUrl;
-    labelLink.download = 'model.label';
+    labelLink.download = "model.label";
     labelLink.click();
     URL.revokeObjectURL(labelUrl);
-    
+
     // Create and download config file
-    const configBlob = new Blob([exported.configFile], { type: 'application/json' });
+    const configBlob = new Blob([exported.configFile], {
+      type: "application/json",
+    });
     const configUrl = URL.createObjectURL(configBlob);
-    const configLink = document.createElement('a');
+    const configLink = document.createElement("a");
     configLink.href = configUrl;
-    configLink.download = 'model_info.json';
+    configLink.download = "model_info.json";
     configLink.click();
     URL.revokeObjectURL(configUrl);
   }, [modelConfig]);
@@ -127,17 +128,17 @@ export function ModelUploadDialog({
       centered
       overlayProps={{
         backgroundOpacity: 0.5,
-        blur: 3
+        blur: 3,
       }}
       styles={{
-        content: { 
-          backgroundColor: isDark ? theme.colors.gray[9] : 'white',
-          border: `1px solid ${isDark ? theme.colors.gray[7] : theme.colors.gray[3]}`
+        content: {
+          backgroundColor: isDark ? theme.colors.gray[9] : "white",
+          border: `1px solid ${isDark ? theme.colors.gray[7] : theme.colors.gray[3]}`,
         },
         header: {
-          backgroundColor: isDark ? theme.colors.gray[9] : 'white',
-          borderBottom: `1px solid ${isDark ? theme.colors.gray[7] : theme.colors.gray[3]}`
-        }
+          backgroundColor: isDark ? theme.colors.gray[9] : "white",
+          borderBottom: `1px solid ${isDark ? theme.colors.gray[7] : theme.colors.gray[3]}`,
+        },
       }}
     >
       <Stack gap="lg">
@@ -150,7 +151,7 @@ export function ModelUploadDialog({
               style={{
                 backgroundColor: surfaceBg,
                 border: `2px dashed ${isDark ? theme.colors.gray[6] : theme.colors.gray[4]}`,
-                textAlign: 'center'
+                textAlign: "center",
               }}
             >
               <Stack gap="md" align="center">
@@ -158,23 +159,28 @@ export function ModelUploadDialog({
                   style={{
                     width: 60,
                     height: 60,
-                    borderRadius: '50%',
-                    backgroundColor: isDark ? theme.colors.blue[9] : theme.colors.blue[0],
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
+                    borderRadius: "50%",
+                    backgroundColor: isDark
+                      ? theme.colors.blue[9]
+                      : theme.colors.blue[0],
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
                   <IconFileZip size={30} color={theme.colors.blue[6]} />
                 </Box>
-                
+
                 <div>
-                  <Title order={4} mb="xs">Upload Model Archive</Title>
+                  <Title order={4} mb="xs">
+                    Upload Model Archive
+                  </Title>
                   <Text size="sm" c="dimmed">
-                    Select a .zip file containing model.label and model_info.json
+                    Select a .zip file containing model.label and
+                    model_info.json
                   </Text>
                 </div>
-                
+
                 <FileButton
                   onChange={handleFileUpload}
                   accept=".zip"
@@ -184,8 +190,7 @@ export function ModelUploadDialog({
                     <Button
                       {...props}
                       leftSection={<IconUpload size={16} />}
-                      variant="gradient"
-                      gradient={{ from: 'blue', to: 'cyan' }}
+                      variant="filled"
                       size="lg"
                       loading={isUploading}
                     >
@@ -201,10 +206,19 @@ export function ModelUploadDialog({
               <Paper p="md" radius="md" style={{ backgroundColor: surfaceBg }}>
                 <Stack gap="xs">
                   <Group justify="space-between">
-                    <Text size="sm" fw={500}>Parsing model file...</Text>
-                    <Text size="sm" c="dimmed">{uploadProgress}%</Text>
+                    <Text size="sm" fw={500}>
+                      Parsing model file...
+                    </Text>
+                    <Text size="sm" c="dimmed">
+                      {uploadProgress}%
+                    </Text>
                   </Group>
-                  <Progress value={uploadProgress} color="blue" size="md" radius="xl" />
+                  <Progress
+                    value={uploadProgress}
+                    color="blue"
+                    size="md"
+                    radius="xl"
+                  />
                 </Stack>
               </Paper>
             )}
@@ -215,7 +229,7 @@ export function ModelUploadDialog({
                 color="red"
                 title="Upload Failed"
                 icon={<IconX size={16} />}
-                variant={isDark ? 'light' : 'filled'}
+                variant={isDark ? "light" : "filled"}
               >
                 {error}
               </Alert>
@@ -230,8 +244,8 @@ export function ModelUploadDialog({
               icon={<IconCheck size={16} />}
               variant="light"
             >
-              Model configuration loaded with {modelConfig.labels.length} labels. 
-              You can now customize the settings below.
+              Model configuration loaded with {modelConfig.labels.length}{" "}
+              labels. You can now customize the settings below.
             </Alert>
 
             {/* Model Configuration Editor */}
@@ -246,11 +260,7 @@ export function ModelUploadDialog({
               <Button variant="light" onClick={handleClose}>
                 Cancel
               </Button>
-              <Button
-                variant="filled"
-                color="blue"
-                onClick={handleSaveConfig}
-              >
+              <Button variant="filled" color="blue" onClick={handleSaveConfig}>
                 Use This Configuration
               </Button>
             </Group>

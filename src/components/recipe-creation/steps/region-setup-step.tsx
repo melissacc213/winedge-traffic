@@ -93,6 +93,8 @@ export function RegionSetupStep() {
   const [destinationRegionId, setDestinationRegionId] = useState<string | null>(
     null
   );
+  const [showNameError, setShowNameError] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   // Rectangle drawing state
   const [rectangleStart, setRectangleStart] = useState<RegionPoint | null>(
@@ -298,6 +300,7 @@ export function RegionSetupStep() {
     setIsEditMode(false);
     setRectangleStart(null);
     setIsDrawingRect(false);
+    setShowNameError(false);
   };
 
   const handleSaveRegion = () => {
@@ -360,7 +363,8 @@ export function RegionSetupStep() {
     // Validate region name
     const trimmedName = regionName.trim();
     if (!trimmedName) {
-      // Don't save without a name
+      // Don't save without a name - show error
+      setShowNameError(true);
       return;
     }
 
@@ -371,6 +375,7 @@ export function RegionSetupStep() {
         r.id !== editingRegion
     );
     if (isDuplicate) {
+      setShowNameError(true);
       return;
     }
 
@@ -397,6 +402,7 @@ export function RegionSetupStep() {
     setRegionName("");
     setEditingRegion(null);
     setSelectedRegion(null);
+    setShowNameError(false);
   };
 
   const handleEditRegion = (region: Region) => {
@@ -410,6 +416,7 @@ export function RegionSetupStep() {
     setSelectedRegion(region);
     setRegionName(region.name);
     setEditablePoints([...region.points]);
+    setShowNameError(false);
   };
 
   const handleSaveEdit = () => {
@@ -417,6 +424,7 @@ export function RegionSetupStep() {
       // Validate region name
       const trimmedName = regionName.trim();
       if (!trimmedName) {
+        setShowNameError(true);
         return;
       }
 
@@ -427,6 +435,7 @@ export function RegionSetupStep() {
           r.id !== editingRegion
       );
       if (isDuplicate) {
+        setShowNameError(true);
         return;
       }
 
@@ -446,6 +455,7 @@ export function RegionSetupStep() {
       setIsDraggingRegion(false);
       setDragStartPos({ x: 0, y: 0 });
       setOriginalPoints([]);
+      setShowNameError(false);
     }
   };
 
@@ -463,6 +473,7 @@ export function RegionSetupStep() {
     // Clear rectangle drawing states
     setRectangleStart(null);
     setIsDrawingRect(false);
+    setShowNameError(false);
   };
 
   const handleDeleteRegion = (regionId: string) => {
@@ -572,21 +583,24 @@ export function RegionSetupStep() {
           c.destinationId === destinationRegionId
       );
 
-      if (!alreadyExists) {
-        const newConnections = [
-          ...connections,
-          {
-            id: uuidv4(),
-            sourceId: sourceRegionId,
-            destinationId: destinationRegionId,
-          },
-        ];
-        setConnections(newConnections);
-        updateConnections(newConnections);
+      if (alreadyExists) {
+        setConnectionError("This connection already exists");
+        return;
       }
 
+      const newConnections = [
+        ...connections,
+        {
+          id: uuidv4(),
+          sourceId: sourceRegionId,
+          destinationId: destinationRegionId,
+        },
+      ];
+      setConnections(newConnections);
+      updateConnections(newConnections);
       setSourceRegionId(null);
       setDestinationRegionId(null);
+      setConnectionError(null);
     }
   };
 
@@ -725,9 +739,9 @@ export function RegionSetupStep() {
       )}
 
       {/* Main Content - Side by side layout */}
-      <Flex gap="md" style={{ flex: 1 }}>
+      <Flex gap="md" style={{ flex: 1, overflow: "hidden" }}>
         {/* Left Panel - Canvas */}
-        <Box style={{ flex: 1, minWidth: 0 }}>
+        <Box style={{ flex: 1, minWidth: 0, display: "flex" }}>
           <Card
             withBorder
             p="sm"
@@ -737,15 +751,51 @@ export function RegionSetupStep() {
                 colorScheme === "dark" ? theme.colors.gray[8] : "white",
               display: "flex",
               flexDirection: "column",
-              minHeight: 450,
+              height: 524,
+              width: "100%",
             }}
           >
             <Stack gap="sm" style={{ flex: 1 }}>
               {/* Canvas Header */}
               <Group justify="space-between" align="center">
-                <Text size="sm" fw={500}>
-                  Canvas
-                </Text>
+                {/* Instructions on the left */}
+                {isDrawing && !isEditMode && (
+                  <Group gap="xs">
+                    <Icons.InfoCircle
+                      size={14}
+                      color={theme.colors[mantineTheme.primaryColor][6]}
+                      style={{ opacity: 0.7 }}
+                    />
+                    <Text
+                      size="xs"
+                      c={colorScheme === "dark" ? "gray.5" : "gray.6"}
+                      style={{ fontStyle: "italic" }}
+                    >
+                      {isRectangleMode
+                        ? "Click to set rectangle corners"
+                        : "Click to add points (min 3)"}
+                    </Text>
+                  </Group>
+                )}
+                {isEditMode && (
+                  <Group gap="xs">
+                    <Icons.InfoCircle
+                      size={14}
+                      color={theme.colors[mantineTheme.primaryColor][6]}
+                      style={{ opacity: 0.7 }}
+                    />
+                    <Text
+                      size="xs"
+                      c={colorScheme === "dark" ? "gray.5" : "gray.6"}
+                      style={{ fontStyle: "italic" }}
+                    >
+                      Drag region to move, drag points to adjust
+                    </Text>
+                  </Group>
+                )}
+                {!isDrawing && !isEditMode && <div />}
+                
+                {/* Buttons on the right */}
                 <Group gap="xs">
                   {!isDrawing && !isEditMode && (
                     <Button
@@ -781,14 +831,7 @@ export function RegionSetupStep() {
                         disabled={
                           isRectangleMode
                             ? currentPoints.length !== 4 // Rectangle needs exactly 4 points
-                            : currentPoints.length < 3 ||
-                              regionName.trim() === "" ||
-                              regions.some(
-                                (r) =>
-                                  r.name.toLowerCase() ===
-                                    regionName.trim().toLowerCase() &&
-                                  r.id !== editingRegion
-                              )
+                            : currentPoints.length < 3
                         }
                         onClick={handleSaveRegion}
                         size="xs"
@@ -813,7 +856,6 @@ export function RegionSetupStep() {
                         onClick={handleSaveEdit}
                         size="sm"
                         variant="light"
-                        color="gray"
                         leftSection={<Icons.Check size={14} />}
                       >
                         Save Changes
@@ -1142,42 +1184,21 @@ export function RegionSetupStep() {
                 )}
               </Box>
 
-              {/* Instructions */}
-              {(isDrawing || isEditMode) && (
-                <Box
-                  p="xs"
-                  style={{
-                    backgroundColor:
-                      colorScheme === "dark"
-                        ? theme.colors.gray[9]
-                        : theme.colors.gray[0],
-                    borderRadius: mantineTheme.radius.md,
-                  }}
-                >
-                  <Group gap="xs">
-                    <Icons.InfoCircle
-                      size={14}
-                      color={theme.colors[mantineTheme.primaryColor][5]}
-                    />
-                    <Text
-                      size="xs"
-                      c={colorScheme === "dark" ? "gray.4" : "gray.6"}
-                    >
-                      {isDrawing
-                        ? isRectangleMode
-                          ? "Click to set rectangle corners"
-                          : "Click to add points (min 3)"
-                        : "Drag region to move, drag points to adjust"}
-                    </Text>
-                  </Group>
-                </Box>
-              )}
             </Stack>
           </Card>
         </Box>
 
         {/* Right Panel */}
-        <Box style={{ width: "350px", flexShrink: 0 }}>
+        <Box
+          style={{
+            width: "350px",
+            flexShrink: 0,
+            display: "flex",
+            flexDirection: "column",
+            height: 524,
+            overflow: "hidden",
+          }}
+        >
           {/* Region Name Input - Shows when drawing/editing (not for rectangle mode) */}
           {(isDrawing || isEditMode) && !isRectangleMode && (
             <Card
@@ -1188,27 +1209,33 @@ export function RegionSetupStep() {
               style={{
                 backgroundColor:
                   colorScheme === "dark" ? theme.colors.gray[8] : "white",
+                flexShrink: 0,
               }}
             >
               <Stack gap="sm">
                 <TextInput
                   label="Region Name"
                   value={regionName}
-                  onChange={(e) => setRegionName(e.currentTarget.value)}
+                  onChange={(e) => {
+                    setRegionName(e.currentTarget.value);
+                    setShowNameError(false);
+                  }}
                   placeholder="Enter region name"
                   size="sm"
                   required
                   error={
-                    regionName.trim() === ""
-                      ? "Region name is required"
-                      : regions.some(
-                            (r) =>
-                              r.name.toLowerCase() ===
-                                regionName.trim().toLowerCase() &&
-                              r.id !== editingRegion
-                          )
-                        ? "Region name already exists"
-                        : null
+                    showNameError
+                      ? regionName.trim() === ""
+                        ? "Region name is required"
+                        : regions.some(
+                              (r) =>
+                                r.name.toLowerCase() ===
+                                  regionName.trim().toLowerCase() &&
+                                r.id !== editingRegion
+                            )
+                          ? "Region name already exists"
+                          : null
+                      : null
                   }
                 />
                 <Group justify="space-between">
@@ -1241,6 +1268,7 @@ export function RegionSetupStep() {
               style={{
                 backgroundColor:
                   colorScheme === "dark" ? theme.colors.gray[8] : "white",
+                flexShrink: 0,
               }}
             >
               <Stack gap="xs">
@@ -1318,14 +1346,19 @@ export function RegionSetupStep() {
                   colorScheme === "dark" ? theme.colors.gray[8] : "white",
                 display: "flex",
                 flexDirection: "column",
-                minHeight: isDrawing || isEditMode ? 350 : 450,
-                maxHeight: "70vh",
+                flex: 1,
+                minHeight: 200,
+                overflow: "hidden",
               }}
             >
               <Tabs
                 value={activeTab}
                 onChange={(value) => setActiveTab(value || "regions")}
-                style={{ height: "100%" }}
+                style={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
               >
                 <Tabs.List>
                   <Tabs.Tab
@@ -1353,7 +1386,7 @@ export function RegionSetupStep() {
                 <Tabs.Panel
                   value="regions"
                   pt="sm"
-                  style={{ height: "calc(100% - 40px)" }}
+                  style={{ height: "calc(100% - 40px)", overflow: "hidden" }}
                 >
                   <ScrollArea
                     style={{ height: "100%" }}
@@ -1417,7 +1450,7 @@ export function RegionSetupStep() {
                                   <Group gap={4}>
                                     <Tooltip label="Edit">
                                       <ActionIcon
-                                        size="xs"
+                                        size="sm"
                                         variant="subtle"
                                         onClick={() => handleEditRegion(region)}
                                       >
@@ -1426,7 +1459,7 @@ export function RegionSetupStep() {
                                     </Tooltip>
                                     <Tooltip label="Delete">
                                       <ActionIcon
-                                        size="xs"
+                                        size="sm"
                                         variant="subtle"
                                         color="red"
                                         onClick={() =>
@@ -1450,9 +1483,12 @@ export function RegionSetupStep() {
                 <Tabs.Panel
                   value="connections"
                   pt="sm"
-                  style={{ height: "calc(100% - 40px)" }}
+                  style={{ height: "calc(100% - 40px)", overflow: "hidden" }}
                 >
-                  <Stack gap="sm" style={{ height: "100%" }}>
+                  <Stack
+                    gap="sm"
+                    style={{ height: "100%", overflow: "hidden" }}
+                  >
                     {/* Connection creator */}
                     {regions.length >= 2 && (
                       <Card
@@ -1464,6 +1500,7 @@ export function RegionSetupStep() {
                             colorScheme === "dark"
                               ? theme.colors.gray[9]
                               : theme.colors.gray[0],
+                          flexShrink: 0,
                         }}
                       >
                         <Stack gap="xs">
@@ -1479,7 +1516,10 @@ export function RegionSetupStep() {
                               placeholder="From"
                               size="xs"
                               value={sourceRegionId}
-                              onChange={setSourceRegionId}
+                              onChange={(value) => {
+                                setSourceRegionId(value);
+                                setConnectionError(null);
+                              }}
                               data={regions.map((r) => ({
                                 value: r.id,
                                 label: r.name,
@@ -1496,7 +1536,10 @@ export function RegionSetupStep() {
                               placeholder="To"
                               size="xs"
                               value={destinationRegionId}
-                              onChange={setDestinationRegionId}
+                              onChange={(value) => {
+                                setDestinationRegionId(value);
+                                setConnectionError(null);
+                              }}
                               data={regions
                                 .filter((r) => r.id !== sourceRegionId)
                                 .map((r) => ({ value: r.id, label: r.name }))}
@@ -1514,12 +1557,17 @@ export function RegionSetupStep() {
                               Add
                             </Button>
                           </Group>
+                          {connectionError && (
+                            <Text size="xs" c="red">
+                              {connectionError}
+                            </Text>
+                          )}
                         </Stack>
                       </Card>
                     )}
 
                     <ScrollArea
-                      style={{ flex: 1 }}
+                      style={{ flex: 1, minHeight: 0 }}
                       scrollbarSize={8}
                       type="scroll"
                     >
@@ -1603,7 +1651,7 @@ export function RegionSetupStep() {
                                   </Group>
                                   <Tooltip label="Delete">
                                     <ActionIcon
-                                      size="xs"
+                                      size="sm"
                                       variant="subtle"
                                       color="red"
                                       onClick={() => {

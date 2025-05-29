@@ -1,9 +1,9 @@
-import { useTranslation } from 'react-i18next';
-import { useState, useEffect, useMemo, Fragment } from 'react';
-import { 
-  Stack, 
-  Text, 
-  Group, 
+import { useTranslation } from "react-i18next";
+import { useState, useEffect, useMemo, Fragment } from "react";
+import {
+  Stack,
+  Text,
+  Group,
   Paper,
   Badge,
   Button,
@@ -21,81 +21,127 @@ import {
   rem,
   Checkbox,
   Box,
-  Title
-} from '@mantine/core';
-import { Icons } from '../../icons';
-import { useDisclosure } from '@mantine/hooks';
-import { useRecipeStore } from '../../../lib/store/recipe-store';
-import { useModels } from '../../../lib/queries/model';
-import { ModelUploadDialog } from '../../model-config-editor/model-upload-dialog';
-import type { ModelLabel, ModelConfig } from '../../../types/model';
+  Title,
+  Pagination,
+  Select,
+} from "@mantine/core";
+import { Icons } from "../../icons";
+import { useDisclosure } from "@mantine/hooks";
+import { useRecipeStore } from "../../../lib/store/recipe-store";
+import { useModels } from "../../../lib/queries/model";
+import { ModelUploadDialog } from "../../model-config-editor/model-upload-dialog";
+import type { ModelLabel, ModelConfig } from "../../../types/model";
 
 // Mock data for model labels - in a real app this would come from the selected model's config
 const MOCK_LABELS: ModelLabel[] = [
-  { id: '1', name: 'Person', color: '#FF6B6B', confidence: 0.7, enabled: true },
-  { id: '2', name: 'Vehicle', color: '#4ECDC4', confidence: 0.75, enabled: true },
-  { id: '3', name: 'Truck', color: '#45B7D1', confidence: 0.8, enabled: true },
-  { id: '4', name: 'Motorcycle', color: '#FFA07A', confidence: 0.65, enabled: false },
-  { id: '5', name: 'Bicycle', color: '#98D8C8', confidence: 0.6, enabled: true },
+  { id: "1", name: "Person", color: "#FF6B6B", confidence: 0.7, enabled: true },
+  {
+    id: "2",
+    name: "Vehicle",
+    color: "#4ECDC4",
+    confidence: 0.75,
+    enabled: true,
+  },
+  { id: "3", name: "Truck", color: "#45B7D1", confidence: 0.8, enabled: true },
+  {
+    id: "4",
+    name: "Motorcycle",
+    color: "#FFA07A",
+    confidence: 0.65,
+    enabled: false,
+  },
+  {
+    id: "5",
+    name: "Bicycle",
+    color: "#98D8C8",
+    confidence: 0.6,
+    enabled: true,
+  },
 ];
 
 // Available colors for labels
 const LABEL_COLORS = [
-  '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
-  '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8C471', '#AED6F1',
-  '#ABEBC6', '#F5B7B1', '#D7BDE2', '#A9DFBF', '#FAD7A0'
+  "#FF6B6B",
+  "#4ECDC4",
+  "#45B7D1",
+  "#FFA07A",
+  "#98D8C8",
+  "#F7DC6F",
+  "#BB8FCE",
+  "#85C1E2",
+  "#F8C471",
+  "#AED6F1",
+  "#ABEBC6",
+  "#F5B7B1",
+  "#D7BDE2",
+  "#A9DFBF",
+  "#FAD7A0",
 ];
 
 export function ModelConfigStep() {
-  const { t } = useTranslation(['recipes']);
+  const { t } = useTranslation(["recipes"]);
   const { formValues, setModel, setModelConfig, updateForm } = useRecipeStore();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [labels, setLabels] = useState<ModelLabel[]>(formValues.modelConfig?.labels || MOCK_LABELS);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [labels, setLabels] = useState<ModelLabel[]>(
+    formValues.modelConfig?.labels || MOCK_LABELS
+  );
   const [opened, { open, close }] = useDisclosure(false);
-  const [activeTab, setActiveTab] = useState<string | null>('models');
-  
+  const [activeTab, setActiveTab] = useState<string | null>("models");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   // Get available models
   const { data: models = [], isLoading, refetch } = useModels();
-  
+
   // Filter models based on search
   const filteredModels = useMemo(() => {
-    return models.filter(model => 
+    return models.filter((model) =>
       model.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [models, searchQuery]);
-  
+
+  // Pagination
+  const totalPages = Math.ceil(filteredModels.length / pageSize);
+  const paginatedModels = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    return filteredModels.slice(start, end);
+  }, [filteredModels, currentPage, pageSize]);
+
   // Update store when configuration changes
   useEffect(() => {
     if (formValues.modelId) {
       setModelConfig({
         modelId: formValues.modelId,
         confidence: 0.7,
-        labels: labels
+        labels: labels,
       });
     }
   }, [formValues.modelId, labels, setModelConfig]);
-  
+
   const handleLabelUpdate = (labelId: string, updates: Partial<ModelLabel>) => {
-    setLabels(prev => prev.map(label => 
-      label.id === labelId ? { ...label, ...updates } : label
-    ));
+    setLabels((prev) =>
+      prev.map((label) =>
+        label.id === labelId ? { ...label, ...updates } : label
+      )
+    );
   };
-  
+
   const handleAddLabel = () => {
     const newLabel: ModelLabel = {
       id: Date.now().toString(),
       name: `Label ${labels.length + 1}`,
       color: LABEL_COLORS[labels.length % LABEL_COLORS.length],
       confidence: 0.7,
-      enabled: true
+      enabled: true,
     };
-    setLabels(prev => [...prev, newLabel]);
+    setLabels((prev) => [...prev, newLabel]);
   };
-  
+
   const handleDeleteLabel = (labelId: string) => {
-    setLabels(prev => prev.filter(label => label.id !== labelId));
+    setLabels((prev) => prev.filter((label) => label.id !== labelId));
   };
-  
+
   const handleModelConfigured = (config: ModelConfig) => {
     // When a model is configured from the upload dialog, use it
     if (config.labels) {
@@ -104,25 +150,17 @@ export function ModelConfigStep() {
     close();
     refetch();
   };
-  
+
   return (
     <Fragment>
       <Stack gap="lg">
-        <Group justify="space-between" align="start">
-          <Stack gap="xs">
-            <Title order={3}>Configure Model</Title>
-            <Text size="sm" c="dimmed">
-              Select an AI model and configure its detection labels
-            </Text>
-          </Stack>
-          <Button 
-            leftSection={<Icons.Plus size={16} />}
-            onClick={open}
-          >
+        <Group justify="end" align="start">
+          <Stack gap="xs"></Stack>
+          <Button leftSection={<Icons.Plus size={16} />} onClick={open}>
             Create Model
           </Button>
         </Group>
-        
+
         {/* Model Selection with Tabs */}
         <Paper withBorder radius="md">
           <Tabs value={activeTab} onChange={setActiveTab}>
@@ -130,15 +168,15 @@ export function ModelConfigStep() {
               <Tabs.Tab value="models" leftSection={<Icons.Brain size={16} />}>
                 Select Model
               </Tabs.Tab>
-              <Tabs.Tab 
-                value="labels" 
+              <Tabs.Tab
+                value="labels"
                 leftSection={<Icons.Tag size={16} />}
                 disabled={!formValues.modelId}
               >
                 Configure Labels
               </Tabs.Tab>
             </Tabs.List>
-            
+
             <Tabs.Panel value="models" p="lg">
               <Stack>
                 <TextInput
@@ -148,14 +186,18 @@ export function ModelConfigStep() {
                   leftSection={<Icons.Search size={16} />}
                   rightSection={
                     searchQuery && (
-                      <ActionIcon size="sm" variant="subtle" onClick={() => setSearchQuery('')}>
+                      <ActionIcon
+                        size="sm"
+                        variant="subtle"
+                        onClick={() => setSearchQuery("")}
+                      >
                         <Icons.X size={16} />
                       </ActionIcon>
                     )
                   }
                   mb="md"
                 />
-                
+
                 {isLoading ? (
                   <Center py="xl">
                     <Loader size="sm" />
@@ -164,12 +206,12 @@ export function ModelConfigStep() {
                   <Stack align="center" py="xl" gap="md">
                     <Icons.Brain size={48} color="gray" />
                     <Text c="dimmed" ta="center">
-                      {searchQuery 
+                      {searchQuery
                         ? `No models found matching "${searchQuery}"`
-                        : 'No models available. Create your first model to get started.'}
+                        : "No models available. Create your first model to get started."}
                     </Text>
                     {!searchQuery && (
-                      <Button 
+                      <Button
                         leftSection={<Icons.Plus size={16} />}
                         onClick={open}
                       >
@@ -178,88 +220,143 @@ export function ModelConfigStep() {
                     )}
                   </Stack>
                 ) : (
-                  <ScrollArea h={400}>
-                    <Table verticalSpacing="sm" highlightOnHover>
-                      <Table.Thead>
-                        <Table.Tr>
-                          <Table.Th style={{ width: 40 }}></Table.Th>
-                          <Table.Th>Model Name</Table.Th>
-                          <Table.Th>Type</Table.Th>
-                          <Table.Th>Size</Table.Th>
-                          <Table.Th>Status</Table.Th>
-                          <Table.Th>Created</Table.Th>
-                        </Table.Tr>
-                      </Table.Thead>
-                      <Table.Tbody>
-                        {filteredModels.map((model) => (
-                          <Table.Tr 
-                            key={model.id}
-                            onClick={() => {
-                              setModel(model.id, model.name);
-                              setActiveTab('labels');
-                            }}
-                            style={{ cursor: 'pointer' }}
-                            className={formValues.modelId === model.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}
-                          >
-                            <Table.Td>
-                              <Checkbox
-                                checked={formValues.modelId === model.id}
-                                onChange={() => {
+                  <Stack gap="md">
+                    <Box style={{ position: "relative", height: 400 }}>
+                      <ScrollArea h={400} offsetScrollbars>
+                        <Table 
+                          verticalSpacing="sm" 
+                          highlightOnHover
+                          stickyHeader
+                          striped
+                          withTableBorder
+                        >
+                          <Table.Thead>
+                            <Table.Tr>
+                              <Table.Th style={{ width: 40 }}></Table.Th>
+                              <Table.Th>Model Name</Table.Th>
+                              <Table.Th>Type</Table.Th>
+                              <Table.Th>Size</Table.Th>
+                              <Table.Th>Status</Table.Th>
+                              <Table.Th>Created</Table.Th>
+                            </Table.Tr>
+                          </Table.Thead>
+                          <Table.Tbody>
+                            {paginatedModels.map((model) => (
+                              <Table.Tr
+                                key={model.id}
+                                onClick={() => {
                                   setModel(model.id, model.name);
-                                  setActiveTab('labels');
+                                  setActiveTab("labels");
                                 }}
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            </Table.Td>
-                            <Table.Td>
-                              <Group gap="xs">
-                                <Icons.Brain size={16} />
-                                <Text fw={500}>{model.name}</Text>
-                              </Group>
-                            </Table.Td>
-                            <Table.Td>{model.type}</Table.Td>
-                            <Table.Td>{(model.size / (1024 * 1024)).toFixed(1)} MB</Table.Td>
-                            <Table.Td>
-                              <Badge 
-                                size="sm"
-                                color={model.status === 'ready' ? 'green' : 'yellow'}
-                                variant="dot"
+                                style={{ cursor: "pointer" }}
+                                className={
+                                  formValues.modelId === model.id
+                                    ? "bg-blue-50 dark:bg-blue-900/20"
+                                    : ""
+                                }
                               >
-                                {model.status}
-                              </Badge>
-                            </Table.Td>
-                            <Table.Td>
-                              <Text size="sm" c="dimmed">
-                                {new Date(model.createdAt).toLocaleDateString()}
-                              </Text>
-                            </Table.Td>
-                          </Table.Tr>
-                        ))}
-                      </Table.Tbody>
-                    </Table>
-                  </ScrollArea>
+                                <Table.Td>
+                                  <Checkbox
+                                    checked={formValues.modelId === model.id}
+                                    onChange={() => {
+                                      setModel(model.id, model.name);
+                                      setActiveTab("labels");
+                                    }}
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                </Table.Td>
+                                <Table.Td>
+                                  <Group gap="xs">
+                                    <Icons.Brain size={16} />
+                                    <Text fw={500}>{model.name}</Text>
+                                  </Group>
+                                </Table.Td>
+                                <Table.Td>{model.type}</Table.Td>
+                                <Table.Td>
+                                  {(model.size / (1024 * 1024)).toFixed(1)} MB
+                                </Table.Td>
+                                <Table.Td>
+                                  <Badge
+                                    size="sm"
+                                    color={
+                                      model.status === "ready" ? "green" : "yellow"
+                                    }
+                                    variant="dot"
+                                  >
+                                    {model.status}
+                                  </Badge>
+                                </Table.Td>
+                                <Table.Td>
+                                  <Text size="sm" c="dimmed">
+                                    {new Date(model.createdAt).toLocaleDateString()}
+                                  </Text>
+                                </Table.Td>
+                              </Table.Tr>
+                            ))}
+                          </Table.Tbody>
+                        </Table>
+                      </ScrollArea>
+                    </Box>
+                    
+                    {/* Pagination */}
+                    <Group justify="space-between">
+                      <Group gap="xs">
+                        <Text size="sm">
+                          Showing {((currentPage - 1) * pageSize) + 1} -{" "}
+                          {Math.min(currentPage * pageSize, filteredModels.length)} of{" "}
+                          {filteredModels.length}
+                        </Text>
+                        <Select
+                          size="xs"
+                          value={String(pageSize)}
+                          onChange={(value) => {
+                            setPageSize(Number(value));
+                            setCurrentPage(1);
+                          }}
+                          data={["5", "10", "20", "30", "40", "50"].map((size) => ({
+                            value: size,
+                            label: `${size} per page`,
+                          }))}
+                          w={110}
+                          radius="xl"
+                        />
+                      </Group>
+                      <Pagination
+                        total={totalPages}
+                        value={currentPage}
+                        onChange={setCurrentPage}
+                        color="blue"
+                        size="sm"
+                        radius="xl"
+                        withEdges
+                      />
+                    </Group>
+                  </Stack>
                 )}
               </Stack>
             </Tabs.Panel>
-            
+
             <Tabs.Panel value="labels" p="lg">
               {formValues.modelId ? (
                 <Stack>
                   <Group justify="space-between" mb="md">
                     <div>
-                      <Text fw={600} size="lg">Detection Labels</Text>
+                      <Text fw={600} size="lg">
+                        Detection Labels
+                      </Text>
                       <Text size="sm" c="dimmed">
-                        Configure which objects the model should detect and their confidence thresholds
+                        Configure which objects the model should detect and
+                        their confidence thresholds
                       </Text>
                     </div>
-                    <Button 
+                    {/* <Button 
                       leftSection={<Icons.Plus size={16} />}
                       onClick={handleAddLabel}
                     >
                       Add Label
-                    </Button>
+                    </Button> */}
                   </Group>
-                  
+
                   <ScrollArea h={400} offsetScrollbars>
                     <Stack gap="md">
                       {labels.map((label, index) => (
@@ -270,7 +367,11 @@ export function ModelConfigStep() {
                                 <ColorSwatch color={label.color} size={24} />
                                 <TextInput
                                   value={label.name}
-                                  onChange={(e) => handleLabelUpdate(label.id, { name: e.currentTarget.value })}
+                                  onChange={(e) =>
+                                    handleLabelUpdate(label.id, {
+                                      name: e.currentTarget.value,
+                                    })
+                                  }
                                   placeholder="Label name"
                                   style={{ width: 200 }}
                                 />
@@ -278,11 +379,15 @@ export function ModelConfigStep() {
                               <Group gap="xs">
                                 <Switch
                                   checked={label.enabled}
-                                  onChange={(e) => handleLabelUpdate(label.id, { enabled: e.currentTarget.checked })}
+                                  onChange={(e) =>
+                                    handleLabelUpdate(label.id, {
+                                      enabled: e.currentTarget.checked,
+                                    })
+                                  }
                                   label="Enabled"
                                 />
-                                <ActionIcon 
-                                  color="red" 
+                                <ActionIcon
+                                  color="red"
                                   variant="subtle"
                                   onClick={() => handleDeleteLabel(label.id)}
                                 >
@@ -290,12 +395,16 @@ export function ModelConfigStep() {
                                 </ActionIcon>
                               </Group>
                             </Group>
-                            
+
                             <Group grow>
                               <NumberInput
                                 label="Confidence Threshold"
                                 value={label.confidence * 100}
-                                onChange={(value) => handleLabelUpdate(label.id, { confidence: Number(value) / 100 })}
+                                onChange={(value) =>
+                                  handleLabelUpdate(label.id, {
+                                    confidence: Number(value) / 100,
+                                  })
+                                }
                                 min={0}
                                 max={100}
                                 step={5}
@@ -306,26 +415,38 @@ export function ModelConfigStep() {
                               <NumberInput
                                 label="Min Width (px)"
                                 value={label.width_threshold || 0}
-                                onChange={(value) => handleLabelUpdate(label.id, { width_threshold: Number(value) })}
+                                onChange={(value) =>
+                                  handleLabelUpdate(label.id, {
+                                    width_threshold: Number(value),
+                                  })
+                                }
                                 min={0}
                                 leftSection={<Icons.Settings size={16} />}
                               />
                               <NumberInput
                                 label="Min Height (px)"
                                 value={label.height_threshold || 0}
-                                onChange={(value) => handleLabelUpdate(label.id, { height_threshold: Number(value) })}
+                                onChange={(value) =>
+                                  handleLabelUpdate(label.id, {
+                                    height_threshold: Number(value),
+                                  })
+                                }
                                 min={0}
                                 leftSection={<Icons.Settings size={16} />}
                               />
                             </Group>
-                            
+
                             <Group gap="xs">
                               {LABEL_COLORS.map((color) => (
                                 <ActionIcon
                                   key={color}
-                                  variant={label.color === color ? 'filled' : 'subtle'}
+                                  variant={
+                                    label.color === color ? "filled" : "subtle"
+                                  }
                                   color={color}
-                                  onClick={() => handleLabelUpdate(label.id, { color })}
+                                  onClick={() =>
+                                    handleLabelUpdate(label.id, { color })
+                                  }
                                   size="sm"
                                 >
                                   <ColorSwatch color={color} size={16} />
@@ -337,15 +458,24 @@ export function ModelConfigStep() {
                       ))}
                     </Stack>
                   </ScrollArea>
-                  
+
                   {labels.length === 0 && (
-                    <Alert variant="light" color="blue" icon={<Icons.AlertCircle size={16} />}>
-                      No labels configured. Add labels to define what objects the model should detect.
+                    <Alert
+                      variant="light"
+                      color="blue"
+                      icon={<Icons.AlertCircle size={16} />}
+                    >
+                      No labels configured. Add labels to define what objects
+                      the model should detect.
                     </Alert>
                   )}
                 </Stack>
               ) : (
-                <Alert variant="light" color="yellow" icon={<Icons.AlertCircle size={16} />}>
+                <Alert
+                  variant="light"
+                  color="yellow"
+                  icon={<Icons.AlertCircle size={16} />}
+                >
                   Please select a model first to configure its labels.
                 </Alert>
               )}
@@ -353,7 +483,7 @@ export function ModelConfigStep() {
           </Tabs>
         </Paper>
       </Stack>
-      
+
       {/* Model Upload Dialog */}
       <ModelUploadDialog
         opened={opened}

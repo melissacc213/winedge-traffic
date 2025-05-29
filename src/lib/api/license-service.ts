@@ -28,7 +28,7 @@ export const licenseService = {
     formData.append('file', data.file);
     formData.append('is_default', String(data.is_default));
 
-    const response = await api.post('/license', formData, {
+    const response = await api.post('/key', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -42,7 +42,7 @@ export const licenseService = {
       await new Promise(resolve => setTimeout(resolve, 500));
       return getMockLicenses(params?.page || 1, params?.size || 10);
     }
-    const response = await api.get('/license', { params });
+    const response = await api.get('/key', { params });
     return licensesListSchema.parse(response.data);
   },
 
@@ -54,7 +54,7 @@ export const licenseService = {
       if (!license) throw new Error('License not found');
       return license;
     }
-    const response = await api.get(`/license/${id}`);
+    const response = await api.get(`/key/${id}`);
     return licenseSchema.parse(response.data);
   },
 
@@ -67,7 +67,7 @@ export const licenseService = {
       if (!license) throw new Error('License not found');
       return license;
     }
-    const response = await api.patch(`/license/${id}`, validatedData);
+    const response = await api.patch(`/key/${id}`, validatedData);
     return licenseSchema.parse(response.data);
   },
 
@@ -79,7 +79,7 @@ export const licenseService = {
       if (!success) throw new Error('License not found');
       return;
     }
-    await api.delete(`/license/${id}`);
+    await api.delete(`/key/${id}`);
   },
 
   // Set license as default

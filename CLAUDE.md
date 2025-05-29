@@ -1,6 +1,6 @@
 # WinEdge Traffic Management System - CLAUDE.md
 
-This is the development guide for WinEdge Traffic, a sophisticated traffic statistics and object detection system built with modern web technologies.
+This is the development guide for WinEdge, a sophisticated traffic statistics and object detection system built with modern web technologies.
 
 ## Tech Stack Architecture
 
@@ -19,7 +19,6 @@ This is the development guide for WinEdge Traffic, a sophisticated traffic stati
 ### Additional Libraries
 
 - **Konva v9.3.20 + React-Konva v19.0.3** - Canvas-based region drawing and visualization
-- **Mux Player React v3.4.0** - Video playback functionality
 - **Axios v1.9.0** - HTTP client
 - **UUID v9.0.1** - Unique identifier generation
 - **JSZip v3.10.1** - File compression/decompression
@@ -534,7 +533,7 @@ export function FeatureStepper() {
   // Step-specific validation functions
   const validateStep = (stepIndex: number): { isValid: boolean; errors: Record<string, string> } => {
     const errors: Record<string, string> = {};
-    
+
     switch (stepIndex) {
       case 0:
         if (!formValues.requiredField) {
@@ -545,7 +544,7 @@ export function FeatureStepper() {
         // Additional validation logic...
         break;
     }
-    
+
     setValidationErrors(errors);
     return { isValid: Object.keys(errors).length === 0, errors };
   };
@@ -553,13 +552,13 @@ export function FeatureStepper() {
   // Handle next button with validation
   const handleNext = () => {
     const { isValid, errors } = validateStep(activeStep);
-    
+
     if (!isValid) {
       const errorCount = Object.keys(errors).length;
-      const errorMessage = errorCount === 1 
+      const errorMessage = errorCount === 1
         ? Object.values(errors)[0]
         : `Please fix the following ${errorCount} issues:\n${Object.values(errors).map((err, idx) => `${idx + 1}. ${err}`).join('\n')}`;
-        
+
       notifications.show({
         title: errorCount === 1 ? "Action Required" : "Actions Required",
         message: errorMessage,
@@ -588,7 +587,7 @@ export function FeatureStepper() {
               {/* Step indicators with icons and completion status */}
               <Group gap="lg">
                 {steps.map((step, index) => (
-                  <StepIndicator 
+                  <StepIndicator
                     key={step.id}
                     step={step}
                     isActive={index === activeStep}
@@ -609,7 +608,7 @@ export function FeatureStepper() {
           {Object.keys(validationErrors).length > 0 && (
             <ValidationErrorsAlert errors={validationErrors} />
           )}
-          
+
           {/* Current Step Component */}
           {stepComponents[activeStep]}
         </Container>
@@ -619,15 +618,15 @@ export function FeatureStepper() {
       <Box style={{ backgroundColor: theme.colors.dark[8], borderTop: "1px solid" }}>
         <Container size="xl" py="md">
           <Group justify="space-between">
-            <Button 
-              variant="subtle" 
+            <Button
+              variant="subtle"
               leftSection={<Icons.ChevronLeft />}
               onClick={handlePrevious}
               disabled={activeStep === 0}
             >
               Back
             </Button>
-            <Button 
+            <Button
               rightSection={isLastStep ? <Icons.Check /> : <Icons.ChevronRight />}
               onClick={handleNext}
               loading={isSubmitting}
@@ -660,11 +659,11 @@ interface FeatureStoreState {
   previousStep: () => void;
   updateForm: (values: Partial<FeatureFormValues>) => void;
   resetForm: () => void;
-  
+
   // Step-specific clear functions (for back navigation)
   clearStep1Data: () => void;
   clearStep2Data: () => void;
-  
+
   // API payload generation
   generateAPIPayload: () => APIPayload | null;
 }
@@ -679,25 +678,27 @@ export const useFeatureStore = create<FeatureStoreState>((set, get) => ({
   },
   formValues: initialFormState,
 
-  nextStep: () => set((state) => ({
-    activeStep: Math.min(state.activeStep + 1, maxSteps - 1),
-  })),
+  nextStep: () =>
+    set((state) => ({
+      activeStep: Math.min(state.activeStep + 1, maxSteps - 1),
+    })),
 
-  updateForm: (values) => set((state) => ({
-    formValues: { ...state.formValues, ...values },
-    isDirty: true,
-  })),
+  updateForm: (values) =>
+    set((state) => ({
+      formValues: { ...state.formValues, ...values },
+      isDirty: true,
+    })),
 
   // Generate API-ready payload based on form data
   generateAPIPayload: () => {
     const state = get();
     const { formValues } = state;
-    
+
     // Validate required fields
     if (!formValues.requiredField || !formValues.anotherField) {
       return null;
     }
-    
+
     // Transform form data to API format
     return {
       ...formValues,
@@ -747,15 +748,19 @@ export function Step1Component() {
 // Pattern: Mutation handles API payload generation from store
 export function useCreateFeature() {
   const queryClient = useQueryClient();
-  const generateAPIPayload = useFeatureStore((state) => state.generateAPIPayload);
+  const generateAPIPayload = useFeatureStore(
+    (state) => state.generateAPIPayload
+  );
   const formValues = useFeatureStore((state) => state.formValues);
 
   return useMutation({
     mutationFn: async () => {
       const payload = generateAPIPayload();
-      
+
       if (!payload) {
-        throw new Error("Failed to generate API payload. Please ensure all required fields are filled.");
+        throw new Error(
+          "Failed to generate API payload. Please ensure all required fields are filled."
+        );
       }
 
       return await featureService.createFeature(payload);
@@ -860,15 +865,15 @@ export function useCreateFeature() {
 
 ```typescript
 // ✅ Correct - use import type for types
-import type { Recipe, CreateTaskRequest } from './types/task-creation';
-import type { TaskType, RecipeStatus } from './types/recipe';
+import type { Recipe, CreateTaskRequest } from "./types/task-creation";
+import type { TaskType, RecipeStatus } from "./types/recipe";
 
 // ❌ Incorrect - regular imports for types cause runtime errors
-import { Recipe, CreateTaskRequest } from './types/task-creation';
+import { Recipe, CreateTaskRequest } from "./types/task-creation";
 
 // ✅ Correct - mixed imports and type imports
-import { taskService } from './services/task-service';
-import type { TaskResponse } from './types/task';
+import { taskService } from "./services/task-service";
+import type { TaskResponse } from "./types/task";
 ```
 
 This prevents "does not provide an export" runtime errors in Vite/ESM environments.

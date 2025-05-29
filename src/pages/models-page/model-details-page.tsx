@@ -18,18 +18,7 @@ import {
   ScrollArea,
   Timeline,
 } from "@mantine/core";
-import {
-  IconArrowLeft,
-  IconEdit,
-  IconDownload,
-  IconTrash,
-  IconCpu,
-  IconDatabase,
-  IconFileZip,
-  IconClock,
-  IconTag,
-  IconAlertCircle,
-} from "@tabler/icons-react";
+import { Icons } from "@/components/icons";
 import { PageLayout } from "@/components/page-layout/page-layout";
 import { PageLoader } from "@/components/ui";
 import { useModelDetails, useDeleteModel } from "@/lib/queries/model";
@@ -136,7 +125,7 @@ export function ModelDetailsPage() {
     return (
       <PageLayout>
         <Alert
-          icon={<IconAlertCircle size={16} />}
+          icon={<Icons.AlertCircle size={16} />}
           title={t("models:details.error.title")}
           color="red"
         >
@@ -174,7 +163,7 @@ export function ModelDetailsPage() {
                 size="lg"
                 onClick={() => navigate("/models")}
               >
-                <IconArrowLeft size={20} />
+                <Icons.ArrowLeft size={20} />
               </ActionIcon>
               <Box>
                 <Title order={3}>{model.name}</Title>
@@ -196,7 +185,7 @@ export function ModelDetailsPage() {
               <Button
                 variant="light"
                 color="blue"
-                leftSection={<IconEdit size={16} />}
+                leftSection={<Icons.Edit size={16} />}
                 onClick={() => navigate(`/models/${modelId}/edit`)}
                 disabled={model.status !== "active" && model.status !== "available"}
               >
@@ -205,7 +194,7 @@ export function ModelDetailsPage() {
               <Button
                 variant="light"
                 color="green"
-                leftSection={<IconDownload size={16} />}
+                leftSection={<Icons.Download size={16} />}
                 disabled={model.status !== "active" && model.status !== "available"}
               >
                 {t("models:actions.download")}
@@ -213,7 +202,7 @@ export function ModelDetailsPage() {
               <Button
                 variant="light"
                 color="red"
-                leftSection={<IconTrash size={16} />}
+                leftSection={<Icons.Trash size={16} />}
                 onClick={handleDelete}
                 loading={isDeleting}
               >
@@ -343,7 +332,7 @@ export function ModelDetailsPage() {
                 <Stack gap="md">
                   <Card p="sm" radius="sm" style={{ backgroundColor: surfaceBg }}>
                     <Group>
-                      <IconCpu size={20} color={theme.colors.blue[6]} />
+                      <Icons.Cpu size={20} color={theme.colors.blue[6]} />
                       <Box style={{ flex: 1 }}>
                         <Text size="xs" c="dimmed">
                           {t("models:details.model_type")}
@@ -357,7 +346,7 @@ export function ModelDetailsPage() {
 
                   <Card p="sm" radius="sm" style={{ backgroundColor: surfaceBg }}>
                     <Group>
-                      <IconDatabase size={20} color={theme.colors.green[6]} />
+                      <Icons.Database size={20} color={theme.colors.green[6]} />
                       <Box style={{ flex: 1 }}>
                         <Text size="xs" c="dimmed">
                           {t("models:details.storage_size")}
@@ -371,7 +360,7 @@ export function ModelDetailsPage() {
 
                   <Card p="sm" radius="sm" style={{ backgroundColor: surfaceBg }}>
                     <Group>
-                      <IconFileZip size={20} color={theme.colors.orange[6]} />
+                      <Icons.FileZip size={20} color={theme.colors.orange[6]} />
                       <Box style={{ flex: 1 }}>
                         <Text size="xs" c="dimmed">
                           {t("models:details.file_format")}
@@ -385,7 +374,7 @@ export function ModelDetailsPage() {
 
                   <Card p="sm" radius="sm" style={{ backgroundColor: surfaceBg }}>
                     <Group>
-                      <IconTag size={20} color={theme.colors.purple[6]} />
+                      <Icons.Tag size={20} color={theme.colors.violet[6]} />
                       <Box style={{ flex: 1 }}>
                         <Text size="xs" c="dimmed">
                           {t("models:details.version")}
@@ -406,7 +395,7 @@ export function ModelDetailsPage() {
                 </Title>
                 <Timeline active={1} bulletSize={24} lineWidth={2}>
                   <Timeline.Item
-                    bullet={<IconClock size={12} />}
+                    bullet={<Icons.Clock size={12} />}
                     title={t("models:details.model_created")}
                   >
                     <Text size="xs" c="dimmed">
@@ -414,7 +403,7 @@ export function ModelDetailsPage() {
                     </Text>
                   </Timeline.Item>
                   <Timeline.Item
-                    bullet={<IconCpu size={12} />}
+                    bullet={<Icons.Cpu size={12} />}
                     title={t("models:details.model_validated")}
                     color="green"
                   >
@@ -423,7 +412,7 @@ export function ModelDetailsPage() {
                     </Text>
                   </Timeline.Item>
                   <Timeline.Item
-                    bullet={<IconDatabase size={12} />}
+                    bullet={<Icons.Database size={12} />}
                     title={t("models:details.ready_for_use")}
                     color="blue"
                   >

@@ -5,11 +5,11 @@ import { useDisclosure } from '@mantine/hooks';
 import { PageLayout } from '@/components/page-layout/page-layout';
 import { LicenseTable } from '@/components/license/LicenseTable';
 import { LicenseCreateDialog } from '@/components/license/LicenseCreateDialog';
-import { useLicenses } from '@/lib/queries/license';
+import { useKeys } from '@/lib/queries/settings';
 
 export function LicensesPage() {
   const { t } = useTranslation(['licenses', 'common']);
-  const { data, isLoading } = useLicenses();
+  const { data, isLoading } = useKeys();
   const [opened, { open, close }] = useDisclosure(false);
 
   return (

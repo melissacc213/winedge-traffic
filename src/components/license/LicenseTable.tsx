@@ -25,11 +25,10 @@ import {
 } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useLicenses, useSetDefaultLicense, useDeleteLicense } from '../../lib/queries/license';
+import { useKeys, useSetDefaultKey, useDeleteKey } from '../../lib/queries/settings';
 import { TableLoading } from '../ui';
 import { modals } from '@mantine/modals';
 import type { License } from '../../lib/validator/license';
-import { USE_MOCK_DATA } from '../../lib/config/mock-data';
 import {
   createColumnHelper,
   flexRender,
@@ -61,9 +60,9 @@ export function LicenseTable({ onEditLicense, isLoading: externalIsLoading }: Li
     pageSize: 10,
   });
 
-  const { data, isLoading: queryIsLoading } = useLicenses({ page, size }, USE_MOCK_DATA.licenses);
-  const setDefaultMutation = useSetDefaultLicense();
-  const deleteMutation = useDeleteLicense();
+  const { data, isLoading: queryIsLoading } = useKeys({ page, size });
+  const setDefaultMutation = useSetDefaultKey();
+  const deleteMutation = useDeleteKey();
   
   // Use external loading state if provided, otherwise use query loading state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : queryIsLoading;

@@ -10,7 +10,7 @@ interface PageLayoutProps {
 
 const usePageStyles = () => ({
   pageContainer: {
-    height: "100vh", // Fixed viewport height
+    height: "(100vh - 70px)", // Fixed viewport height
     paddingTop: rem(8),
     paddingBottom: rem(32),
     position: "relative" as const,

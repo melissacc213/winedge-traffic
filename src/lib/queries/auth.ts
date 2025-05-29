@@ -9,7 +9,7 @@ export function useLogin() {
   return useMutation({
     mutationFn: (body: LoginPayload) => authService.login(body),
     onSuccess: ({ token }) => {
-      localStorage.setItem('token', token);
+      localStorage.setItem('winedge-auth-token', token);
 
       queryClient.resetQueries({
         queryKey: userKeys.self(),
@@ -29,7 +29,7 @@ export function useLogout() {
         queryKey: userKeys.self(),
       });
 
-      localStorage.removeItem('token');
+      localStorage.removeItem('winedge-auth-token');
     },
   });
 }

@@ -1,7 +1,7 @@
 import { Modal } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import { LicenseUpload } from './LicenseUpload';
-import { useUploadLicense } from '../../lib/queries/license';
+import { useCreateKey } from '../../lib/queries/settings';
 import type { CreateLicenseRequest } from '../../lib/validator/license';
 
 interface LicenseCreateDialogProps {
@@ -12,7 +12,7 @@ interface LicenseCreateDialogProps {
 
 export function LicenseCreateDialog({ opened, onClose, onSuccess }: LicenseCreateDialogProps) {
   const { t } = useTranslation(['licenses']);
-  const uploadLicense = useUploadLicense();
+  const uploadLicense = useCreateKey();
 
   const handleSubmit = async (values: CreateLicenseRequest & { file: File }) => {
     await uploadLicense.mutateAsync(values);
