@@ -1,4 +1,4 @@
-import { Center, Loader, Text, Box, Paper, Stack } from '@mantine/core';
+import { Center, Loader, Text, Box, Paper, Stack, useMantineTheme } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../providers/theme-provider';
 
@@ -12,20 +12,34 @@ interface PageLoaderProps {
 
 export function PageLoader({
   text,
-  size = 'md',
+  size = 'lg',
   fullPage = false,
   height = fullPage ? '100vh' : 400,
   withBorder = false,
 }: PageLoaderProps) {
   const { t } = useTranslation(['common']);
+  const { theme, colorScheme } = useTheme();
+  const mantineTheme = useMantineTheme();
   const displayText = text || t('common:status.loading', 'Loading...');
+  const isDark = colorScheme === 'dark';
 
   const loader = (
     <Center style={{ height: height, width: '100%' }}>
-      <Stack align="center" spacing="sm">
-        <Loader size={size} />
+      <Stack align="center" gap="md">
+        <Box
+          style={{
+            padding: mantineTheme.spacing.lg,
+            borderRadius: '50%',
+            backgroundColor: isDark ? theme.colors.dark[6] : theme.colors.gray[0],
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Loader size={size} />
+        </Box>
         {displayText && (
-          <Text size="sm" color="dimmed">
+          <Text size="sm" c="dimmed" fw={500}>
             {displayText}
           </Text>
         )}
@@ -34,7 +48,7 @@ export function PageLoader({
   );
 
   if (withBorder) {
-    return <Paper withBorder p="xl">{loader}</Paper>;
+    return <Paper withBorder p="xl" radius="md">{loader}</Paper>;
   }
 
   return loader;

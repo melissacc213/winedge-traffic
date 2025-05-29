@@ -1,6 +1,18 @@
 // Mock handlers for API endpoints
-import { getMockUsers, getMockUser, createMockUser, updateMockUser, deleteMockUser } from './data/users';
-import { getMockLicenses, getMockLicense, uploadMockLicense, updateMockLicense, deleteMockLicense } from './data/licenses';
+import {
+  getMockUsers,
+  getMockUser,
+  createMockUser,
+  updateMockUser,
+  deleteMockUser,
+} from "./data/users";
+import {
+  getMockLicenses,
+  getMockLicense,
+  uploadMockLicense,
+  updateMockLicense,
+  deleteMockLicense,
+} from "./data/licenses";
 
 // Mock user data for authentication
 const mockUsers = [
@@ -39,7 +51,7 @@ function generateToken() {
 
 // Helper function to simulate network delay
 function delay(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // Helper function to parse URL search params
@@ -54,12 +66,13 @@ function parseSearchParams(url: string) {
 
 // Helper function to check authorization
 function checkAuth(headers: Headers | Record<string, string>): string | null {
-  const authHeader = headers instanceof Headers 
-    ? headers.get("Authorization")
-    : headers["Authorization"] || headers["authorization"];
-  
+  const authHeader =
+    headers instanceof Headers
+      ? headers.get("Authorization")
+      : headers["Authorization"] || headers["authorization"];
+
   if (!authHeader) return null;
-  
+
   const token = authHeader.replace("Token ", "");
   return activeTokens.get(token) || null;
 }
@@ -153,9 +166,13 @@ export async function setupMocks() {
     }
 
     // ===== USER MANAGEMENT ENDPOINTS =====
-    
+
     // Get users list
-    if (url.includes("/api/v1/user") && !url.match(/\/user\/\d+/) && init?.method === "GET") {
+    if (
+      url.includes("/api/v1/user") &&
+      !url.match(/\/user\/\d+/) &&
+      init?.method === "GET"
+    ) {
       await delay(500);
       const userId = checkAuth(init.headers as any);
       if (!userId) {
@@ -168,7 +185,7 @@ export async function setupMocks() {
       const params = parseSearchParams(url);
       const page = parseInt(params.page || "1");
       const size = parseInt(params.size || "10");
-      
+
       const result = getMockUsers(page, size);
       return new Response(JSON.stringify(result), {
         status: 200,
@@ -190,7 +207,7 @@ export async function setupMocks() {
       const match = url.match(/\/user\/(\d+)$/);
       const id = parseInt(match![1]);
       const user = getMockUser(id);
-      
+
       if (!user) {
         return new Response(JSON.stringify({ error: "User not found" }), {
           status: 404,
@@ -243,11 +260,11 @@ export async function setupMocks() {
 
       const match = url.match(/\/user\/(\d+)$/);
       const id = parseInt(match![1]);
-      
+
       try {
         const body = JSON.parse(init.body as string);
         const updatedUser = updateMockUser(id, body);
-        
+
         if (!updatedUser) {
           return new Response(JSON.stringify({ error: "User not found" }), {
             status: 404,
@@ -281,7 +298,7 @@ export async function setupMocks() {
       const match = url.match(/\/user\/(\d+)$/);
       const id = parseInt(match![1]);
       const success = deleteMockUser(id);
-      
+
       if (!success) {
         return new Response(JSON.stringify({ error: "User not found" }), {
           status: 404,
@@ -293,9 +310,13 @@ export async function setupMocks() {
     }
 
     // ===== LICENSE MANAGEMENT ENDPOINTS =====
-    
+
     // Get licenses list
-    if (url.includes("/api/v1/license") && !url.match(/\/license\/\d+/) && init?.method === "GET") {
+    if (
+      url.includes("/api/v1/license") &&
+      !url.match(/\/license\/\d+/) &&
+      init?.method === "GET"
+    ) {
       await delay(500);
       const userId = checkAuth(init.headers as any);
       if (!userId) {
@@ -308,7 +329,7 @@ export async function setupMocks() {
       const params = parseSearchParams(url);
       const page = parseInt(params.page || "1");
       const size = parseInt(params.size || "10");
-      
+
       const result = getMockLicenses(page, size);
       return new Response(JSON.stringify(result), {
         status: 200,
@@ -330,7 +351,7 @@ export async function setupMocks() {
       const match = url.match(/\/license\/(\d+)$/);
       const id = parseInt(match![1]);
       const license = getMockLicense(id);
-      
+
       if (!license) {
         return new Response(JSON.stringify({ error: "License not found" }), {
           status: 404,
@@ -358,15 +379,18 @@ export async function setupMocks() {
       try {
         // For multipart form data, we'll simulate parsing
         const formData = init.body as FormData;
-        const name = formData.get('name') as string;
-        const file = formData.get('file') as File;
-        const is_default = formData.get('is_default') === 'true';
+        const name = formData.get("name") as string;
+        const file = formData.get("file") as File;
+        const is_default = formData.get("is_default") === "true";
 
         if (!name || !file) {
-          return new Response(JSON.stringify({ error: "Name and file are required" }), {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-          });
+          return new Response(
+            JSON.stringify({ error: "Name and file are required" }),
+            {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
         }
 
         const newLicense = uploadMockLicense({
@@ -400,11 +424,11 @@ export async function setupMocks() {
 
       const match = url.match(/\/license\/(\d+)$/);
       const id = parseInt(match![1]);
-      
+
       try {
         const body = JSON.parse(init.body as string);
         const updatedLicense = updateMockLicense(id, body);
-        
+
         if (!updatedLicense) {
           return new Response(JSON.stringify({ error: "License not found" }), {
             status: 404,
@@ -438,7 +462,7 @@ export async function setupMocks() {
       const match = url.match(/\/license\/(\d+)$/);
       const id = parseInt(match![1]);
       const success = deleteMockLicense(id);
-      
+
       if (!success) {
         return new Response(JSON.stringify({ error: "License not found" }), {
           status: 404,
@@ -452,6 +476,4 @@ export async function setupMocks() {
     // Pass through all other requests
     return originalFetch(input, init);
   };
-
-  console.log("Mock API handlers set up");
 }

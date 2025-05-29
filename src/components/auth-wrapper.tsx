@@ -1,16 +1,12 @@
 import { useSelf } from '@/lib/queries/user';
-import { Center, Loader } from '@mantine/core';
 import { Navigate, Outlet } from 'react-router-dom';
+import { AppLoader } from './ui/app-loader';
 
 export function AuthOutlet() {
   const { data: self, isSuccess: isSelfSuccess, isError: isSelfError, isLoading: isSelfLoading } = useSelf();
 
   if (isSelfLoading) {
-    return (
-      <Center className="fixed inset-0">
-        <Loader size="xl" />
-      </Center>
-    );
+    return <AppLoader />;
   }
 
   if (isSelfError || !self) {

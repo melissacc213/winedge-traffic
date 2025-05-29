@@ -5,5 +5,8 @@ export * from "./page-loader";
 export * from "./page-header-skeleton";
 export * from "./card-skeleton";
 export * from "./icon-memo";
+export * from "./data-table";
 export * from "../task-video-stream";
 export * from "../video-player";
+export * from "./app-loader";
+export * from "./error-boundary";

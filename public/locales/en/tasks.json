@@ -86,5 +86,54 @@
     "localPathPlaceholder": "Enter video file path",
     "startImmediately": "Start recognition immediately",
     "createTask": "Create Task"
+  },
+  "taskDetails": "Task Details",
+  "taskDetailsDescription": "View task status and metrics",
+  "taskInformation": "Task Information",
+  "recipeId": "Recipe ID",
+  "taskType": "Task Type",
+  "taskTypes": {
+    "trafficStatistics": "Traffic Statistics",
+    "trainDetection": "Train Detection"
+  },
+  "createdAgo": "Created {{time}} ago",
+  "startedAgo": "Started {{time}} ago",
+  "endedAgo": "Ended {{time}} ago",
+  "error": "Error",
+  "progress": "Progress",
+  "processingSpeed": "Processing Speed",
+  "objectsCounted": "Objects Counted",
+  "startTask": "Start Task",
+  "stopTask": "Stop Task",
+  "deleteTask": "Delete Task",
+  "refreshTaskData": "Refresh task data",
+  "taskNotFound": "Task not found",
+  "backToTasks": "Back to Tasks",
+  "videoWillAppearWhenStarted": "Video stream will appear when task is started",
+  "taskFailedNoVideo": "Task failed - No video available",
+  "taskCompletedVideoEnded": "Task completed - Video stream ended",
+  "taskStoppedVideoEnded": "Task stopped - Video stream ended",
+  "notifications": {
+    "taskStarted": "Task Started",
+    "taskStartedMessage": "Task '{{name}}' has been started successfully",
+    "taskStartError": "Failed to Start Task",
+    "taskStopped": "Task Stopped",
+    "taskStoppedMessage": "Task '{{name}}' has been stopped successfully",
+    "taskStopError": "Failed to Stop Task",
+    "taskDeleted": "Task Deleted",
+    "taskDeletedMessage": "Task '{{name}}' has been deleted successfully",
+    "taskDeleteError": "Failed to Delete Task"
+  },
+  "modals": {
+    "stopTask": {
+      "title": "Stop Task",
+      "message": "Are you sure you want to stop the task '{{name}}'? This action cannot be undone.",
+      "confirm": "Stop Task"
+    },
+    "deleteTask": {
+      "title": "Delete Task",
+      "message": "Are you sure you want to delete the task '{{name}}'? This action cannot be undone.",
+      "confirm": "Delete Task"
+    }
   }
 }

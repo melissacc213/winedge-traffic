@@ -8,18 +8,14 @@ import { ModelsPage } from '@/pages/models-page';
 import { RecipesPage } from '@/pages/recipes-page';
 import { RecipeCreationPage } from '@/pages/recipe-creation-page';
 import { TasksPage, TaskDetailsPage } from '@/pages/tasks-page';
-import { Center, Loader } from '@mantine/core';
+import { AppLoader } from '@/components/ui/app-loader';
 import { Suspense } from 'react';
 import {
   RouterProvider as RRDRouterProvider,
   createBrowserRouter,
 } from 'react-router-dom';
 
-const LoadingFallback = () => (
-  <Center className="fixed inset-0">
-    <Loader size="xl" />
-  </Center>
-);
+const LoadingFallback = () => <AppLoader />;
 
 const router = createBrowserRouter([
   {
@@ -42,11 +38,9 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: (
-      <Suspense fallback={<LoadingFallback />}>
-        <Layout>
-          <AuthOutlet />
-        </Layout>
-      </Suspense>
+      <Layout>
+        <AuthOutlet />
+      </Layout>
     ),
     errorElement: <ErrorPage />,
     children: [
