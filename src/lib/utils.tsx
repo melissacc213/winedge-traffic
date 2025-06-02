@@ -86,6 +86,16 @@ export function formatDate(dateString: string): string {
   }).format(date);
 }
 
+// Format date to simple format (e.g., "Jan 15, 2024")
+export function formatDateSimple(dateString: string): string {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(date);
+}
+
 // Get task type color - consistent across the app
 export function getTaskTypeColor(taskType: string): string {
   // Map task types to Mantine color names for consistent colors across the app

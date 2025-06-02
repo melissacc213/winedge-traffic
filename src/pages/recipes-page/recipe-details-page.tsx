@@ -22,7 +22,7 @@ import { useTheme } from "@/providers/theme-provider";
 import { getRegionColor } from "@/lib/theme-utils";
 import { notifications } from "@mantine/notifications";
 import { modals } from "@mantine/modals";
-import { getTaskTypeColor } from "@/lib/utils";
+import { getTaskTypeColor, formatDateSimple } from "@/lib/utils";
 import { useRecipeStore } from "@/lib/store/recipe-store";
 
 // Generate mock data for the recipe details using theme colors
@@ -330,7 +330,7 @@ export function RecipeDetailsPage() {
                   </Badge>
                   <Text size="sm" c="dimmed">
                     {t("recipes:details.createdOn", {
-                      date: new Date(recipe.createdAt).toLocaleDateString(),
+                      date: formatDateSimple(recipe.createdAt),
                     })}
                   </Text>
                 </Group>
