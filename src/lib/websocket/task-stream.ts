@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback,useEffect, useState } from 'react';
 
 interface UseTaskStreamOptions {
   url?: string;
@@ -96,11 +96,11 @@ export function useTaskStream({
   }, [url, socket, disconnect, connect]);
 
   return {
-    isConnected,
-    lastMessage,
-    error,
     connect,
     disconnect,
+    error,
+    isConnected,
+    lastMessage,
     send
   };
 }
@@ -112,10 +112,10 @@ export class MockWebSocket {
   private frameCount = 0;
   private taskId: string;
   private listeners: Record<string, Array<(event: any) => void>> = {
-    open: [],
-    message: [],
+    close: [],
     error: [],
-    close: []
+    message: [],
+    open: []
   };
   
   url: string;
@@ -190,21 +190,21 @@ export class MockWebSocket {
         const status = progress >= 100 ? 'completed' : 'running';
         
         const statusUpdate = {
-          type: 'status',
-          taskId: this.taskId,
-          progress,
-          status,
           metrics: {
-            objectsCounted: this.frameCount * 5,
             detectionRate: 0.92 + (Math.random() * 0.06),
+            objectsCounted: this.frameCount * 5,
             processingFps: 24 + (Math.random() * 3 - 1.5),
             totalObjects: {
-              car: Math.floor(this.frameCount * 3.5),
-              truck: Math.floor(this.frameCount * 0.8),
               bus: Math.floor(this.frameCount * 0.2),
-              motorcycle: Math.floor(this.frameCount * 1.2)
+              car: Math.floor(this.frameCount * 3.5),
+              motorcycle: Math.floor(this.frameCount * 1.2),
+              truck: Math.floor(this.frameCount * 0.8)
             }
-          }
+          },
+          progress,
+          status,
+          taskId: this.taskId,
+          type: 'status'
         };
         
         this.dispatchEvent('message', { data: JSON.stringify(statusUpdate) });
@@ -214,9 +214,9 @@ export class MockWebSocket {
       // For the sake of mock implementation, we'll just send a placeholder
       this.dispatchEvent('message', { 
         data: JSON.stringify({
-          type: 'frame',
           frameId: this.frameCount,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          type: 'frame'
         })
       });
       
@@ -228,11 +228,11 @@ export class MockWebSocket {
         // Send completion message
         this.dispatchEvent('message', { 
           data: JSON.stringify({
-            type: 'status',
-            taskId: this.taskId,
+            endTime: new Date().toISOString(),
             progress: 100,
             status: 'completed',
-            endTime: new Date().toISOString()
+            taskId: this.taskId,
+            type: 'status'
           })
         });
         
@@ -327,11 +327,11 @@ export function useMockTaskStream({
   }, [url, socket, disconnect, connect]);
 
   return {
-    isConnected,
-    lastMessage,
-    error,
     connect,
     disconnect,
+    error,
+    isConnected,
+    lastMessage,
     send
   };
 }

@@ -1,8 +1,9 @@
-import { Modal, TextInput, Stack, Button, Group, Switch } from "@mantine/core";
+import { Button, Group, Modal, Stack, Switch,TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { useTranslation } from "react-i18next";
+
 import { Icons } from "@/components/icons";
 import { useUpdateLicense } from "@/lib/queries/license";
-import { useTranslation } from "react-i18next";
 import type { License } from "@/lib/validator/license";
 
 interface LicenseEditProps {
@@ -18,15 +19,15 @@ export function LicenseEdit({ license, opened, onClose, onSuccess }: LicenseEdit
 
   const form = useForm({
     initialValues: {
-      name: license.name,
       is_default: license.is_default,
+      name: license.name,
     },
   });
 
   const handleSubmit = async (values: typeof form.values) => {
     await updateMutation.mutateAsync({
-      id: license.id,
       data: values,
+      id: license.id,
     });
     onSuccess?.();
   };

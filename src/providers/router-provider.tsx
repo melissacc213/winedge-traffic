@@ -1,25 +1,25 @@
+import { Suspense } from 'react';
+import {
+  createBrowserRouter,
+  RouterProvider as RRDRouterProvider,
+} from 'react-router-dom';
+
 import { AuthOutlet } from '@/components/auth-wrapper';
 import { Layout } from '@/components/layout/layout';
 import { LoginLayout } from '@/components/layout/login-layout';
+import { AppLoader } from '@/components/ui/app-loader';
 import { ErrorPage } from '@/pages/error-page/error-page';
-import { UsersPage } from '@/pages/users-page/users-page';
 import { LicensesPage } from '@/pages/licenses-page/licenses-page';
 import { ModelsPage } from '@/pages/models-page';
-import { RecipesPage } from '@/pages/recipes-page';
 import { RecipeCreationPage } from '@/pages/recipe-creation-page';
-import { TasksPage, TaskDetailsPage } from '@/pages/tasks-page';
-import { AppLoader } from '@/components/ui/app-loader';
-import { Suspense } from 'react';
-import {
-  RouterProvider as RRDRouterProvider,
-  createBrowserRouter,
-} from 'react-router-dom';
+import { RecipesPage } from '@/pages/recipes-page';
+import { TaskDetailsPage,TasksPage } from '@/pages/tasks-page';
+import { UsersPage } from '@/pages/users-page/users-page';
 
 const LoadingFallback = () => <AppLoader />;
 
 const router = createBrowserRouter([
   {
-    path: '/login',
     async lazy() {
       const { LoginPage } = await import('../pages/login-page/login-page');
 
@@ -34,15 +34,9 @@ const router = createBrowserRouter([
         HydrateFallback: LoadingFallback,
       };
     },
+    path: '/login',
   },
   {
-    path: '/',
-    element: (
-      <Layout>
-        <AuthOutlet />
-      </Layout>
-    ),
-    errorElement: <ErrorPage />,
     HydrateFallback: LoadingFallback,
     children: [
       {
@@ -58,36 +52,35 @@ const router = createBrowserRouter([
       },
       // Users page
       {
-        path: 'users',
         async lazy() {
           return {
             Component: UsersPage,
             HydrateFallback: LoadingFallback,
           };
         },
+        path: 'users',
       },
       // License page
       {
-        path: 'licenses',
         async lazy() {
           return {
             Component: LicensesPage,
             HydrateFallback: LoadingFallback,
           };
         },
+        path: 'licenses',
       },
       // Tasks routes
       {
-        path: 'tasks',
         async lazy() {
           return {
             Component: TasksPage,
             HydrateFallback: LoadingFallback,
           };
         },
+        path: 'tasks',
       },
       {
-        path: 'tasks/create',
         async lazy() {
           const { TaskCreationPage } = await import('../pages/tasks-page/task-creation-page');
           return {
@@ -95,36 +88,46 @@ const router = createBrowserRouter([
             HydrateFallback: LoadingFallback,
           };
         },
+        path: 'tasks/create',
       },
       {
-        path: 'tasks/:taskId',
         async lazy() {
           return {
             Component: TaskDetailsPage,
             HydrateFallback: LoadingFallback,
           };
         },
+        path: 'tasks/:taskId',
       },
       {
-        path: 'recipes',
+        async lazy() {
+          const { TaskEditPage } = await import('../pages/tasks-page/task-edit-page');
+          return {
+            Component: TaskEditPage,
+            HydrateFallback: LoadingFallback,
+          };
+        },
+        path: 'tasks/:taskId/edit',
+      },
+      {
         async lazy() {
           return {
             Component: RecipesPage,
             HydrateFallback: LoadingFallback,
           };
         },
+        path: 'recipes',
       },
       {
-        path: 'recipes/create',
         async lazy() {
           return {
             Component: RecipeCreationPage,
             HydrateFallback: LoadingFallback,
           };
         },
+        path: 'recipes/create',
       },
       {
-        path: 'recipes/:recipeId',
         async lazy() {
           const { RecipeDetailsPage } = await import('../pages/recipes-page/recipe-details-page');
           return {
@@ -132,9 +135,9 @@ const router = createBrowserRouter([
             HydrateFallback: LoadingFallback,
           };
         },
+        path: 'recipes/:recipeId',
       },
       {
-        path: 'recipes/:recipeId/edit',
         async lazy() {
           const { RecipeEditPage } = await import('../pages/recipes-page/recipe-edit-page');
           return {
@@ -142,18 +145,18 @@ const router = createBrowserRouter([
             HydrateFallback: LoadingFallback,
           };
         },
+        path: 'recipes/:recipeId/edit',
       },
       {
-        path: 'models',
         async lazy() {
           return {
             Component: ModelsPage,
             HydrateFallback: LoadingFallback,
           };
         },
+        path: 'models',
       },
       {
-        path: 'models/:modelId',
         async lazy() {
           const { ModelDetailsPage } = await import('../pages/models-page/model-details-page');
           return {
@@ -161,9 +164,9 @@ const router = createBrowserRouter([
             HydrateFallback: LoadingFallback,
           };
         },
+        path: 'models/:modelId',
       },
       {
-        path: 'models/:modelId/edit',
         async lazy() {
           const { ModelEditPage } = await import('../pages/models-page/model-edit-page');
           return {
@@ -171,9 +174,9 @@ const router = createBrowserRouter([
             HydrateFallback: LoadingFallback,
           };
         },
+        path: 'models/:modelId/edit',
       },
       {
-        path: 'profile',
         async lazy() {
           const { ProfilePage } = await import('../pages/profile-page');
           return {
@@ -181,17 +184,25 @@ const router = createBrowserRouter([
             HydrateFallback: LoadingFallback,
           };
         },
+        path: 'profile',
       }
     ],
+    element: (
+      <Layout>
+        <AuthOutlet />
+      </Layout>
+    ),
+    errorElement: <ErrorPage />,
+    path: '/',
   },
   {
-    path: '*',
     async lazy() {
       return {
         Component: () => <ErrorPage defaultCode="404" defaultMessage="Page not found" />,
         HydrateFallback: LoadingFallback,
       };
     },
+    path: '*',
   },
 ]);
 

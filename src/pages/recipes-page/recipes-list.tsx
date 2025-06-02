@@ -1,43 +1,45 @@
-import { useState, useMemo, useCallback } from "react";
-import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import {
+  ActionIcon,
+  Badge,
+  Button,
+  Group,
+  Menu,
+  Pagination,
+  ScrollArea,
+  Table,
+  Text,
+  TextInput,
+  UnstyledButton,
+} from "@mantine/core";
+import {
+  IconArrowsSort,
+  IconCopyCheck,
+  IconDots,
+  IconEye,
+  IconPlus,
+  IconSearch,
+  IconSortAscending,
+  IconSortDescending,
+  IconTrash,
+} from "@tabler/icons-react";
+import type { ColumnDef,SortingState } from "@tanstack/react-table";
 import {
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  getPaginationRowModel,
-  getFilteredRowModel,
 } from "@tanstack/react-table";
-import type { SortingState, ColumnDef } from "@tanstack/react-table";
-import {
-  Table,
-  ScrollArea,
-  UnstyledButton,
-  Group,
-  Text,
-  Badge,
-  Pagination,
-  Menu,
-  ActionIcon,
-  Button,
-  TextInput,
-} from "@mantine/core";
-import {
-  IconDots,
-  IconEye,
-  IconCopyCheck,
-  IconTrash,
-  IconSortAscending,
-  IconSortDescending,
-  IconSearch,
-  IconArrowsSort,
-  IconPlus,
-} from "@tabler/icons-react";
-import { useRecipes } from "../../lib/queries/recipe";
+import { useCallback,useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+
 import { getTaskTypeColor } from "@/lib/utils";
-import type { RecipeResponse } from "../../lib/validator/recipe";
 import type { Region } from "@/types/recipe";
+
+import { useRecipes } from "../../lib/queries/recipe";
+import type { RecipeResponse } from "../../lib/validator/recipe";
 
 // Helper functions outside of component to prevent re-creation on each render
 
@@ -104,7 +106,6 @@ export function RecipesList() {
     () => [
       {
         accessorKey: "name",
-        header: t("recipes:table.name"),
         cell: (info) => {
           const name = info.getValue() as string;
           return (
@@ -113,10 +114,10 @@ export function RecipesList() {
             </Text>
           );
         },
+        header: t("recipes:table.name"),
       },
       {
         accessorKey: "taskType",
-        header: t("recipes:table.taskType"),
         cell: (info) => {
           const taskType = info.getValue() as string;
           return (
@@ -125,10 +126,10 @@ export function RecipesList() {
             </Badge>
           );
         },
+        header: t("recipes:table.taskType"),
       },
       {
         accessorKey: "status",
-        header: t("recipes:table.status"),
         cell: (info) => {
           const status = info.getValue() as string;
           return (
@@ -137,20 +138,20 @@ export function RecipesList() {
             </Badge>
           );
         },
+        header: t("recipes:table.status"),
       },
       {
         accessorKey: "regions",
-        header: t("recipes:table.regions"),
         cell: (info) => {
           const regions = info.getValue() as Region[];
           return (
             <Text size="sm">{getRegionCount(regions)}</Text>
           );
         },
+        header: t("recipes:table.regions"),
       },
       {
         accessorKey: "createdAt",
-        header: t("recipes:table.createdAt"),
         cell: (info) => {
           const createdAt = info.getValue() as string;
           return (
@@ -159,10 +160,9 @@ export function RecipesList() {
             </Text>
           );
         },
+        header: t("recipes:table.createdAt"),
       },
       {
-        id: "actions",
-        header: "",
         cell: (info) => (
           <Menu position="bottom-end" shadow="md">
             <Menu.Target>
@@ -192,28 +192,30 @@ export function RecipesList() {
             </Menu.Dropdown>
           </Menu>
         ),
+        header: "",
+        id: "actions",
       },
     ],
     [t, getTaskTypeLabel, navigate]
   );
 
   const table = useReactTable({
-    data: recipes,
     columns,
+    data: recipes,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    onGlobalFilterChange: setGlobalFilter,
+    onSortingChange: setSorting,
     state: {
-      sorting,
       globalFilter,
       pagination: {
         pageIndex,
         pageSize: 10,
       },
+      sorting,
     },
-    onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
   });
 
   const handlePageChange = useCallback((page: number) => {

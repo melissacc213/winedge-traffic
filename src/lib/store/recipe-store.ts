@@ -1,8 +1,10 @@
 import { create } from "zustand";
-import type { Region, TaskType, RegionConnection } from "../../types/recipe";
-import type { RecipeResponse } from "../validator/recipe";
-import type { ModelLabel } from "../../types/model";
+
 import { getMockModelConfig } from "@/lib/config/mock-model-config";
+
+import type { ModelLabel } from "../../types/model";
+import type { Region, RegionConnection,TaskType } from "../../types/recipe";
+import type { RecipeResponse } from "../validator/recipe";
 
 // API payload types
 export interface TrainTypePayload {
@@ -89,37 +91,112 @@ export interface RecipeFormValues {
 
 // Initial form state
 const initialFormState: RecipeFormValues = {
-  // Basic info
-  name: "",
-  description: "",
-
-  // Task type
-  taskType: "",
-  sceneType: "",
-  roadType: "",
-
-  // Video
-  videoId: "",
-  videoFile: null,
-  videoName: "",
-  extractedFrame: null,
-  extractedFrameTime: null,
-  extractedFrameFilename: "",
-
-  // Regions
-  regions: [] as Region[],
-  connections: [] as RegionConnection[],
-
-  // ROI for train detection
-  roi: undefined,
-
-  // Model config
-  modelId: "",
-  modelName: "",
-  confidenceThreshold: 0.5,
+  
   classFilter: ["car", "truck", "bus", "person"],
-  inferenceStep: 3,
-  modelConfig: undefined,
+  
+confidenceThreshold: 0.5,
+
+  
+  
+connections: [] as RegionConnection[],
+  
+
+description: "",
+  
+
+extractedFrame: null,
+
+  
+  
+
+extractedFrameFilename: "",
+  
+
+
+extractedFrameTime: null,
+  
+
+
+inferenceStep: 3,
+  
+
+
+modelConfig: undefined,
+  
+
+
+// Model config
+modelId: "",
+  
+
+
+
+modelName: "",
+
+  
+  
+
+
+// Basic info
+name: "",
+  
+
+
+
+
+// Regions
+regions: [] as Region[],
+
+  
+  
+
+
+
+
+
+
+roadType: "",
+
+  
+  
+
+
+
+
+
+
+// ROI for train detection
+roi: undefined,
+  
+
+
+
+
+
+
+
+sceneType: "",
+  
+
+
+
+
+
+// Task type
+taskType: "",
+  
+
+
+
+
+videoFile: null,
+  
+
+
+// Video
+videoId: "",
+  
+videoName: "",
 };
 
 // Step completion state
@@ -198,160 +275,20 @@ interface RecipeState {
 }
 
 export const useRecipeStore = create<RecipeState>((set) => ({
-  // Recipe list state
-  recipes: [],
-  isLoading: false,
-  error: null,
-
+  
   // UI state for recipe creation - start at step 0, which is now task type with video
-  activeStep: 0,
-  isDirty: false,
-  isSaving: false,
-  stepCompleted: {
-    step0: false,
-    step1: false,
-    step2: false,
-  },
+activeStep: 0,
+  
 
-  // Form data for recipe creation
-  formValues: initialFormState,
-
-  // List actions
-  setRecipes: (recipes) => set({ recipes }),
-  addRecipe: (recipe) =>
+addRecipe: (recipe) =>
     set((state) => ({
       recipes: [...state.recipes, recipe],
     })),
-  removeRecipe: (id) =>
-    set((state) => ({
-      recipes: state.recipes.filter((recipe) => recipe.id !== id),
-    })),
-  updateRecipe: (id, data) =>
-    set((state) => ({
-      recipes: state.recipes.map((recipe) =>
-        recipe.id === id ? { ...recipe, ...data } : recipe
-      ),
-    })),
-  setLoading: (isLoading) => set({ isLoading }),
-  setError: (error) => set({ error }),
+  
 
-  // Creation step actions
-  nextStep: () =>
-    set((state) => ({
-      activeStep: Math.min(state.activeStep + 1, 2), // 3 total steps (0-2)
-    })),
 
-  previousStep: () =>
-    set((state) => ({
-      activeStep: Math.max(state.activeStep - 1, 0),
-    })),
-
-  setActiveStep: (step) => set({ activeStep: step }),
-
-  updateForm: (values) =>
-    set((state) => ({
-      formValues: { ...state.formValues, ...values },
-      isDirty: true,
-    })),
-
-  resetForm: () =>
-    set({
-      formValues: initialFormState,
-      isDirty: false,
-      activeStep: 0,
-      stepCompleted: {
-        step0: false,
-        step1: false,
-        step2: false,
-      },
-    }),
-
-  setIsSaving: (isSaving) => set({ isSaving }),
-
-  markStepCompleted: (step, completed) =>
-    set((state) => ({
-      stepCompleted: {
-        ...state.stepCompleted,
-        [`step${step}`]: completed,
-      },
-    })),
-
-  // Task type
-  setTaskType: (taskType) =>
-    set((state) => ({
-      formValues: { ...state.formValues, taskType },
-      isDirty: true,
-    })),
-
-  setRoadType: (roadType) =>
-    set((state) => ({
-      formValues: { ...state.formValues, roadType },
-      isDirty: true,
-    })),
-
-  // Video
-  setVideo: (videoId, file = null) =>
-    set((state) => ({
-      formValues: {
-        ...state.formValues,
-        videoId,
-        videoFile: file,
-        videoName: file?.name || "",
-      },
-      isDirty: true,
-    })),
-
-  setExtractedFrame: (frame, time, filename = "") =>
-    set((state) => ({
-      formValues: {
-        ...state.formValues,
-        extractedFrame: frame,
-        extractedFrameTime: time,
-        extractedFrameFilename: filename || "frame.jpg",
-      },
-      isDirty: true,
-    })),
-
-  // Model configuration
-  setModel: (modelId, modelName = "") =>
-    set((state) => ({
-      formValues: {
-        ...state.formValues,
-        modelId,
-        modelName,
-      },
-      isDirty: true,
-    })),
-
-  setConfidenceThreshold: (threshold) =>
-    set((state) => ({
-      formValues: {
-        ...state.formValues,
-        confidenceThreshold: threshold,
-      },
-      isDirty: true,
-    })),
-
-  setClassFilter: (classes) =>
-    set((state) => ({
-      formValues: {
-        ...state.formValues,
-        classFilter: classes,
-      },
-      isDirty: true,
-    })),
-
-  setModelConfig: (config) =>
-    set((state) => ({
-      formValues: {
-        ...state.formValues,
-        modelConfig: config,
-      },
-      isDirty: true,
-    })),
-
-  // Regions
-  addRegion: (region) =>
+// Regions
+addRegion: (region) =>
     set((state) => ({
       formValues: {
         ...state.formValues,
@@ -360,74 +297,37 @@ export const useRecipeStore = create<RecipeState>((set) => ({
       isDirty: true,
     })),
 
-  updateRegion: (region) =>
-    set((state) => ({
-      formValues: {
-        ...state.formValues,
-        regions: state.formValues.regions.map((r) =>
-          r.id === region.id ? region : r
-        ),
-      },
-      isDirty: true,
-    })),
+  
+  
 
-  deleteRegion: (regionId) =>
-    set((state) => ({
-      formValues: {
-        ...state.formValues,
-        regions: state.formValues.regions.filter((r) => r.id !== regionId),
-        // Also remove connections related to this region
-        connections:
-          state.formValues.connections?.filter(
-            (conn) =>
-              conn.sourceId !== regionId && conn.destinationId !== regionId
-          ) || [],
-      },
-      isDirty: true,
-    })),
 
-  updateConnections: (connections) =>
-    set((state) => ({
-      formValues: {
-        ...state.formValues,
-        connections,
-      },
-      isDirty: true,
-    })),
 
-  setROI: (roi) =>
+clearModelData: () =>
     set((state) => ({
       formValues: {
         ...state.formValues,
-        roi,
-      },
-      isDirty: true,
-    })),
-
-  // Clear functions for going back
-  clearVideoData: () =>
-    set((state) => ({
-      formValues: {
-        ...state.formValues,
-        videoId: "",
-        videoFile: null,
-        videoName: "",
-        extractedFrame: null,
-        extractedFrameTime: null,
-        extractedFrameFilename: "",
+        classFilter: ["car", "truck", "bus", "person"],
+        confidenceThreshold: 0.5,
+        inferenceStep: 3,
+        modelConfig: undefined,
+        modelId: "",
+        modelName: "",
       },
       stepCompleted: {
         ...state.stepCompleted,
-        step0: false,
+        step2: false,
       },
     })),
+  
 
-  clearRegionsData: () =>
+
+
+clearRegionsData: () =>
     set((state) => ({
       formValues: {
         ...state.formValues,
-        regions: [],
         connections: [],
+        regions: [],
         roi: undefined,
       },
       stepCompleted: {
@@ -435,26 +335,72 @@ export const useRecipeStore = create<RecipeState>((set) => ({
         step1: false,
       },
     })),
+  
 
-  clearModelData: () =>
+
+
+// Clear functions for going back
+clearVideoData: () =>
     set((state) => ({
       formValues: {
         ...state.formValues,
-        modelId: "",
-        modelName: "",
-        modelConfig: undefined,
-        confidenceThreshold: 0.5,
-        classFilter: ["car", "truck", "bus", "person"],
-        inferenceStep: 3,
+        extractedFrame: null,
+        extractedFrameFilename: "",
+        extractedFrameTime: null,
+        videoFile: null,
+        videoId: "",
+        videoName: "",
       },
       stepCompleted: {
         ...state.stepCompleted,
-        step2: false,
+        step0: false,
       },
     })),
+  
 
-  // Generate API payload based on task type
-  generateAPIPayload: () => {
+
+
+
+deleteRegion: (regionId) =>
+    set((state) => ({
+      formValues: {
+        ...state.formValues,
+        // Also remove connections related to this region
+connections:
+          state.formValues.connections?.filter(
+            (conn) =>
+              conn.sourceId !== regionId && conn.destinationId !== regionId
+          ) || [],
+        
+        regions: state.formValues.regions.filter((r) => r.id !== regionId),
+      },
+      isDirty: true,
+    })),
+
+  
+  
+
+
+
+
+error: null,
+
+  
+  
+
+
+
+
+// Form data for recipe creation
+formValues: initialFormState,
+  
+
+
+
+
+
+// Generate API payload based on task type
+generateAPIPayload: () => {
     const state = useRecipeStore.getState();
     const { formValues } = state;
 
@@ -464,11 +410,11 @@ export const useRecipeStore = create<RecipeState>((set) => ({
 
     // Prepare models array from modelConfig labels
     const models = formValues.modelConfig.labels.map((label) => ({
-      confidence: label.confidence || formValues.modelConfig!.confidence,
-      width_threshold: label.widthThreshold || 100,
-      height_threshold: label.heightThreshold || 200,
       color: label.color || "#FF0000",
+      confidence: label.confidence || formValues.modelConfig!.confidence,
+      height_threshold: label.heightThreshold || 200,
       label: label.name,
+      width_threshold: label.widthThreshold || 100,
     }));
 
     if (formValues.taskType === "trainDetection") {
@@ -478,16 +424,16 @@ export const useRecipeStore = create<RecipeState>((set) => ({
       }
 
       const payload: TrainTypePayload = {
-        models,
-        kind: "train",
         frame: formValues.extractedFrameFilename,
+        kind: "train",
+        model_id: parseInt(formValues.modelId, 10),
+        models,
         roi: [
           formValues.roi.x1,
           formValues.roi.y1,
           formValues.roi.x2,
           formValues.roi.y2,
         ],
-        model_id: parseInt(formValues.modelId, 10),
       };
 
       return payload;
@@ -498,10 +444,10 @@ export const useRecipeStore = create<RecipeState>((set) => ({
       }
 
       const payload: IntersectionTypePayload = {
-        models,
-        kind: "intersection",
-        subtype: formValues.roadType || "Cross",
         frame: formValues.extractedFrameFilename,
+        kind: "intersection",
+        model_id: parseInt(formValues.modelId, 10),
+        models,
         polygons: formValues.regions.map((region) => ({
           id: region.id,
           points: region.points,
@@ -511,7 +457,7 @@ export const useRecipeStore = create<RecipeState>((set) => ({
             from: conn.sourceId,
             to: conn.destinationId,
           })) || [],
-        model_id: parseInt(formValues.modelId, 10),
+        subtype: formValues.roadType || "Cross",
       };
 
       return payload;
@@ -519,9 +465,39 @@ export const useRecipeStore = create<RecipeState>((set) => ({
 
     return null;
   },
+  
 
-  // Load recipe data for editing
-  loadRecipeForEdit: (recipeId: string) => {
+
+
+
+
+
+isDirty: false,
+  
+
+
+
+
+
+
+isLoading: false,
+  
+
+
+
+
+
+
+isSaving: false,
+  
+
+
+
+
+
+
+// Load recipe data for editing
+loadRecipeForEdit: (recipeId: string) => {
     // In production, this would fetch from API
     // For now, we'll use mock data or find from existing recipes
     const state = useRecipeStore.getState();
@@ -530,26 +506,36 @@ export const useRecipeStore = create<RecipeState>((set) => ({
     if (existingRecipe) {
       // Convert API response back to form values
       set({
+        activeStep: 0,
         formValues: {
-          name: existingRecipe.name,
+          classFilter: ["car", "truck", "bus", "person"],
+          confidenceThreshold: 0.7,
+          connections: [],
           description: existingRecipe.description || "",
-          taskType: existingRecipe.taskType as TaskType,
-          sceneType: "",
-          roadType:
-            existingRecipe.taskType === "trafficStatistics" ? "Cross" : "",
-          videoId: "video_123",
-          videoName: "traffic_sample.mp4",
           extractedFrame: JSON.stringify({
+            filename: "frame_capture.jpg",
             imageDataUrl: "/api/placeholder/800/600",
             timestamp: 45.5,
-            filename: "frame_capture.jpg",
           }),
-          extractedFrameTime: 45.5,
           extractedFrameFilename: "frame_capture.jpg",
+          extractedFrameTime: 45.5,
+          inferenceStep: 3,
+          modelConfig: {
+            confidence: 0.7,
+            labels: getMockModelConfig(
+              { name: "YOLOv8 Traffic Model", type: "object_detection" },
+              existingRecipe.taskType
+            ).labels,
+            modelId: "1",
+          },
+          modelId: "1",
+          modelName: "YOLOv8 Traffic Model",
+          name: existingRecipe.name,
           regions:
             existingRecipe.taskType === "trafficStatistics"
               ? [
                   {
+                    color: "#FF6B6B",
                     id: "region-1",
                     name: "北向車道",
                     points: [
@@ -557,9 +543,9 @@ export const useRecipeStore = create<RecipeState>((set) => ({
                       { x: 700, y: 300 },
                     ],
                     type: "counting_line",
-                    color: "#FF6B6B",
                   },
                   {
+                    color: "#4ECDC4",
                     id: "region-2",
                     name: "南向車道",
                     points: [
@@ -567,36 +553,26 @@ export const useRecipeStore = create<RecipeState>((set) => ({
                       { x: 700, y: 400 },
                     ],
                     type: "counting_line",
-                    color: "#4ECDC4",
                   },
                 ]
               : [],
-          connections: [],
+          roadType:
+            existingRecipe.taskType === "trafficStatistics" ? "Cross" : "",
           roi:
             existingRecipe.taskType === "trainDetection"
               ? {
                   x1: 50,
-                  y1: 50,
                   x2: 750,
+                  y1: 50,
                   y2: 550,
                 }
               : undefined,
-          modelId: "1",
-          modelName: "YOLOv8 Traffic Model",
-          confidenceThreshold: 0.7,
-          classFilter: ["car", "truck", "bus", "person"],
-          inferenceStep: 3,
-          modelConfig: {
-            modelId: "1",
-            confidence: 0.7,
-            labels: getMockModelConfig(
-              { name: "YOLOv8 Traffic Model", type: "object_detection" },
-              existingRecipe.taskType
-            ).labels,
-          },
+          sceneType: "",
+          taskType: existingRecipe.taskType as TaskType,
+          videoId: "video_123",
+          videoName: "traffic_sample.mp4",
         },
-        isDirty: false,
-        activeStep: 0, // Start at regions step for editing
+        isDirty: false, // Start at regions step for editing
         stepCompleted: {
           step0: true, // Task type already selected
           step1: true, // Regions configured
@@ -605,4 +581,338 @@ export const useRecipeStore = create<RecipeState>((set) => ({
       });
     }
   },
+
+  
+  
+
+
+
+
+
+
+markStepCompleted: (step, completed) =>
+    set((state) => ({
+      stepCompleted: {
+        ...state.stepCompleted,
+        [`step${step}`]: completed,
+      },
+    })),
+
+  
+
+
+
+
+
+// Creation step actions
+nextStep: () =>
+    set((state) => ({
+      activeStep: Math.min(state.activeStep + 1, 2), // 3 total steps (0-2)
+    })),
+
+  
+
+
+
+
+
+previousStep: () =>
+    set((state) => ({
+      activeStep: Math.max(state.activeStep - 1, 0),
+    })),
+
+  
+
+
+
+
+// Recipe list state
+recipes: [],
+
+  
+
+
+
+
+removeRecipe: (id) =>
+    set((state) => ({
+      recipes: state.recipes.filter((recipe) => recipe.id !== id),
+    })),
+
+  
+
+
+
+
+resetForm: () =>
+    set({
+      activeStep: 0,
+      formValues: initialFormState,
+      isDirty: false,
+      stepCompleted: {
+        step0: false,
+        step1: false,
+        step2: false,
+      },
+    }),
+
+  
+
+
+
+
+setActiveStep: (step) => set({ activeStep: step }),
+
+  
+  
+
+
+
+
+setClassFilter: (classes) =>
+    set((state) => ({
+      formValues: {
+        ...state.formValues,
+        classFilter: classes,
+      },
+      isDirty: true,
+    })),
+
+  
+
+
+
+
+
+setConfidenceThreshold: (threshold) =>
+    set((state) => ({
+      formValues: {
+        ...state.formValues,
+        confidenceThreshold: threshold,
+      },
+      isDirty: true,
+    })),
+
+  
+  
+
+
+
+
+
+setError: (error) => set({ error }),
+
+  
+
+
+
+
+
+
+setExtractedFrame: (frame, time, filename = "") =>
+    set((state) => ({
+      formValues: {
+        ...state.formValues,
+        extractedFrame: frame,
+        extractedFrameFilename: filename || "frame.jpg",
+        extractedFrameTime: time,
+      },
+      isDirty: true,
+    })),
+
+  
+  
+
+
+
+
+
+
+
+setIsSaving: (isSaving) => set({ isSaving }),
+
+  
+
+
+
+
+
+
+
+
+
+setLoading: (isLoading) => set({ isLoading }),
+
+  
+
+
+
+
+
+
+
+
+
+// Model configuration
+setModel: (modelId, modelName = "") =>
+    set((state) => ({
+      formValues: {
+        ...state.formValues,
+        modelId,
+        modelName,
+      },
+      isDirty: true,
+    })),
+
+  
+
+
+
+
+
+
+
+
+
+
+setModelConfig: (config) =>
+    set((state) => ({
+      formValues: {
+        ...state.formValues,
+        modelConfig: config,
+      },
+      isDirty: true,
+    })),
+
+  
+  
+
+
+
+
+
+
+
+
+setROI: (roi) =>
+    set((state) => ({
+      formValues: {
+        ...state.formValues,
+        roi,
+      },
+      isDirty: true,
+    })),
+
+  
+
+
+
+
+
+
+// List actions
+setRecipes: (recipes) => set({ recipes }),
+
+  
+
+
+
+
+
+setRoadType: (roadType) =>
+    set((state) => ({
+      formValues: { ...state.formValues, roadType },
+      isDirty: true,
+    })),
+
+  
+
+
+
+
+// Task type
+setTaskType: (taskType) =>
+    set((state) => ({
+      formValues: { ...state.formValues, taskType },
+      isDirty: true,
+    })),
+
+  
+
+
+
+
+
+// Video
+setVideo: (videoId, file = null) =>
+    set((state) => ({
+      formValues: {
+        ...state.formValues,
+        videoFile: file,
+        videoId,
+        videoName: file?.name || "",
+      },
+      isDirty: true,
+    })),
+
+  
+  
+
+
+
+
+
+
+stepCompleted: {
+    step0: false,
+    step1: false,
+    step2: false,
+  },
+
+  
+
+
+
+
+
+
+updateConnections: (connections) =>
+    set((state) => ({
+      formValues: {
+        ...state.formValues,
+        connections,
+      },
+      isDirty: true,
+    })),
+
+  
+
+
+
+updateForm: (values) =>
+    set((state) => ({
+      formValues: { ...state.formValues, ...values },
+      isDirty: true,
+    })),
+
+  
+  
+updateRecipe: (id, data) =>
+    set((state) => ({
+      recipes: state.recipes.map((recipe) =>
+        recipe.id === id ? { ...recipe, ...data } : recipe
+      ),
+    })),
+
+  
+  updateRegion: (region) =>
+    set((state) => ({
+      formValues: {
+        ...state.formValues,
+        regions: state.formValues.regions.map((r) =>
+          r.id === region.id ? region : r
+        ),
+      },
+      isDirty: true,
+    })),
 }));

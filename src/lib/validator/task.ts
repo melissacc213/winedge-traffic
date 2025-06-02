@@ -1,4 +1,5 @@
 import z from 'zod';
+
 import { taskTypeSchema } from './recipe';
 
 export const taskStatusSchema = z.enum([
@@ -12,20 +13,20 @@ export const taskStatusSchema = z.enum([
 export type TaskStatus = z.infer<typeof taskStatusSchema>;
 
 export const taskSchema = z.object({
-  id: z.string(),
-  name: z.string(),
+  createdAt: z.string(),
   description: z.string().optional(),
-  recipeId: z.string(),
-  taskType: taskTypeSchema,
-  status: taskStatusSchema,
-  progress: z.number().min(0).max(100),
-  startTime: z.string().optional(),
   endTime: z.string().optional(),
-  videoUrl: z.string().optional(),
-  videoStreamUrl: z.string().optional(),
-  metrics: z.record(z.any()).optional(),
   error: z.string().optional(),
-  createdAt: z.string()
+  id: z.string(),
+  metrics: z.record(z.any()).optional(),
+  name: z.string(),
+  progress: z.number().min(0).max(100),
+  recipeId: z.string(),
+  startTime: z.string().optional(),
+  status: taskStatusSchema,
+  taskType: taskTypeSchema,
+  videoStreamUrl: z.string().optional(),
+  videoUrl: z.string().optional()
 });
 
 export type Task = z.infer<typeof taskSchema>;

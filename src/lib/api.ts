@@ -1,12 +1,13 @@
-import { loginResponseSchema } from "./validator/auth";
-import type { LoginPayload } from "./validator/auth";
 import axios, { type AxiosRequestConfig } from "axios";
-import { selfSchema } from "./validator/user";
+
 import {
-  USE_MOCK_API,
-  MOCK_USER,
   MOCK_CREDENTIALS,
+  MOCK_USER,
+  USE_MOCK_API,
 } from "./config/mock-config";
+import type { LoginPayload } from "./validator/auth";
+import { loginResponseSchema } from "./validator/auth";
+import { selfSchema } from "./validator/user";
 
 export function createPrivateClient() {
   const client = axios.create();
@@ -26,14 +27,14 @@ export function createPrivateClient() {
 
 export const clients = {
   v1: {
-    public: axios.create({
-      baseURL: "/api/v1",
-    }),
     private: (() => {
       const client = createPrivateClient();
       client.defaults.baseURL = "/api/v1";
       return client;
     })(),
+    public: axios.create({
+      baseURL: "/api/v1",
+    }),
   },
 };
 
@@ -55,11 +56,11 @@ export const authService = {
           undefined,
           undefined,
           {
+            config: config as any,
             data: { message: "Invalid email or password" },
+            headers: {},
             status: 401,
             statusText: "Unauthorized",
-            headers: {},
-            config: config as any,
           } as any
         );
       }
@@ -97,11 +98,11 @@ export const userService = {
           undefined,
           undefined,
           {
+            config: config as any,
             data: { message: "Unauthorized" },
+            headers: {},
             status: 401,
             statusText: "Unauthorized",
-            headers: {},
-            config: config as any,
           } as any
         );
       }

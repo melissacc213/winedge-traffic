@@ -1,8 +1,18 @@
-import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      external: [],
+    },
+  },
+  optimizeDeps: {
+    exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
+    force: true,
+    include: ['@mantine/core', '@mantine/hooks', '@mantine/form', '@mantine/notifications', '@mantine/modals', '@mantine/dropzone'],
+  },
   plugins: [react()],
   resolve: {
     alias: {
@@ -11,24 +21,15 @@ export default defineConfig({
   },
   server: {
     headers: {
-      'Cross-Origin-Opener-Policy': 'same-origin',
       'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Opener-Policy': 'same-origin',
     },
     proxy: {
       '/api': {
-        target: 'http://localhost:8000', // Replace with your backend URL
-        changeOrigin: true,
+        // Replace with your backend URL
+changeOrigin: true, 
+        target: 'http://localhost:8000',
       },
-    },
-  },
-  optimizeDeps: {
-    exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
-    include: ['@mantine/core', '@mantine/hooks', '@mantine/form', '@mantine/notifications', '@mantine/modals', '@mantine/dropzone'],
-    force: true,
-  },
-  build: {
-    rollupOptions: {
-      external: [],
     },
   },
 })

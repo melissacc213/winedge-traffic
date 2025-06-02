@@ -1,8 +1,9 @@
-import { Center, Container, Title, Paper, Text, Grid, Card, useMantineTheme } from '@mantine/core';
-import { useTheme } from '@/providers/theme-provider';
+import { Card,Container, Grid, Paper, Text, Title, useComputedColorScheme,useMantineTheme } from '@mantine/core';
 
 export function HomePage() {
-  const { theme } = useTheme();
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
   
   return (
     <Container className="py-8 max-w-6xl">
@@ -16,7 +17,7 @@ export function HomePage() {
       </Paper>
 
       <Grid>
-        <Grid.Col span={{ base: 12, md: 6, lg: 3 }}>
+        <Grid.Col span={{ base: 12, lg: 3, md: 6 }}>
           <Card shadow="sm" p="lg" radius="md" withBorder className="h-full">
             <Card.Section bg="blue.6" p="md">
               <Title order={3} c="white">Tasks</Title>
@@ -25,7 +26,7 @@ export function HomePage() {
           </Card>
         </Grid.Col>
 
-        <Grid.Col span={{ base: 12, md: 6, lg: 3 }}>
+        <Grid.Col span={{ base: 12, lg: 3, md: 6 }}>
           <Card shadow="sm" p="lg" radius="md" withBorder className="h-full">
             <Card.Section bg="blue.6" p="md">
               <Title order={3} c="white">Recipes</Title>
@@ -34,7 +35,7 @@ export function HomePage() {
           </Card>
         </Grid.Col>
 
-        <Grid.Col span={{ base: 12, md: 6, lg: 3 }}>
+        <Grid.Col span={{ base: 12, lg: 3, md: 6 }}>
           <Card shadow="sm" p="lg" radius="md" withBorder className="h-full">
             <Card.Section bg="blue.6" p="md">
               <Title order={3} c="white">Models</Title>
@@ -43,7 +44,7 @@ export function HomePage() {
           </Card>
         </Grid.Col>
 
-        <Grid.Col span={{ base: 12, md: 6, lg: 3 }}>
+        <Grid.Col span={{ base: 12, lg: 3, md: 6 }}>
           <Card shadow="sm" p="lg" radius="md" withBorder className="h-full">
             <Card.Section bg="blue.6" p="md">
               <Title order={3} c="white">Users</Title>

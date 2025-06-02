@@ -1,28 +1,29 @@
-import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import {
+  Avatar,
+  Badge,
+  Button,
+  Center,
   Container,
+  Grid,
+  Group,
   Paper,
   Stack,
-  Group,
-  Title,
   Text,
-  Button,
-  Badge,
-  Avatar,
-  Grid,
   ThemeIcon,
-  Center,
+  Title,
 } from "@mantine/core";
+import { useComputedColorScheme,useMantineTheme } from '@mantine/core';
 import { useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+
 import { Icons } from "@/components/icons";
 import { PageLayout } from "@/components/page-layout/page-layout";
 import { PageLoader } from "@/components/ui";
-import { useSelf } from "@/lib/queries/user";
 import { useLogout } from "@/lib/queries/auth";
-import { useTheme } from "@/providers/theme-provider";
+import { useSelf } from "@/lib/queries/user";
 import { formatDistanceToNow } from "@/lib/utils";
 import type { Self } from "@/lib/validator/user";
 
@@ -40,7 +41,9 @@ function ProfileEditModal(_props: ProfileEditModalProps) {
 export function ProfilePage() {
   const { t } = useTranslation(["users", "common"]);
   const navigate = useNavigate();
-  const { colorScheme } = useTheme();
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const colorScheme = computedColorScheme;
   
   const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
 
@@ -50,26 +53,26 @@ export function ProfilePage() {
 
   const handleLogout = () => {
     modals.openConfirmModal({
-      title: t("auth:logout.title"),
       children: (
         <Text size="sm">
           {t("auth:logout.confirmation")}
         </Text>
       ),
-      labels: { confirm: t("common:actions.logout"), cancel: t("common:actions.cancel") },
       confirmProps: { color: "red" },
+      labels: { cancel: t("common:actions.cancel"), confirm: t("common:actions.logout") },
       onConfirm: () => {
         logout(undefined, {
           onSuccess: () => {
             notifications.show({
-              title: t("auth:logout.success"),
-              message: t("auth:logout.successMessage"),
               color: "green",
+              message: t("auth:logout.successMessage"),
+              title: t("auth:logout.success"),
             });
             navigate("/login");
           },
         });
       },
+      title: t("auth:logout.title"),
     });
   };
 

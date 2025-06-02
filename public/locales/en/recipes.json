@@ -4,7 +4,9 @@
   "create": "Create Recipe",
   "noRecipes": "No Recipes Found",
   "noRecipesDescription": "Get started by creating your first recipe",
-  "noRecipesFound": "No recipes found in this page",
+  "noRecipesFound": "No recipes found",
+  "noRecipesMatchingSearch": "No recipes matching \"{{query}}\"",
+  "tryDifferentFilters": "Try adjusting your search criteria",
   "noDescription": "No description provided",
   "runTask": "Run Task",
   "view": {

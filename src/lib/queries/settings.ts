@@ -1,30 +1,31 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { notifications } from '@mantine/notifications';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
 import { settingsService } from '../api/settings-service';
 import type { CreateLicenseRequest, UpdateLicenseRequest } from '../validator/license';
-import { notifications } from '@mantine/notifications';
 
 // Query keys
 export const settingsKeys = {
   all: ['settings'] as const,
   keys: () => [...settingsKeys.all, 'keys'] as const,
-  keysList: () => [...settingsKeys.keys(), 'list'] as const,
   keysDetail: (id: number) => [...settingsKeys.keys(), 'detail', id] as const,
+  keysList: () => [...settingsKeys.keys(), 'list'] as const,
 };
 
 // Get keys/licenses list with pagination
 export function useKeys(params?: { page?: number; size?: number }) {
   return useQuery({
-    queryKey: settingsKeys.keysList(),
     queryFn: () => settingsService.keys.list(params),
+    queryKey: settingsKeys.keysList(),
   });
 }
 
 // Get single key/license details
 export function useKeyDetails(id: number) {
   return useQuery({
-    queryKey: settingsKeys.keysDetail(id),
-    queryFn: () => settingsService.keys.get(id),
     enabled: !!id,
+    queryFn: () => settingsService.keys.get(id),
+    queryKey: settingsKeys.keysDetail(id),
   });
 }
 
@@ -35,19 +36,19 @@ export function useCreateKey() {
   return useMutation({
     mutationFn: (data: CreateLicenseRequest & { file: File }) => 
       settingsService.keys.create(data),
+    onError: (error: any) => {
+      notifications.show({
+        color: 'red',
+        message: error.response?.data?.message || 'Failed to upload key',
+        title: 'Error',
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: settingsKeys.keysList() });
       notifications.show({
-        title: 'Success',
-        message: 'Key uploaded successfully',
         color: 'green',
-      });
-    },
-    onError: (error: any) => {
-      notifications.show({
-        title: 'Error',
-        message: error.response?.data?.message || 'Failed to upload key',
-        color: 'red',
+        message: 'Key uploaded successfully',
+        title: 'Success',
       });
     },
   });
@@ -60,20 +61,20 @@ export function useUpdateKey() {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateLicenseRequest }) => 
       settingsService.keys.update(id, data),
+    onError: (error: any) => {
+      notifications.show({
+        color: 'red',
+        message: error.response?.data?.message || 'Failed to update key',
+        title: 'Error',
+      });
+    },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: settingsKeys.keysDetail(variables.id) });
       queryClient.invalidateQueries({ queryKey: settingsKeys.keysList() });
       notifications.show({
-        title: 'Success',
-        message: 'Key updated successfully',
         color: 'green',
-      });
-    },
-    onError: (error: any) => {
-      notifications.show({
-        title: 'Error',
-        message: error.response?.data?.message || 'Failed to update key',
-        color: 'red',
+        message: 'Key updated successfully',
+        title: 'Success',
       });
     },
   });
@@ -85,19 +86,19 @@ export function useDeleteKey() {
   
   return useMutation({
     mutationFn: (id: number) => settingsService.keys.delete(id),
+    onError: (error: any) => {
+      notifications.show({
+        color: 'red',
+        message: error.response?.data?.message || 'Failed to delete key',
+        title: 'Error',
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: settingsKeys.keysList() });
       notifications.show({
-        title: 'Success',
-        message: 'Key deleted successfully',
         color: 'green',
-      });
-    },
-    onError: (error: any) => {
-      notifications.show({
-        title: 'Error',
-        message: error.response?.data?.message || 'Failed to delete key',
-        color: 'red',
+        message: 'Key deleted successfully',
+        title: 'Success',
       });
     },
   });
@@ -109,19 +110,19 @@ export function useSetDefaultKey() {
   
   return useMutation({
     mutationFn: (id: number) => settingsService.keys.setDefault(id),
+    onError: (error: any) => {
+      notifications.show({
+        color: 'red',
+        message: error.response?.data?.message || 'Failed to set default key',
+        title: 'Error',
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: settingsKeys.keysList() });
       notifications.show({
-        title: 'Success',
-        message: 'Default key updated successfully',
         color: 'green',
-      });
-    },
-    onError: (error: any) => {
-      notifications.show({
-        title: 'Error',
-        message: error.response?.data?.message || 'Failed to set default key',
-        color: 'red',
+        message: 'Default key updated successfully',
+        title: 'Success',
       });
     },
   });

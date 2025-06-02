@@ -1,5 +1,4 @@
-import { Center, Loader, Transition } from '@mantine/core';
-import { useTheme } from '../../providers/theme-provider';
+import { Center, Loader, Transition, useComputedColorScheme,useMantineTheme } from '@mantine/core';
 
 interface AppLoaderProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
@@ -10,8 +9,9 @@ export function AppLoader({
   size = 'xl',
   fullScreen = true,
 }: AppLoaderProps) {
-  const { theme, colorScheme } = useTheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
 
   const content = <Loader size={size} />;
 
@@ -19,9 +19,9 @@ export function AppLoader({
     return (
       <Center 
         style={{
-          position: 'fixed',
+          backgroundColor: isDark ? theme.colors.gray[9] : theme.white,
           inset: 0,
-          backgroundColor: isDark ? theme.colors.dark?.[8] || theme.colors.gray[9] : theme.white,
+          position: 'fixed',
           zIndex: 9999,
         }}
       >
@@ -42,7 +42,7 @@ export function AppLoader({
   }
 
   return (
-    <Center style={{ height: '100%', width: '100%', minHeight: 400 }}>
+    <Center style={{ height: '100%', minHeight: 400, width: '100%' }}>
       {content}
     </Center>
   );

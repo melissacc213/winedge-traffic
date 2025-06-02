@@ -1,4 +1,4 @@
-import type { TaskType, Region } from "./recipe";
+import type { Region,TaskType } from "./recipe";
 
 export interface Recipe {
   id: string;

@@ -1,36 +1,38 @@
-import { useLogin } from "@/lib/queries/auth";
-import { useSiteConfig } from "@/lib/queries/config";
-import { useSelf } from "@/lib/queries/user";
-import { createLoginFormInputSchema } from "@/lib/validator/auth";
-
 import {
+  BackgroundImage,
+  Box,
   Button,
+  Card,
   Center,
+  Divider,
+  Group,
   Loader,
   Paper,
   PasswordInput,
+  rem,
+  Stack,
   Text,
   TextInput,
-  Box,
-  Group,
-  BackgroundImage,
-  Stack,
   Title,
-  rem,
-  Divider,
-  Card,
 } from "@mantine/core";
+import { useComputedColorScheme,useMantineTheme } from '@mantine/core';
 import { useForm, zodResolver } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
 import { AxiosError } from "axios";
 import { Trans, useTranslation } from "react-i18next";
 import { Navigate, useNavigate } from "react-router-dom";
-import { useTheme } from '@/providers/theme-provider';
+
+import { useLogin } from "@/lib/queries/auth";
+import { useSiteConfig } from "@/lib/queries/config";
+import { useSelf } from "@/lib/queries/user";
+import { createLoginFormInputSchema } from "@/lib/validator/auth";
 
 export function LoginPage() {
   const { t } = useTranslation(["common", "auth"]);
   const navigate = useNavigate();
-  const { theme } = useTheme();
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
   const { data: siteConfig } = useSiteConfig();
   const { mutateAsync: login, isPending: isLoggingIn } = useLogin();
   const {
@@ -69,7 +71,6 @@ export function LoginPage() {
 
       notifications.show({
         color: "green",
-        title: t("auth:notification.login_success.title"),
         message: (
           <Trans
             t={t}
@@ -82,6 +83,7 @@ export function LoginPage() {
             }}
           />
         ),
+        title: t("auth:notification.login_success.title"),
       });
 
       navigate('/');
@@ -92,8 +94,8 @@ export function LoginPage() {
         
       notifications.show({
         color: "red",
-        title: t("auth:notification.login_failed.title"),
         message: errorMessage,
+        title: t("auth:notification.login_failed.title"),
       });
     }
   };
@@ -112,10 +114,10 @@ export function LoginPage() {
           mt={30}
           radius="md"
           style={{
-            width: "100%",
-            maxWidth: "400px",
-            backgroundColor: theme.other.backgrounds.glassMorphism,
             backdropFilter: "blur(8px)",
+            backgroundColor: theme.other.backgrounds.glassMorphism,
+            maxWidth: "400px",
+            width: "100%",
           }}
         >
           <Stack align="center" mb={rem(20)}>

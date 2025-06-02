@@ -34,42 +34,42 @@ interface ModelState {
 // Mock data
 const MOCK_MODELS: Model[] = [
   {
-    id: "model_1",
-    name: "Traffic Detection YOLOv8",
-    type: "trafficStatistics",
-    size: 15840000,
-    status: "active",
     createdAt: "2025-01-15T10:30:00Z",
     description: "YOLO model for traffic object detection and vehicle counting",
+    id: "model_1",
+    name: "Traffic Detection YOLOv8",
+    size: 15840000,
+    status: "active",
+    type: "trafficStatistics",
   },
   {
-    id: "model_2",
-    name: "Train Detection Model",
-    type: "trainDetection",
-    size: 25360000,
-    status: "active",
     createdAt: "2025-02-10T14:20:00Z",
     description: "Custom model for train detection in railway environments",
+    id: "model_2",
+    name: "Train Detection Model",
+    size: 25360000,
+    status: "active",
+    type: "trainDetection",
   },
   {
-    id: "model_3",
-    name: "Traffic Counter Pro",
-    type: "trafficStatistics",
-    size: 8750000,
-    status: "pending",
     createdAt: "2025-05-18T09:15:00Z",
     description:
       "Advanced model for traffic flow analysis and vehicle classification",
+    id: "model_3",
+    name: "Traffic Counter Pro",
+    size: 8750000,
+    status: "pending",
+    type: "trafficStatistics",
   },
   {
-    id: "model_5",
-    name: "Railway Safety Monitor",
-    type: "trainDetection",
-    size: 18950000,
-    status: "available",
     createdAt: "2025-04-08T16:20:00Z",
     description:
       "Specialized model for railway safety monitoring and train tracking",
+    id: "model_5",
+    name: "Railway Safety Monitor",
+    size: 18950000,
+    status: "available",
+    type: "trainDetection",
   },
 ];
 
@@ -98,19 +98,26 @@ interface ModelState {
 }
 
 export const useModelStore = create<ModelState>((set) => ({
-  models: [],
-  isLoading: false,
+  addModel: (model: Model) => {
+    set((state) => ({
+      models: [...state.models, model],
+    }));
+  },
+  clearUploadProgress: (id) =>
+    set((state) => {
+      const newProgress = { ...state.uploadProgress };
+      delete newProgress[id];
+      return { uploadProgress: newProgress };
+    }),
   error: null,
-  uploadProgress: {},
-
   fetchModels: async () => {
-    set({ isLoading: true, error: null });
+    set({ error: null, isLoading: true });
     try {
       // Simulate API fetch
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // In a real app, this would be an API call
-      set({ models: MOCK_MODELS, isLoading: false });
+      set({ isLoading: false, models: MOCK_MODELS });
     } catch (error) {
       set({
         error:
@@ -120,11 +127,9 @@ export const useModelStore = create<ModelState>((set) => ({
     }
   },
 
-  addModel: (model: Model) => {
-    set((state) => ({
-      models: [...state.models, model],
-    }));
-  },
+  isLoading: false,
+
+  models: [],
 
   removeModel: (id: string) => {
     set((state) => ({
@@ -132,19 +137,11 @@ export const useModelStore = create<ModelState>((set) => ({
     }));
   },
 
-  updateModel: (id: string, data: Partial<Model>) => {
-    set((state) => ({
-      models: state.models.map((model) =>
-        model.id === id ? { ...model, ...data } : model
-      ),
-    }));
-  },
-
-  setModels: (models) => set({ models }),
+  setError: (error) => set({ error }),
 
   setLoading: (isLoading) => set({ isLoading }),
 
-  setError: (error) => set({ error }),
+  setModels: (models) => set({ models }),
 
   setUploadProgress: (id, progress) =>
     set((state) => ({
@@ -154,10 +151,13 @@ export const useModelStore = create<ModelState>((set) => ({
       },
     })),
 
-  clearUploadProgress: (id) =>
-    set((state) => {
-      const newProgress = { ...state.uploadProgress };
-      delete newProgress[id];
-      return { uploadProgress: newProgress };
-    }),
+  updateModel: (id: string, data: Partial<Model>) => {
+    set((state) => ({
+      models: state.models.map((model) =>
+        model.id === id ? { ...model, ...data } : model
+      ),
+    }));
+  },
+
+  uploadProgress: {},
 }));

@@ -1,7 +1,8 @@
-import { useRef, useEffect, useState, forwardRef } from 'react';
-import { Box, Text, Center, Loader } from '@mantine/core';
-import { useTheme } from '@/providers/theme-provider';
+import { Box, Center, Loader,Text, useComputedColorScheme,useMantineTheme } from '@mantine/core';
+import { forwardRef,useEffect, useRef, useState } from 'react';
+
 import { getVideoPlayerColors } from '@/lib/theme-utils';
+
 
 interface VideoPlayerProps {
   src?: string;
@@ -30,8 +31,9 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(({
   onLoadedMetadata,
   onError
 }, ref) => {
-  const { colorScheme, theme } = useTheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videoSrc, setVideoSrc] = useState<string | undefined>(src);
   const [isLoading, setIsLoading] = useState(false);
@@ -87,14 +89,14 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(({
     return (
       <Box
         style={{
-          height,
-          width: width || '100%',
+          alignItems: 'center',
           backgroundColor: colors.controlsBackground,
+          border: `1px solid ${colors.controlsBorder}`,
           borderRadius: '8px',
           display: 'flex',
-          alignItems: 'center',
+          height,
           justifyContent: 'center',
-          border: `1px solid ${colors.controlsBorder}`
+          width: width || '100%'
         }}
       >
         <Text c={isDark ? 'red.4' : 'red.6'} size="sm">
@@ -108,14 +110,14 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(({
     return (
       <Box
         style={{
-          height,
-          width: width || '100%',
+          alignItems: 'center',
           backgroundColor: colors.controlsBackground,
+          border: `1px solid ${colors.controlsBorder}`,
           borderRadius: '8px',
           display: 'flex',
-          alignItems: 'center',
+          height,
           justifyContent: 'center',
-          border: `1px solid ${colors.controlsBorder}`
+          width: width || '100%'
         }}
       >
         <Center>
@@ -128,12 +130,12 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(({
   return (
     <Box
       style={{
-        height,
-        width: width || '100%',
-        borderRadius: '8px',
-        overflow: 'hidden',
         backgroundColor: colors.controlsBackground,
-        border: `1px solid ${colors.controlsBorder}`
+        border: `1px solid ${colors.controlsBorder}`,
+        borderRadius: '8px',
+        height,
+        overflow: 'hidden',
+        width: width || '100%'
       }}
     >
       <video
@@ -161,10 +163,10 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(({
         onError={handleError}
         onLoadStart={handleLoadStart}
         style={{
-          width: '100%',
+          backgroundColor: colors.background,
           height: '100%',
           objectFit: 'contain',
-          backgroundColor: colors.background
+          width: '100%'
         }}
       />
     </Box>

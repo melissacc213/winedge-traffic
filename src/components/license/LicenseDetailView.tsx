@@ -1,48 +1,49 @@
-import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Paper,
-  Stack,
-  Group,
-  Title,
-  Text,
-  Badge,
-  Button,
-  Divider,
-  Box,
-  Grid,
-  Card,
   ActionIcon,
-  Timeline,
-  ThemeIcon,
-  Progress,
   Avatar,
-  Tooltip,
+  Badge,
+  Box,
+  Button,
+  Card,
+  Divider,
+  Grid,
+  Group,
   Menu,
+  Paper,
+  Progress,
   rem,
+  Stack,
+  Text,
+  ThemeIcon,
+  Timeline,
+  Title,
+  Tooltip,
 } from '@mantine/core';
 import {
+  IconAlertCircle,
   IconArrowLeft,
-  IconEdit,
-  IconLicense,
   IconCalendar,
+  IconCircleCheck,
   IconClock,
-  IconUser,
+  IconCopy,
+  IconDots,
   IconDownload,
+  IconEdit,
+  IconExternalLink,
+  IconFileDescription,
+  IconHourglass,
+  IconLicense,
   IconStar,
   IconStarFilled,
-  IconFileDescription,
-  IconCircleCheck,
-  IconAlertCircle,
-  IconHourglass,
-  IconDots,
   IconTrash,
-  IconCopy,
-  IconExternalLink,
+  IconUser,
 } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate,useParams } from 'react-router-dom';
+
+import { USE_MOCK_DATA } from '../../lib/config/mock-data';
 import { useLicenseDetails, useSetDefaultLicense } from '../../lib/queries/license';
 import { PageLoader } from '../ui';
-import { USE_MOCK_DATA } from '../../lib/config/mock-data';
 
 export function LicenseDetailView() {
   const { t } = useTranslation(['licenses', 'common']);
@@ -325,9 +326,9 @@ export function LicenseDetailView() {
                       </Group>
                       <Text size="md">
                         {new Date(license.uploaded_at).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
                           day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
                         })}
                       </Text>
                       <Text size="xs" c="dimmed">
@@ -351,9 +352,9 @@ export function LicenseDetailView() {
                         <>
                           <Text size="md">
                             {new Date(license.expires_at).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
                               day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
                             })}
                           </Text>
                           {daysUntilExpiry !== null && (
@@ -456,10 +457,10 @@ export function LicenseDetailView() {
                 >
                   <Text size="sm" c="dimmed">
                     {new Date().toLocaleString('en-US', {
-                      month: 'short',
                       day: 'numeric',
                       hour: '2-digit',
                       minute: '2-digit',
+                      month: 'short',
                     })}
                   </Text>
                   <Text size="xs" c="dimmed" mt={4}>
@@ -492,11 +493,11 @@ export function LicenseDetailView() {
                 >
                   <Text size="sm" c="dimmed">
                     {new Date(license.uploaded_at).toLocaleString('en-US', {
-                      month: 'short',
                       day: 'numeric',
-                      year: 'numeric',
                       hour: '2-digit',
                       minute: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
                     })}
                   </Text>
                   <Text size="xs" c="dimmed" mt={4}>

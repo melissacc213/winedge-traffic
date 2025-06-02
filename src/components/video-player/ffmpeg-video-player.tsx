@@ -1,24 +1,25 @@
-import { useState, useRef, useEffect } from 'react';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import { 
+  ActionIcon,
+  Badge,
   Box, 
   Button, 
   Group, 
-  Text, 
-  Stack, 
+  Loader,
   Paper, 
   Progress, 
-  Loader,
-  ActionIcon,
-  Tooltip,
-  Badge,
+  Stack, 
+  Text, 
   ThemeIcon,
-  useMantineTheme
+  Tooltip,
+  useComputedColorScheme,
+  useMantineTheme,
 } from '@mantine/core';
-import { useTheme } from '../../providers/theme-provider';
-import { Icons } from '../icons';
+import { useEffect,useRef, useState } from 'react';
+
 import type { FrameData } from '../../types/recipe';
+import { Icons } from '../icons';
 
 interface FFmpegVideoPlayerProps {
   file: File | null;
@@ -45,9 +46,9 @@ export function FFmpegVideoPlayer({
   const [loadingMessage, setLoadingMessage] = useState('');
   const [isProcessingFile, setIsProcessingFile] = useState(false);
   
-  const { colorScheme, theme } = useTheme();
-  const mantineTheme = useMantineTheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
   const ffmpegRef = useRef(new FFmpeg());
   const videoRef = useRef<HTMLVideoElement>(null);
   const messageRef = useRef<HTMLParagraphElement>(null);
@@ -273,7 +274,7 @@ export function FFmpegVideoPlayer({
       setTranscodeProgress(100);
       setIsProcessingFile(false); // Mark processing as complete
       // Clean up listeners
-      ffmpeg.off('log');
+      // Note: FFmpeg.wasm doesn't support removing specific log listeners
       
       setLoadingMessage('');
       setIsProcessingFile(false);
@@ -290,7 +291,7 @@ export function FFmpegVideoPlayer({
       }
     } finally {
       // Clean up listeners
-      ffmpegRef.current?.off('log');
+      // Note: FFmpeg.wasm doesn't support removing specific log listeners
       
       setTimeout(() => {
         setTranscoding(false);
@@ -319,8 +320,8 @@ export function FFmpegVideoPlayer({
       const imageDataUrl = canvas.toDataURL('image/png');
 
       const frame: FrameData = {
-        imageDataUrl,
         frameTime: video.currentTime,
+        imageDataUrl,
         objects: [],
       };
 
@@ -434,7 +435,7 @@ export function FFmpegVideoPlayer({
   return (
     <Stack gap="md">
       {/* Video Container */}
-      <Paper p="sm" radius="md" withBorder style={{ backgroundColor: isDark ? mantineTheme.colors.dark[8] : mantineTheme.colors.gray[0] }}>
+      <Paper p="sm" radius="md" withBorder style={{ backgroundColor: isDark ? theme.colors.dark[8] : theme.colors.gray[0] }}>
         <Box pos="relative">
           <video 
             ref={videoRef} 
@@ -455,11 +456,11 @@ export function FFmpegVideoPlayer({
               }
             }}
             style={{
-              width: '100%',
-              maxWidth: width,
-              height: 'auto',
-              borderRadius: 8,
               backgroundColor: theme.other.backgrounds.videoPlayer,
+              borderRadius: 8,
+              height: 'auto',
+              maxWidth: width,
+              width: '100%',
             }}
           />
           

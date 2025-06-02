@@ -1,11 +1,12 @@
-import { Icons } from "../icons";
-import { ActionIcon, Tooltip } from "@mantine/core";
-import { useTheme } from "@/providers/theme-provider";
+import { ActionIcon, Tooltip, useComputedColorScheme,useMantineColorScheme } from "@mantine/core";
 import { useTranslation } from "react-i18next";
+
+import { Icons } from "../icons";
 
 export function ThemeToggle() {
   const { t } = useTranslation(["components"]);
-  const { colorScheme, toggleColorScheme } = useTheme();
+  const { toggleColorScheme } = useMantineColorScheme();
+  const colorScheme = useComputedColorScheme();
 
   return (
     <Tooltip

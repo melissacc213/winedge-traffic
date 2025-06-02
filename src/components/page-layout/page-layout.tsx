@@ -1,5 +1,5 @@
+import { Group, rem,Text,Title } from "@mantine/core";
 import type { ReactNode } from "react";
-import { Title, Text, Group, rem } from "@mantine/core";
 
 interface PageLayoutProps {
   title: string;
@@ -9,30 +9,40 @@ interface PageLayoutProps {
 }
 
 const usePageStyles = () => ({
-  pageContainer: {
-    height: "(100vh - 70px)", // Fixed viewport height
-    paddingTop: rem(8),
-    paddingBottom: rem(32),
-    position: "relative" as const,
-    overflow: "hidden", // Prevent page-level scrolling
-  },
-  contentWrapper: {
-    height: "calc(100vh - 64px)", // Fixed height accounting for padding
-    width: rem(1200), // Fixed width
-    margin: "0 auto",
-    display: "flex",
-    flexDirection: "column" as const,
-    overflow: "hidden",
-  },
-  header: {
-    marginBottom: rem(32),
-    flexShrink: 0, // Don't allow header to shrink
-    minHeight: rem(80), // Fixed header height
-  },
   content: {
     flex: 1,
-    overflow: "auto", // Only content area scrolls
-    minHeight: 0, // Allow content to shrink
+    // Only content area scrolls
+minHeight: 0, 
+    overflow: "auto", // Allow content to shrink
+  },
+  contentWrapper: {
+    display: "flex", 
+    
+flexDirection: "column" as const, 
+    
+
+height: "calc(100vh - 64px)",
+    
+// Fixed width
+margin: "0 auto",
+    
+overflow: "hidden",
+    // Fixed height accounting for padding
+width: rem(1200),
+  },
+  header: {
+    flexShrink: 0,
+    marginBottom: rem(32), // Don't allow header to shrink
+    minHeight: rem(80), // Fixed header height
+  },
+  pageContainer: {
+    height: "(100vh - 70px)", 
+    overflow: "hidden",
+    
+paddingBottom: rem(32),
+    // Fixed viewport height
+paddingTop: rem(8),
+    position: "relative" as const, // Prevent page-level scrolling
   },
 });
 

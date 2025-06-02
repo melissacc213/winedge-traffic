@@ -3,59 +3,61 @@ import type { License } from '@/lib/validator/license';
 // Mock keys/licenses data
 export const mockKeys: License[] = [
   {
-    id: 1,
-    name: "Production License 2024",
+    expires_at: "2025-01-15T10:30:00Z",
     file_name: "winedge_prod_2024.lic",
     file_size: 2048,
+    id: 1,
     is_default: true,
-    uploaded_by: "admin@winedge.com",
-    uploaded_at: "2024-01-15T10:30:00Z",
-    expires_at: "2025-01-15T10:30:00Z",
+    name: "Production License 2024",
     status: "active",
+    uploaded_at: "2024-01-15T10:30:00Z",
+    uploaded_by: "admin@winedge.com",
   },
   {
-    id: 2,
-    name: "Development License 2024",
+    expires_at: "2025-02-01T14:20:00Z",
     file_name: "winedge_dev_2024.key",
     file_size: 1536,
+    id: 2,
     is_default: false,
-    uploaded_by: "dev@winedge.com",
-    uploaded_at: "2024-02-01T14:20:00Z",
-    expires_at: "2025-02-01T14:20:00Z",
+    name: "Development License 2024",
     status: "active",
+    uploaded_at: "2024-02-01T14:20:00Z",
+    uploaded_by: "dev@winedge.com",
   },
   {
-    id: 3,
-    name: "Testing License 2023",
+    expires_at: "2024-06-10T09:15:00Z",
     file_name: "winedge_test_2023.pem",
     file_size: 1024,
+    id: 3,
     is_default: false,
-    uploaded_by: "qa@winedge.com",
-    uploaded_at: "2023-06-10T09:15:00Z",
-    expires_at: "2024-06-10T09:15:00Z",
+    name: "Testing License 2023",
     status: "expired",
+    uploaded_at: "2023-06-10T09:15:00Z",
+    uploaded_by: "qa@winedge.com",
   },
   {
-    id: 4,
-    name: "Enterprise License",
+    expires_at: null,
     file_name: "winedge_enterprise.cert",
     file_size: 4096,
+    id: 4,
     is_default: false,
+    name: "Enterprise License",
+    // No expiry
+status: "active",
+    
+uploaded_at: "2024-03-01T08:00:00Z", 
     uploaded_by: "admin@winedge.com",
-    uploaded_at: "2024-03-01T08:00:00Z",
-    expires_at: null, // No expiry
-    status: "active",
   },
   {
-    id: 5,
-    name: "Trial License 30 Days",
+    expires_at: "2024-12-01T12:00:00Z",
     file_name: "winedge_trial_30d.lic",
     file_size: 512,
+    id: 5,
     is_default: false,
-    uploaded_by: "sales@winedge.com",
-    uploaded_at: "2024-11-01T12:00:00Z",
-    expires_at: "2024-12-01T12:00:00Z",
+    name: "Trial License 30 Days",
     status: "expired",
+    uploaded_at: "2024-11-01T12:00:00Z",
+    uploaded_by: "sales@winedge.com",
   },
 ];
 
@@ -79,15 +81,17 @@ export function getMockKey(id: number) {
 
 export function createMockKey(data: { name: string; file_name: string; is_default: boolean }) {
   const newKey: License = {
-    id: mockKeys.length + 1,
-    name: data.name,
+    expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
     file_name: data.file_name,
     file_size: Math.floor(Math.random() * 4096) + 512,
+    id: mockKeys.length + 1,
     is_default: data.is_default,
+    name: data.name,
+    // 1 year from now
+status: "active",
+    
+uploaded_at: new Date().toISOString(), 
     uploaded_by: "admin@winedge.com",
-    uploaded_at: new Date().toISOString(),
-    expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
-    status: "active",
   };
   
   // If setting as default, unset other defaults

@@ -1,5 +1,6 @@
-import React from "react";
 import type { ComponentPropsWithoutRef } from "react";
+import React from "react";
+
 import { RawIcons } from "./ui/icon-map";
 
 // Define the icon props type

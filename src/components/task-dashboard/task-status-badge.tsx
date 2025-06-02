@@ -1,6 +1,7 @@
-import type { TaskStatus } from "@/lib/validator/task";
-import { Badge } from "@mantine/core";
 import type { BadgeProps } from "@mantine/core";
+import { Badge } from "@mantine/core";
+
+import type { TaskStatus } from "@/lib/validator/task";
 
 interface TaskStatusBadgeProps {
   status: TaskStatus;

@@ -1,8 +1,9 @@
-import { Modal, Title, Text } from '@mantine/core';
+import { Modal, Text,Title, useComputedColorScheme,useMantineTheme } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
-import { UserForm } from './user-form';
+
 import { useCreateUser } from '../../lib/queries/user';
 import type { CreateUserRequest } from '../../lib/validator/user';
+import { UserForm } from './user-form';
 
 interface UserCreateDialogProps {
   opened: boolean;
@@ -13,6 +14,9 @@ interface UserCreateDialogProps {
 export function UserCreateDialog({ opened, onClose, onSuccess }: UserCreateDialogProps) {
   const { t } = useTranslation(['users']);
   const createUser = useCreateUser();
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
 
   const handleSubmit = async (values: CreateUserRequest) => {
     await createUser.mutateAsync(values);
@@ -35,6 +39,14 @@ export function UserCreateDialog({ opened, onClose, onSuccess }: UserCreateDialo
       size="md"
       centered
       withinPortal
+      styles={{
+        content: {
+          backgroundColor: isDark ? theme.colors.dark?.[7] || theme.colors.gray[9] : theme.white,
+        },
+        header: {
+          backgroundColor: isDark ? theme.colors.dark?.[7] || theme.colors.gray[9] : theme.white,
+        },
+      }}
     >
       <UserForm 
         onSubmit={handleSubmit} 

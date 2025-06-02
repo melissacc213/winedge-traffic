@@ -1,23 +1,25 @@
-import { useState, useCallback, useEffect } from "react";
 import {
-  Modal,
-  Stack,
-  Text,
+  Alert,
+  Box,
   Button,
   Group,
+  Modal,
   Paper,
-  Alert,
   Progress,
-  FileButton,
-  Box,
+  Stack,
+  Text,
   Title,
+  useComputedColorScheme,
   useMantineTheme,
 } from "@mantine/core";
-import { IconUpload, IconCheck, IconX, IconFileZip } from "@tabler/icons-react";
-import { useTheme } from "@/providers/theme-provider";
+import { Dropzone, type FileRejection } from "@mantine/dropzone";
+import { IconCheck, IconFileZip, IconUpload, IconX } from "@tabler/icons-react";
+import { useCallback, useEffect, useState } from "react";
+
 import { ModelParser } from "@/lib/model-parser";
-import { ModelConfigEditor } from "./model-config-editor";
 import type { ModelConfig } from "@/types/model";
+
+import { ModelConfigEditor } from "./model-config-editor";
 
 interface ModelUploadDialogProps {
   opened: boolean;
@@ -36,8 +38,9 @@ export function ModelUploadDialog({
   isEditMode = false,
   initialConfig,
 }: ModelUploadDialogProps) {
-  const { colorScheme, theme } = useTheme();
-  const mantineTheme = useMantineTheme();
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [modelConfig, setModelConfig] = useState<ModelConfig | null>(
@@ -45,7 +48,6 @@ export function ModelUploadDialog({
   );
   const [error, setError] = useState<string | null>(null);
 
-  const isDark = colorScheme === "dark";
   const surfaceBg = isDark ? theme.colors.dark?.[6] || theme.colors.gray[7] : theme.colors.gray[0];
   
   // If in edit mode with initial config, we should show the editor directly
@@ -66,7 +68,8 @@ export function ModelUploadDialog({
     }
   }, [isEditMode, initialConfig, opened]);
 
-  const handleFileUpload = useCallback(async (file: File | null) => {
+  const handleFileUpload = useCallback(async (files: File[]) => {
+    const file = files[0];
     if (!file) return;
 
     setIsUploading(true);
@@ -101,6 +104,20 @@ export function ModelUploadDialog({
       setError(err instanceof Error ? err.message : "Unknown error occurred");
     } finally {
       setIsUploading(false);
+    }
+  }, []);
+
+  const handleFileReject = useCallback((rejectedFiles: FileRejection[]) => {
+    console.log("Rejected files:", rejectedFiles);
+    if (rejectedFiles.length > 0) {
+      const file = rejectedFiles[0];
+      const errors = file.errors || [];
+      if (errors.length > 0) {
+        const errorMessages = errors.map((error) => error.message).join(", ");
+        setError(`File rejected: ${errorMessages}`);
+      } else {
+        setError("File rejected. Please ensure you upload a valid .zip file under 100MB.");
+      }
     }
   }, []);
 
@@ -152,31 +169,53 @@ export function ModelUploadDialog({
         {!modelConfig && shouldShowUploadScreen ? (
           <>
 
-            {/* Upload Section */}
-            <Paper
-              p="xl"
-              radius="md"
-              style={{
-                backgroundColor: surfaceBg,
-                border: `2px dashed ${isDark ? theme.colors.dark?.[4] || theme.colors.gray[6] : theme.colors.gray[4]}`,
-                textAlign: "center",
+            {/* Upload Section - Dropzone */}
+            <Dropzone
+              onDrop={handleFileUpload}
+              onReject={handleFileReject}
+              maxSize={100 * 1024 * 1024} // 100MB
+              accept={{
+                "application/x-zip-compressed": [".zip"],
+                "application/zip": [".zip"],
+              }}
+              disabled={isUploading}
+              styles={{
+                inner: {
+                  pointerEvents: "all",
+                },
+                root: {
+                  "&:hover": {
+                    backgroundColor: isDark 
+                      ? theme.colors.dark?.[5] || theme.colors.gray[6]
+                      : theme.colors.gray[1],
+                    borderColor: theme.colors.blue[6],
+                  },
+                  backgroundColor: surfaceBg,
+                  border: `2px dashed ${isDark ? theme.colors.dark?.[4] || theme.colors.gray[6] : theme.colors.gray[4]}`,
+                  borderRadius: theme.radius.md,
+                  cursor: isUploading ? "not-allowed" : "pointer",
+                  opacity: isUploading ? 0.6 : 1,
+                  padding: theme.spacing.xl,
+                  textAlign: "center",
+                  transition: "all 0.2s ease",
+                },
               }}
             >
               <Stack gap="md" align="center">
                 <Box
                   style={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: "50%",
-                    backgroundColor: isDark
-                      ? mantineTheme.colors.blue[9]
-                      : mantineTheme.colors.blue[0],
-                    display: "flex",
                     alignItems: "center",
+                    backgroundColor: isDark
+                      ? theme.colors.blue[9]
+                      : theme.colors.blue[0],
+                    borderRadius: "50%",
+                    display: "flex",
+                    height: 60,
                     justifyContent: "center",
+                    width: 60,
                   }}
                 >
-                  <IconFileZip size={30} color={mantineTheme.colors.blue[6]} />
+                  <IconFileZip size={30} color={theme.colors.blue[6]} />
                 </Box>
 
                 <div>
@@ -184,31 +223,25 @@ export function ModelUploadDialog({
                     Upload Model Archive
                   </Title>
                   <Text size="sm" c="dimmed" mb="xs">
-                    Select a .zip file containing model.label and
-                    model_info.json
+                    Drag & drop a .zip file here, or click to select
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    Archive should contain model.label and model_info.json files
                   </Text>
                 </div>
 
-                <FileButton
-                  onChange={handleFileUpload}
-                  accept=".zip"
+                <Button
+                  leftSection={<IconUpload size={16} />}
+                  variant="light"
+                  size="lg"
+                  loading={isUploading}
                   disabled={isUploading}
+                  style={{ pointerEvents: "none" }} // Prevent button click since dropzone handles it
                 >
-                  {(props) => (
-                    <Button
-                      {...props}
-                      leftSection={<IconUpload size={16} />}
-                      variant="filled"
-                      size="lg"
-                      loading={isUploading}
-                      disabled={false}
-                    >
-                      Choose File
-                    </Button>
-                  )}
-                </FileButton>
+                  {isUploading ? "Processing..." : "Drop files here or click to browse"}
+                </Button>
               </Stack>
-            </Paper>
+            </Dropzone>
 
             {/* Upload Progress */}
             {uploadProgress > 0 && (

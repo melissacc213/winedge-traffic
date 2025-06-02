@@ -1,27 +1,30 @@
-import { useCallback } from "react";
 import {
+  ActionIcon,
+  Alert,
+  Badge,
+  Box,
+  Button,
+  Divider,
+  Group,
+  Paper,
+  ScrollArea,
   Stack,
   Text,
-  Button,
-  Group,
-  TextInput,
   Textarea,
-  Paper,
+  TextInput,
   Title,
-  Badge,
-  ActionIcon,
   Tooltip,
-  Box,
-  Alert,
-  Divider,
-  ScrollArea,
+  useMantineTheme,
+  useComputedColorScheme,
 } from "@mantine/core";
 import {
   IconSettings,
 } from "@tabler/icons-react";
-import { useTheme } from "@/providers/theme-provider";
-import { LabelEditor } from "./label-editor";
+import { useCallback } from "react";
+
 import type { ModelConfig, ModelLabel } from "@/types/model";
+
+import { LabelEditor } from "./label-editor";
 
 interface ModelConfigEditorProps {
   config: ModelConfig | null;
@@ -34,7 +37,9 @@ export function ModelConfigEditor({
   onConfigChange,
   onSave,
 }: ModelConfigEditorProps) {
-  const { colorScheme, theme } = useTheme();
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
 
   const handleUpdateLabel = useCallback(
     (id: string, updates: Partial<ModelLabel>) => {
@@ -70,9 +75,8 @@ export function ModelConfigEditor({
     onConfigChange({ ...config, labels: updatedLabels });
   }, [config, onConfigChange]);
 
-  const isDark = colorScheme === "dark";
-  const cardBg = isDark ? theme.colors.gray[9] : "white";
-  const surfaceBg = isDark ? theme.colors.gray[8] : theme.colors.gray[0];
+  const cardBg = isDark ? theme.colors.dark?.[7] || theme.colors.gray[8] : theme.white;
+  const surfaceBg = isDark ? theme.colors.dark?.[6] || theme.colors.gray[7] : theme.colors.gray[0];
 
   // Guard against null config
   if (!config || !config.labels) {

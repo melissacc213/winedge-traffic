@@ -1,32 +1,35 @@
-import { useLogout } from "@/lib/queries/auth";
-import { useSiteConfig } from "@/lib/queries/config";
-import { useSelf } from "@/lib/queries/user";
-import { useTheme } from "@/providers/theme-provider";
 import {
   AppShell,
+  Avatar,
+  Box,
   Burger,
+  Divider,
+  Group,
   Loader,
   Menu,
+  rem,
   Text,
   Title,
-  Avatar,
-  Group,
   Tooltip,
   UnstyledButton,
-  rem,
-  Box,
-  Divider,
+  useComputedColorScheme,
+  useMantineTheme,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
-import { useEffect, useState } from "react";
 import type { PropsWithChildren } from "react";
+import { useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
+
+import { useLogout } from "@/lib/queries/auth";
+import { useSiteConfig } from "@/lib/queries/config";
+import { useSelf } from "@/lib/queries/user";
+import type { User } from "@/lib/validator/user";
+
 import { Icons } from "../icons";
 import LanguageMenu from "./language-menu";
 import { ThemeToggle } from "./theme-toggle";
-import type { User } from "@/lib/validator/user";
 
 type LayoutProps = PropsWithChildren;
 
@@ -37,7 +40,9 @@ export function Layout({ children }: LayoutProps) {
   const [sidebarExpanded, { toggle: toggleSidebar }] = useDisclosure(true); // Start expanded
   const { mutateAsync: logout, isPending: isLoggingOut } = useLogout();
   const { data: self } = useSelf();
-  const { theme, colorScheme } = useTheme();
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
 
   // Theme color utility function
   const getThemeColor = (colorPath: string): string => {
@@ -78,29 +83,29 @@ export function Layout({ children }: LayoutProps) {
 
   const navItems = [
     {
-      path: "/tasks",
-      label: t("components:layout.nav.tasks"),
       icon: <Icons.Task className="h-5 w-5" />,
+      label: t("components:layout.nav.tasks"),
+      path: "/tasks",
     },
     {
-      path: "/recipes",
-      label: t("components:layout.nav.recipes"),
       icon: <Icons.Recipe className="h-5 w-5" />,
+      label: t("components:layout.nav.recipes"),
+      path: "/recipes",
     },
     {
-      path: "/models",
-      label: t("components:layout.nav.models"),
       icon: <Icons.Model className="h-5 w-5" />,
+      label: t("components:layout.nav.models"),
+      path: "/models",
     },
     {
-      path: "/users",
-      label: t("components:layout.nav.users"),
       icon: <Icons.Users className="h-5 w-5" />,
+      label: t("components:layout.nav.users"),
+      path: "/users",
     },
     {
-      path: "/licenses",
-      label: t("components:layout.nav.license"),
       icon: <Icons.License className="h-5 w-5" />,
+      label: t("components:layout.nav.license"),
+      path: "/licenses",
     },
   ] as const;
 
@@ -109,10 +114,10 @@ export function Layout({ children }: LayoutProps) {
       const element = document.getElementById(location.hash.slice(1));
       if (element) {
         const y = element.getBoundingClientRect().top + window.scrollY - 70;
-        window.scrollTo({ top: y, behavior: "smooth" });
+        window.scrollTo({ behavior: "smooth", top: y });
       }
     } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({ behavior: "smooth", top: 0 });
     }
   }, [location.pathname, location.hash]);
 
@@ -127,7 +132,6 @@ export function Layout({ children }: LayoutProps) {
 
       notifications.show({
         color: "green",
-        title: t("auth:notification.logout_success.title"),
         message: (
           <Trans
             t={t}
@@ -140,14 +144,15 @@ export function Layout({ children }: LayoutProps) {
             }}
           />
         ),
+        title: t("auth:notification.logout_success.title"),
       });
 
       window.location.href = "/login";
     } catch {
       notifications.show({
         color: "red",
-        title: t("auth:notification.logout_error.title"),
         message: t("auth:notification.logout_error.message"),
+        title: t("auth:notification.logout_error.title"),
       });
     }
   }
@@ -164,42 +169,42 @@ export function Layout({ children }: LayoutProps) {
     <AppShell
       header={{ height: 70 }}
       navbar={{
-        width: navbarWidth,
         breakpoint: "xs",
         collapsed: { desktop: false, mobile: false },
+        width: navbarWidth,
       }}
-      styles={(theme) => ({
-        root: {
-          backgroundColor:
-            colorScheme === "dark"
-              ? getThemeColor("gray.9")
-              : getThemeColor("gray.0"),
-        },
-        main: {
-          backgroundColor:
-            colorScheme === "dark"
-              ? getThemeColor("gray.9")
-              : getThemeColor("gray.0"),
-          transition: "padding-left 300ms ease",
-        },
+      styles={() => ({
         header: {
           backgroundColor:
-            colorScheme === "dark" ? theme.colors.dark[7] : "white",
-          borderBottom: `1px solid ${colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]}`,
+            isDark ? theme.colors.gray[8] : "white",
+          borderBottom: `1px solid ${isDark ? theme.colors.gray[6] : theme.colors.gray[3]}`,
           boxShadow:
-            colorScheme === "dark"
+            isDark
               ? "0 1px 3px rgba(0, 0, 0, 0.3)"
               : "0 1px 3px rgba(0, 0, 0, 0.1)",
           zIndex: 1000,
         },
+        main: {
+          backgroundColor:
+            isDark
+              ? getThemeColor("gray.9")
+              : getThemeColor("gray.0"),
+          transition: "padding-left 300ms ease",
+        },
         navbar: {
           backgroundColor:
-            colorScheme === "dark" ? theme.colors.dark[7] : "white",
-          borderRight: `1px solid ${colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]}`,
-          transition: "width 300ms ease",
+            isDark ? theme.colors.gray[8] : "white",
+          borderRight: `1px solid ${isDark ? theme.colors.gray[6] : theme.colors.gray[3]}`,
+          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
           overflow: "hidden",
+          transition: "width 300ms ease",
           zIndex: 999,
-          boxShadow: theme.other.shadows.md,
+        },
+        root: {
+          backgroundColor:
+            isDark
+              ? getThemeColor("gray.9")
+              : getThemeColor("gray.0"),
         },
       })}
     >
@@ -211,12 +216,12 @@ export function Layout({ children }: LayoutProps) {
               component="span"
               onClick={toggleSidebar}
               style={{
-                display: "inline-flex",
                 alignItems: "center",
-                justifyContent: "center",
-                padding: rem(8),
                 borderRadius: rem(8),
                 cursor: "pointer",
+                display: "inline-flex",
+                justifyContent: "center",
+                padding: rem(8),
                 transition: "transform 200ms ease",
               }}
               onMouseEnter={(e) => {
@@ -250,14 +255,14 @@ export function Layout({ children }: LayoutProps) {
               <Menu.Target>
                 <UnstyledButton
                   style={{
-                    padding: rem(8),
-                    borderRadius: rem(12),
-                    transition: "background-color 200ms ease",
                     backgroundColor: "transparent",
+                    borderRadius: rem(12),
+                    padding: rem(8),
+                    transition: "background-color 200ms ease",
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor =
-                      colorScheme === "dark"
+                      isDark
                         ? "rgba(255, 255, 255, 0.1)"
                         : "rgba(0, 0, 0, 0.05)";
                   }}
@@ -273,7 +278,7 @@ export function Layout({ children }: LayoutProps) {
                       <Text
                         size="sm"
                         fw={500}
-                        c={colorScheme === "dark" ? "white" : "dark"}
+                        c={isDark ? "white" : "dark"}
                       >
                         {currentUser?.username ||
                           currentUser?.email?.split("@")[0] ||
@@ -349,30 +354,30 @@ export function Layout({ children }: LayoutProps) {
                     component={Link}
                     to={item.path}
                     style={{
-                      display: "flex",
                       alignItems: "center",
-                      gap: rem(16),
-                      padding: rem(16),
-                      borderRadius: rem(12),
-                      transition: "all 200ms ease",
                       backgroundColor: location.pathname.startsWith(item.path)
-                        ? colorScheme === "dark"
+                        ? isDark
                           ? "rgba(64, 192, 255, 0.15)"
                           : "rgba(25, 144, 255, 0.1)"
                         : "transparent",
+                      borderRadius: rem(12),
                       color: location.pathname.startsWith(item.path)
                         ? getThemeColor("blue.5")
-                        : colorScheme === "dark"
+                        : isDark
                           ? "white"
                           : "inherit",
+                      display: "flex",
+                      gap: rem(16),
                       justifyContent: sidebarExpanded ? "flex-start" : "center",
                       minHeight: rem(56),
+                      padding: rem(16),
+                      transition: "all 200ms ease",
                       width: "100%",
                     }}
                     onMouseEnter={(e) => {
                       if (!location.pathname.startsWith(item.path)) {
                         e.currentTarget.style.backgroundColor =
-                          colorScheme === "dark"
+                          isDark
                             ? "rgba(255, 255, 255, 0.05)"
                             : "rgba(0, 0, 0, 0.05)";
                       }
@@ -385,14 +390,14 @@ export function Layout({ children }: LayoutProps) {
                   >
                     <Box
                       style={{
-                        display: "flex",
                         alignItems: "center",
-                        justifyContent: "center",
                         color: location.pathname.startsWith(item.path)
                           ? getThemeColor("blue.5")
                           : "inherit",
+                        display: "flex",
                         flexShrink: 0,
                         fontSize: rem(20),
+                        justifyContent: "center",
                       }}
                     >
                       {item.icon}
@@ -402,12 +407,12 @@ export function Layout({ children }: LayoutProps) {
                         size="md"
                         fw={location.pathname.startsWith(item.path) ? 600 : 500}
                         style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          opacity: sidebarExpanded ? 1 : 0,
-                          transition: "opacity 200ms ease",
                           fontSize: rem(15),
                           letterSpacing: "0.25px",
+                          opacity: sidebarExpanded ? 1 : 0,
+                          overflow: "hidden",
+                          transition: "opacity 200ms ease",
+                          whiteSpace: "nowrap",
                         }}
                       >
                         {item.label}
@@ -425,7 +430,7 @@ export function Layout({ children }: LayoutProps) {
               mt="auto"
               pt="md"
               style={{
-                borderTop: `1px solid ${colorScheme === "dark" ? getThemeColor("ui.border") : getThemeColor("ui.border")}`,
+                borderTop: `1px solid ${isDark ? getThemeColor("ui.border") : getThemeColor("ui.border")}`,
                 opacity: sidebarExpanded ? 1 : 0,
                 transition: "opacity 300ms ease",
               }}

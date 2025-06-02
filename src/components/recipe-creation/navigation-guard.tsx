@@ -1,23 +1,24 @@
-import { useEffect, useState } from "react";
-import { useBlocker } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import {
+  Button,
+  Group,
   Modal,
   Stack,
   Text,
-  Group,
-  Button,
+  useComputedColorScheme,
   useMantineTheme,
 } from "@mantine/core";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useBlocker } from "react-router-dom";
+
 import { useRecipeStore } from "../../lib/store/recipe-store";
-import { useTheme } from "../../providers/theme-provider";
 
 export function RecipeNavigationGuard() {
   const { isDirty, resetForm } = useRecipeStore();
   const { t } = useTranslation(["recipes", "common"]);
-  const { theme, colorScheme } = useTheme();
-  const mantineTheme = useMantineTheme();
-  const isDark = colorScheme === "dark";
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
   const [showModal, setShowModal] = useState(false);
 
   // Block navigation when there are unsaved changes
@@ -94,7 +95,7 @@ export function RecipeNavigationGuard() {
             onClick={cancelLeave}
             style={{
               borderColor: isDark
-                ? mantineTheme.colors.dark[4]
+                ? theme.colors.dark[4]
                 : theme.colors.gray[4],
               color: isDark ? theme.colors.gray[3] : theme.colors.gray[7],
             }}
@@ -104,10 +105,10 @@ export function RecipeNavigationGuard() {
           <Button
             onClick={confirmLeave}
             style={{
-              backgroundColor: mantineTheme.colors.red[6],
               "&:hover": {
-                backgroundColor: mantineTheme.colors.red[7],
+                backgroundColor: theme.colors.red[7],
               },
+              backgroundColor: theme.colors.red[6],
             }}
           >
             {t("common:button.exit", "Leave Without Saving")}

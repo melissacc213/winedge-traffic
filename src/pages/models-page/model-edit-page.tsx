@@ -1,41 +1,44 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import {
-  Stack,
-  Paper,
-  Group,
-  Title,
-  Box,
-  Alert,
   ActionIcon,
+  Alert,
+  Box,
+  Group,
+  Paper,
+  Stack,
+  Title,
 } from "@mantine/core";
+import { useComputedColorScheme,useMantineTheme } from '@mantine/core';
+import { notifications } from "@mantine/notifications";
 import {
+  IconAlertCircle,
   IconArrowLeft,
   IconCheck,
-  IconAlertCircle,
 } from "@tabler/icons-react";
+import { useEffect,useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate,useParams } from "react-router-dom";
+
+import { ModelUploadDialog } from "@/components/model-config-editor";
 import { PageLayout } from "@/components/page-layout/page-layout";
 import { PageLoader } from "@/components/ui";
-import { ModelUploadDialog } from "@/components/model-config-editor";
+import { getMockModelConfig } from "@/lib/config/mock-model-config";
 import { useModelDetails } from "@/lib/queries/model";
 import { useModelStore } from "@/lib/store/model-store";
-import { useTheme } from "@/providers/theme-provider";
+
 import type { ModelConfig } from "../../types/model";
-import { notifications } from "@mantine/notifications";
-import { getMockModelConfig } from "@/lib/config/mock-model-config";
 
 export function ModelEditPage() {
   const { t } = useTranslation(["models", "common"]);
   const { modelId } = useParams<{ modelId: string }>();
   const navigate = useNavigate();
-  const { colorScheme, theme } = useTheme();
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
   const updateModel = useModelStore((state) => state.updateModel);
 
   const { data: model, isLoading, error } = useModelDetails(modelId!);
   const [editModalOpened, setEditModalOpened] = useState(false);
 
-  const isDark = colorScheme === "dark";
   const cardBg = isDark ? theme.colors.gray[9] : "white";
 
   // Open edit modal when component loads
@@ -52,15 +55,15 @@ export function ModelEditPage() {
   const handleModelConfigured = (config: ModelConfig) => {
     // Update model in store
     updateModel(modelId!, {
-      name: config.name,
       description: config.description,
+      name: config.name,
     });
 
     notifications.show({
-      title: t("models:edit.save.success"),
-      message: t("models:edit.save.success_message"),
       color: "green",
-      icon: <IconCheck size={16} />
+      icon: <IconCheck size={16} />,
+      message: t("models:edit.save.success_message"),
+      title: t("models:edit.save.success")
     });
 
     // Navigate back to models page

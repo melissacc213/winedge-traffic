@@ -1,9 +1,9 @@
-import { Modal } from '@mantine/core';
+import { Modal, useComputedColorScheme,useMantineTheme } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
-import { LicenseUpload } from './LicenseUpload';
+
 import { useCreateKey } from '../../lib/queries/settings';
-import { useTheme } from '../../providers/theme-provider';
 import type { CreateLicenseRequest } from '../../lib/validator/license';
+import { LicenseUpload } from './LicenseUpload';
 
 interface LicenseCreateDialogProps {
   opened: boolean;
@@ -13,7 +13,8 @@ interface LicenseCreateDialogProps {
 
 export function LicenseCreateDialog({ opened, onClose, onSuccess }: LicenseCreateDialogProps) {
   const { t } = useTranslation(['licenses']);
-  const { colorScheme, theme } = useTheme();
+  const theme = useMantineTheme();
+  const colorScheme = useComputedColorScheme();
   const uploadLicense = useCreateKey();
 
   const handleSubmit = async (values: CreateLicenseRequest & { file: File }) => {
@@ -43,9 +44,9 @@ export function LicenseCreateDialog({ opened, onClose, onSuccess }: LicenseCreat
           maxHeight: 'calc(100vh - 120px)',
         },
         header: {
+          borderBottom: `1px solid ${colorScheme === 'dark' ? theme.colors.gray[6] : theme.colors.gray[3]}`,
           flexShrink: 0,
           padding: '1rem',
-          borderBottom: `1px solid ${colorScheme === 'dark' ? theme.colors.dark?.[4] || theme.colors.gray[6] : theme.colors.gray[3]}`,
         }
       }}
       scrollAreaComponent={undefined}

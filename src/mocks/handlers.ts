@@ -1,40 +1,40 @@
 // Mock handlers for API endpoints
 import {
-  getMockUsers,
-  getMockUser,
-  createMockUser,
-  updateMockUser,
-  deleteMockUser,
-} from "./data/users";
-import {
-  getMockLicenses,
-  getMockLicense,
-  uploadMockLicense,
-  updateMockLicense,
   deleteMockLicense,
+  getMockLicense,
+  getMockLicenses,
+  updateMockLicense,
+  uploadMockLicense,
 } from "./data/licenses";
+import {
+  createMockUser,
+  deleteMockUser,
+  getMockUser,
+  getMockUsers,
+  updateMockUser,
+} from "./data/users";
 
 // Mock user data for authentication
 const mockUsers = [
   {
-    id: "1",
-    username: "admin",
-    email: "admin@example.com",
-    password: "admin123",
     date_joined: "2025-01-01T00:00:00Z",
-    is_superuser: true,
-    is_owner: true,
+    email: "admin@example.com",
     expiry_time: null,
+    id: "1",
+    is_owner: true,
+    is_superuser: true,
+    password: "admin123",
+    username: "admin",
   },
   {
-    id: "2",
-    username: "user",
-    email: "user@example.com",
-    password: "password123",
     date_joined: "2025-01-02T00:00:00Z",
-    is_superuser: false,
-    is_owner: false,
+    email: "user@example.com",
     expiry_time: null,
+    id: "2",
+    is_owner: false,
+    is_superuser: false,
+    password: "password123",
+    username: "user",
   },
 ];
 
@@ -103,13 +103,13 @@ export async function setupMocks() {
         const token = generateToken();
         activeTokens.set(token, user.id);
         return new Response(JSON.stringify({ token }), {
-          status: 200,
           headers: { "Content-Type": "application/json" },
+          status: 200,
         });
       } else {
         return new Response(JSON.stringify({ error: "Invalid credentials" }), {
-          status: 401,
           headers: { "Content-Type": "application/json" },
+          status: 401,
         });
       }
     }
@@ -132,16 +132,16 @@ export async function setupMocks() {
             // Return user without password
             const { password, ...userWithoutPassword } = user;
             return new Response(JSON.stringify(userWithoutPassword), {
-              status: 200,
               headers: { "Content-Type": "application/json" },
+              status: 200,
             });
           }
         }
       }
 
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
         headers: { "Content-Type": "application/json" },
+        status: 401,
       });
     }
 
@@ -177,8 +177,8 @@ export async function setupMocks() {
       const userId = checkAuth(init.headers as any);
       if (!userId) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
           headers: { "Content-Type": "application/json" },
+          status: 401,
         });
       }
 
@@ -188,8 +188,8 @@ export async function setupMocks() {
 
       const result = getMockUsers(page, size);
       return new Response(JSON.stringify(result), {
-        status: 200,
         headers: { "Content-Type": "application/json" },
+        status: 200,
       });
     }
 
@@ -199,8 +199,8 @@ export async function setupMocks() {
       const userId = checkAuth(init.headers as any);
       if (!userId) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
           headers: { "Content-Type": "application/json" },
+          status: 401,
         });
       }
 
@@ -210,14 +210,14 @@ export async function setupMocks() {
 
       if (!user) {
         return new Response(JSON.stringify({ error: "User not found" }), {
-          status: 404,
           headers: { "Content-Type": "application/json" },
+          status: 404,
         });
       }
 
       return new Response(JSON.stringify(user), {
-        status: 200,
         headers: { "Content-Type": "application/json" },
+        status: 200,
       });
     }
 
@@ -227,8 +227,8 @@ export async function setupMocks() {
       const userId = checkAuth(init.headers as any);
       if (!userId) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
           headers: { "Content-Type": "application/json" },
+          status: 401,
         });
       }
 
@@ -236,13 +236,13 @@ export async function setupMocks() {
         const body = JSON.parse(init.body as string);
         const newUser = createMockUser(body);
         return new Response(JSON.stringify(newUser), {
-          status: 201,
           headers: { "Content-Type": "application/json" },
+          status: 201,
         });
       } catch (error) {
         return new Response(JSON.stringify({ error: "Invalid request data" }), {
-          status: 400,
           headers: { "Content-Type": "application/json" },
+          status: 400,
         });
       }
     }
@@ -253,8 +253,8 @@ export async function setupMocks() {
       const userId = checkAuth(init.headers as any);
       if (!userId) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
           headers: { "Content-Type": "application/json" },
+          status: 401,
         });
       }
 
@@ -267,19 +267,19 @@ export async function setupMocks() {
 
         if (!updatedUser) {
           return new Response(JSON.stringify({ error: "User not found" }), {
-            status: 404,
             headers: { "Content-Type": "application/json" },
+            status: 404,
           });
         }
 
         return new Response(JSON.stringify(updatedUser), {
-          status: 200,
           headers: { "Content-Type": "application/json" },
+          status: 200,
         });
       } catch (error) {
         return new Response(JSON.stringify({ error: "Invalid request data" }), {
-          status: 400,
           headers: { "Content-Type": "application/json" },
+          status: 400,
         });
       }
     }
@@ -290,8 +290,8 @@ export async function setupMocks() {
       const userId = checkAuth(init.headers as any);
       if (!userId) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
           headers: { "Content-Type": "application/json" },
+          status: 401,
         });
       }
 
@@ -301,8 +301,8 @@ export async function setupMocks() {
 
       if (!success) {
         return new Response(JSON.stringify({ error: "User not found" }), {
-          status: 404,
           headers: { "Content-Type": "application/json" },
+          status: 404,
         });
       }
 
@@ -321,8 +321,8 @@ export async function setupMocks() {
       const userId = checkAuth(init.headers as any);
       if (!userId) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
           headers: { "Content-Type": "application/json" },
+          status: 401,
         });
       }
 
@@ -332,8 +332,8 @@ export async function setupMocks() {
 
       const result = getMockLicenses(page, size);
       return new Response(JSON.stringify(result), {
-        status: 200,
         headers: { "Content-Type": "application/json" },
+        status: 200,
       });
     }
 
@@ -343,8 +343,8 @@ export async function setupMocks() {
       const userId = checkAuth(init.headers as any);
       if (!userId) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
           headers: { "Content-Type": "application/json" },
+          status: 401,
         });
       }
 
@@ -354,14 +354,14 @@ export async function setupMocks() {
 
       if (!license) {
         return new Response(JSON.stringify({ error: "License not found" }), {
-          status: 404,
           headers: { "Content-Type": "application/json" },
+          status: 404,
         });
       }
 
       return new Response(JSON.stringify(license), {
-        status: 200,
         headers: { "Content-Type": "application/json" },
+        status: 200,
       });
     }
 
@@ -371,8 +371,8 @@ export async function setupMocks() {
       const userId = checkAuth(init.headers as any);
       if (!userId) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
           headers: { "Content-Type": "application/json" },
+          status: 401,
         });
       }
 
@@ -387,26 +387,26 @@ export async function setupMocks() {
           return new Response(
             JSON.stringify({ error: "Name and file are required" }),
             {
-              status: 400,
               headers: { "Content-Type": "application/json" },
+              status: 400,
             }
           );
         }
 
         const newLicense = uploadMockLicense({
-          name,
-          is_default,
           file,
+          is_default,
+          name,
         });
 
         return new Response(JSON.stringify(newLicense), {
-          status: 201,
           headers: { "Content-Type": "application/json" },
+          status: 201,
         });
       } catch (error) {
         return new Response(JSON.stringify({ error: "Invalid request data" }), {
-          status: 400,
           headers: { "Content-Type": "application/json" },
+          status: 400,
         });
       }
     }
@@ -417,8 +417,8 @@ export async function setupMocks() {
       const userId = checkAuth(init.headers as any);
       if (!userId) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
           headers: { "Content-Type": "application/json" },
+          status: 401,
         });
       }
 
@@ -431,19 +431,19 @@ export async function setupMocks() {
 
         if (!updatedLicense) {
           return new Response(JSON.stringify({ error: "License not found" }), {
-            status: 404,
             headers: { "Content-Type": "application/json" },
+            status: 404,
           });
         }
 
         return new Response(JSON.stringify(updatedLicense), {
-          status: 200,
           headers: { "Content-Type": "application/json" },
+          status: 200,
         });
       } catch (error) {
         return new Response(JSON.stringify({ error: "Invalid request data" }), {
-          status: 400,
           headers: { "Content-Type": "application/json" },
+          status: 400,
         });
       }
     }
@@ -454,8 +454,8 @@ export async function setupMocks() {
       const userId = checkAuth(init.headers as any);
       if (!userId) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
           headers: { "Content-Type": "application/json" },
+          status: 401,
         });
       }
 
@@ -465,8 +465,8 @@ export async function setupMocks() {
 
       if (!success) {
         return new Response(JSON.stringify({ error: "License not found" }), {
-          status: 404,
           headers: { "Content-Type": "application/json" },
+          status: 404,
         });
       }
 

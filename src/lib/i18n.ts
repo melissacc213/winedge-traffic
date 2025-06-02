@@ -8,7 +8,9 @@ i18next
   .use(LanguageDetector)
   .use(Backend)
   .init({
+    defaultNS: 'common',
     fallbackLng: 'en',
+    fallbackNS: 'common',
     ns: [
       'common',
       'components',
@@ -16,6 +18,4 @@ i18next
       'models',
     ],
     supportedLngs: ['en', 'zh-TW'],
-    defaultNS: 'common',
-    fallbackNS: 'common',
   });

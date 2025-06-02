@@ -1,4 +1,5 @@
 import { create } from "zustand";
+
 import type { Task } from "../validator/task";
 
 interface TaskState {
@@ -18,23 +19,12 @@ interface TaskState {
 }
 
 export const useTaskStore = create<TaskState>((set) => ({
-  tasks: [],
-  selectedTaskId: null,
-  isLoading: false,
-  error: null,
-
-  setTasks: (tasks) => set({ tasks }),
-
   addTask: (task) =>
     set((state) => ({
       tasks: [...state.tasks, task],
     })),
-
-  updateTask: (task) =>
-    set((state) => ({
-      tasks: state.tasks.map((t) => (t.id === task.id ? task : t)),
-    })),
-
+  error: null,
+  isLoading: false,
   removeTask: (taskId) =>
     set((state) => ({
       tasks: state.tasks.filter((task) => task.id !== taskId),
@@ -42,9 +32,20 @@ export const useTaskStore = create<TaskState>((set) => ({
 
   selectTask: (taskId) => set({ selectedTaskId: taskId }),
 
-  setLoading: (loading) => set({ isLoading: loading }),
+  selectedTaskId: null,
 
   setError: (error) => set({ error }),
+
+  setLoading: (loading) => set({ isLoading: loading }),
+
+  setTasks: (tasks) => set({ tasks }),
+
+  tasks: [],
+
+  updateTask: (task) =>
+    set((state) => ({
+      tasks: state.tasks.map((t) => (t.id === task.id ? task : t)),
+    })),
 }));
 
 // Helper hook to get the selected task from the store

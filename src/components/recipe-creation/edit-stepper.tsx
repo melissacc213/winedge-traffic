@@ -1,47 +1,48 @@
-import { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
   Container,
   Group,
   Modal,
+  rem,
   Stack,
   Text,
   Title,
+  useComputedColorScheme,
   useMantineTheme,
-  rem,
 } from "@mantine/core";
-import { Icons } from "../icons";
 import { notifications } from "@mantine/notifications";
-import { useRecipeStore } from "../../lib/store/recipe-store";
+import { useEffect,useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+
 import { useUpdateRecipe } from "../../lib/queries/recipe";
-import { RegionSetupStep } from "./steps/region-setup-step";
+import { useRecipeStore } from "../../lib/store/recipe-store";
+import { Icons } from "../icons";
 import { ModelConfigStep } from "./steps/model-config-step";
-import { useTheme } from "../../providers/theme-provider";
+import { RegionSetupStep } from "./steps/region-setup-step";
 
 const steps = [
   {
-    id: "regionSetup",
-    title: "Region Setup",
     description: "Define analysis regions",
     icon: Icons.Map,
+    id: "regionSetup",
+    title: "Region Setup",
   },
   {
-    id: "modelConfig",
-    title: "Model Config",
     description: "Select and configure AI model",
     icon: Icons.Brain,
+    id: "modelConfig",
+    title: "Model Config",
   },
 ];
 
 export function RecipeEditStepper({ recipeId }: { recipeId: string }) {
   const { t } = useTranslation("recipes");
   const navigate = useNavigate();
-  const { theme, colorScheme } = useTheme();
-  const mantineTheme = useMantineTheme();
-  const isDark = colorScheme === "dark";
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
 
   // Set initial step to 0 (regions) for edit mode
   const [currentStep, setCurrentStep] = useState(0);
@@ -99,38 +100,38 @@ export function RecipeEditStepper({ recipeId }: { recipeId: string }) {
       // In production, call the update API
       const submitData = {
         ...formValues,
-        taskType: formValues.taskType || "trafficStatistics" as const,
         regions: formValues.regions.map(region => ({
           ...region,
           type: region.type || "countLine" as const
         })),
+        taskType: formValues.taskType || "trafficStatistics" as const,
         videoFile: formValues.videoFile || undefined
       };
       
       await updateRecipe.mutateAsync({
-        id: recipeId,
         data: submitData,
+        id: recipeId,
       });
 
       notifications.show({
-        title: t("notifications.updateSuccess"),
-        message: t("notifications.updateSuccessMessage"),
         color: "green",
+        message: t("notifications.updateSuccessMessage"),
+        title: t("notifications.updateSuccess"),
       });
 
       navigate(`/recipes/${recipeId}`);
     } catch (error) {
       notifications.show({
-        title: t("errors.updateFailed"),
-        message: error instanceof Error ? error.message : "Unknown error",
         color: "red",
+        message: error instanceof Error ? error.message : "Unknown error",
+        title: t("errors.updateFailed"),
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Remove these as we'll use mantineTheme colors directly
+  // Remove these as we'll use theme colors directly
 
   return (
     <Box
@@ -144,9 +145,9 @@ export function RecipeEditStepper({ recipeId }: { recipeId: string }) {
       <Box
         style={{
           backgroundColor: isDark
-            ? mantineTheme.colors.dark[8]
-            : mantineTheme.white,
-          borderBottom: `1px solid ${isDark ? mantineTheme.colors.dark[5] : mantineTheme.colors.gray[2]}`,
+            ? theme.colors.dark[8]
+            : theme.white,
+          borderBottom: `1px solid ${isDark ? theme.colors.dark[5] : theme.colors.gray[2]}`,
           zIndex: 10,
         }}
       >
@@ -175,32 +176,32 @@ export function RecipeEditStepper({ recipeId }: { recipeId: string }) {
                         {/* Step indicator */}
                         <Box
                           style={{
-                            width: rem(28),
-                            height: rem(28),
-                            borderRadius: "50%",
-                            display: "flex",
                             alignItems: "center",
-                            justifyContent: "center",
                             backgroundColor: isCompleted
-                              ? mantineTheme.colors.green[6]
+                              ? theme.colors.green[6]
                               : isActive
-                                ? mantineTheme.colors.blue[6]
+                                ? theme.colors.blue[6]
                                 : isDark
-                                  ? mantineTheme.colors.dark[6]
+                                  ? theme.colors.dark[6]
                                   : theme.colors.gray[1],
                             border:
                               isActive && !isCompleted
-                                ? `2px solid ${mantineTheme.colors.blue[6]}`
+                                ? `2px solid ${theme.colors.blue[6]}`
                                 : "none",
+                            borderRadius: "50%",
                             color:
                               isCompleted || isActive
                                 ? "white"
                                 : isDark
                                   ? theme.colors.gray[5]
                                   : theme.colors.gray[6],
-                            fontWeight: 600,
+                            display: "flex",
                             fontSize: rem(13),
+                            fontWeight: 600,
+                            height: rem(28),
+                            justifyContent: "center",
                             transition: "all 0.2s ease",
+                            width: rem(28),
                           }}
                         >
                           {isCompleted ? (
@@ -230,16 +231,16 @@ export function RecipeEditStepper({ recipeId }: { recipeId: string }) {
                       {index < steps.length - 1 && (
                         <Box
                           style={{
-                            width: rem(40),
-                            height: rem(2),
                             backgroundColor: isCompleted
-                              ? mantineTheme.colors.green[6]
+                              ? theme.colors.green[6]
                               : isDark
-                                ? mantineTheme.colors.dark[5]
+                                ? theme.colors.dark[5]
                                 : theme.colors.gray[3],
-                            transition: "all 0.2s ease",
+                            height: rem(2),
                             marginLeft: rem(8),
                             marginRight: rem(8),
+                            transition: "all 0.2s ease",
+                            width: rem(40),
                           }}
                         />
                       )}
@@ -255,14 +256,14 @@ export function RecipeEditStepper({ recipeId }: { recipeId: string }) {
               onClick={handleCancel}
               size="sm"
               style={{
-                backgroundColor: isDark
-                  ? theme.colors.red[8]
-                  : theme.colors.red[6],
                 "&:hover": {
                   backgroundColor: isDark
                     ? theme.colors.red[7]
                     : theme.colors.red[5],
                 },
+                backgroundColor: isDark
+                  ? theme.colors.red[8]
+                  : theme.colors.red[6],
               }}
             >
               {t("common:button.exit", "Exit")}
@@ -274,11 +275,11 @@ export function RecipeEditStepper({ recipeId }: { recipeId: string }) {
       {/* Scrollable Content */}
       <Box
         style={{
+          backgroundColor: isDark
+            ? theme.colors.dark[7]
+            : theme.colors.gray[0],
           flex: 1,
           overflowY: "auto",
-          backgroundColor: isDark
-            ? mantineTheme.colors.dark[7]
-            : theme.colors.gray[0],
         }}
       >
         <Container size="lg" py="xl">
@@ -291,9 +292,9 @@ export function RecipeEditStepper({ recipeId }: { recipeId: string }) {
       <Box
         style={{
           backgroundColor: isDark
-            ? mantineTheme.colors.dark[8]
-            : mantineTheme.white,
-          borderTop: `1px solid ${isDark ? mantineTheme.colors.dark[4] : mantineTheme.colors.gray[2]}`,
+            ? theme.colors.dark[8]
+            : theme.white,
+          borderTop: `1px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[2]}`,
           boxShadow: isDark
             ? "0 -2px 8px rgba(0, 0, 0, 0.3)"
             : "0 -2px 8px rgba(0, 0, 0, 0.05)",
@@ -308,11 +309,11 @@ export function RecipeEditStepper({ recipeId }: { recipeId: string }) {
               disabled={currentStep === 0}
               size="md"
               style={{
-                visibility: currentStep === 0 ? "hidden" : "visible",
-                color: "white",
                 "&:hover": {
-                  backgroundColor: mantineTheme.colors.blue[7],
+                  backgroundColor: theme.colors.blue[7],
                 },
+                color: "white",
+                visibility: currentStep === 0 ? "hidden" : "visible",
               }}
             >
               {t("common:button.back", "Back")}
@@ -330,11 +331,11 @@ export function RecipeEditStepper({ recipeId }: { recipeId: string }) {
               loading={isSubmitting}
               size="md"
               style={{
-                backgroundColor: mantineTheme.colors.blue[6],
-                color: "white",
                 "&:hover": {
-                  backgroundColor: mantineTheme.colors.blue[7],
+                  backgroundColor: theme.colors.blue[7],
                 },
+                backgroundColor: theme.colors.blue[6],
+                color: "white",
               }}
             >
               {currentStep === steps.length - 1

@@ -1,33 +1,35 @@
-import { useState, useMemo } from "react";
-import { useTranslation } from "react-i18next";
+import {
+  ActionIcon,
+  Badge,
+  Box,
+  Group,
+  Input,
+  Menu,
+  Pagination,
+  Paper,
+  Select,
+  Table,
+  Text,
+} from "@mantine/core";
+import type { ColumnDef,PaginationState, SortingState } from "@tanstack/react-table";
 import {
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  getPaginationRowModel,
-  getFilteredRowModel,
 } from "@tanstack/react-table";
-import type { PaginationState, SortingState, ColumnDef } from "@tanstack/react-table";
-import {
-  Table,
-  Badge,
-  Text,
-  Group,
-  ActionIcon,
-  Menu,
-  Input,
-  Select,
-  Pagination,
-  Box,
-  Paper,
-} from "@mantine/core";
-import { Icons } from "../../components/icons";
-import type { RecipeResponse } from "../../lib/validator/recipe";
-import { TableLoading } from "../../components/ui";
+import { useMemo,useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+
 import { getTaskTypeColor } from "@/lib/utils";
 import type { Region } from "@/types/recipe";
+
+import { Icons } from "../../components/icons";
+import { TableLoading } from "../../components/ui";
+import type { RecipeResponse } from "../../lib/validator/recipe";
 
 interface RecipesTableProps {
   recipes: RecipeResponse[];
@@ -43,7 +45,7 @@ export function RecipesTable({
   const { t } = useTranslation(["recipes", "common"]);
   const navigate = useNavigate();
   const [sorting, setSorting] = useState<SortingState>([
-    { id: "createdAt", desc: true },
+    { desc: true, id: "createdAt" },
   ]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [pagination, setPagination] = useState<PaginationState>({
@@ -108,7 +110,6 @@ export function RecipesTable({
     () => [
       {
         accessorKey: "name",
-        header: t("recipes:table.name"),
         cell: (info) => (
           <Box>
             <Text fw={500}>{info.getValue() as string}</Text>
@@ -117,40 +118,40 @@ export function RecipesTable({
             </Text>
           </Box>
         ),
+        header: t("recipes:table.name"),
       },
       {
         accessorKey: "taskType",
-        header: t("recipes:table.taskType"),
         cell: (info) => (
           <Badge color={getTaskTypeColor(info.getValue() as string)} variant="light">
             {getTaskTypeLabel(info.getValue() as string)}
           </Badge>
         ),
+        header: t("recipes:table.taskType"),
       },
       {
         accessorKey: "status",
-        header: t("recipes:table.status"),
         cell: (info) => (
           <Badge color={getStatusColor(info.getValue() as string)} variant="light">
             {t(`recipes:status.${info.getValue()}`)}
           </Badge>
         ),
+        header: t("recipes:table.status"),
       },
       {
         accessorKey: "regions",
-        header: t("recipes:table.regions"),
         cell: (info) => (
           <Text size="sm">{getRegionCount(info.getValue() as any[])}</Text>
         ),
+        header: t("recipes:table.regions"),
       },
       {
         accessorKey: "createdAt",
-        header: t("recipes:table.createdAt"),
         cell: (info) => <Text size="sm">{formatDate(info.getValue() as string)}</Text>,
+        header: t("recipes:table.createdAt"),
       },
       {
         accessorKey: "id",
-        header: t("recipes:list.columns.actions"),
         cell: (info) => (
           <Group gap={4} justify="flex-end" style={{ flexWrap: "nowrap" }}>
             <Menu position="bottom-end" withArrow withinPortal>
@@ -186,28 +187,29 @@ export function RecipesTable({
             </Menu>
           </Group>
         ),
+        header: t("recipes:list.columns.actions"),
       },
     ],
     [t, getTaskTypeLabel, navigate, onDelete]
   );
 
   const table = useReactTable({
-    data: recipes,
     columns,
-    state: {
-      sorting,
-      globalFilter,
-      pagination,
-    },
+    data: recipes,
     enableGlobalFilter: true,
-    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    manualPagination: false,
     onGlobalFilterChange: setGlobalFilter,
     onPaginationChange: setPagination,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    manualPagination: false,
+    onSortingChange: setSorting,
+    state: {
+      globalFilter,
+      pagination,
+      sorting,
+    },
   });
 
   // Show loading state
@@ -324,8 +326,8 @@ export function RecipesTable({
             value={String(table.getState().pagination.pageSize)}
             onChange={(value) => table.setPageSize(Number(value))}
             data={["5", "10", "20", "30", "40", "50"].map((pageSize) => ({
-              value: pageSize,
               label: `${pageSize} ${t("common:pagination.per_page")}`,
+              value: pageSize,
             }))}
             w={110}
             radius="xl"

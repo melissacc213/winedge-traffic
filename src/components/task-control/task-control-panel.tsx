@@ -1,31 +1,33 @@
-import { useState, useEffect } from "react";
 import {
-  Card,
-  Stack,
-  Group,
-  Button,
-  Text,
-  Badge,
-  Progress,
-  Alert,
-  Paper,
-  Grid,
-  RingProgress,
-  Center,
-  Loader,
-  Timeline,
   ActionIcon,
-  Tooltip,
-  Divider,
+  Alert,
+  Badge,
   Box,
+  Button,
+  Card,
+  Center,
+  Divider,
+  Grid,
+  Group,
+  Loader,
+  Paper,
+  Progress,
+  RingProgress,
+  Stack,
+  Text,
+  Timeline,
   Title,
+  Tooltip,
+  useComputedColorScheme,
+  useMantineTheme,
 } from "@mantine/core";
-import { Icons } from "@/components/icons";
-import { useTheme } from "@/providers/theme-provider";
 import { notifications } from "@mantine/notifications";
+import { useEffect,useState } from "react";
+
+import { Icons } from "@/components/icons";
 import { formatDistanceToNow } from "@/lib/utils";
 import type { Task } from "@/types/task";
-import type { TaskProgress, TaskLog } from "@/types/task-websocket";
+import type { TaskLog,TaskProgress } from "@/types/task-websocket";
 
 interface TaskControlPanelProps {
   task: Task;
@@ -41,23 +43,30 @@ interface TaskControlPanelProps {
 const generateMockProgress = (currentProgress: number): TaskProgress => {
   const newProgress = Math.min(currentProgress + (Math.random() * 2), 100);
   return {
-    taskId: "task-123",
-    progress: newProgress,
-    currentFrame: Math.floor(newProgress * 100),
-    totalFrames: 10000,
-    fps: 24 + Math.random() * 6,
-    eta: Math.floor((100 - newProgress) * 10), // seconds
-    processingSpeed: 1.2 + Math.random() * 0.3,
     cpuUsage: 45 + Math.random() * 25,
-    memoryUsage: 60 + Math.random() * 20,
-    gpuUsage: 70 + Math.random() * 20,
+    currentFrame: Math.floor(newProgress * 100),
     detections: {
-      car: Math.floor(Math.random() * 500) + 100,
-      truck: Math.floor(Math.random() * 200) + 50,
       bus: Math.floor(Math.random() * 100) + 20,
+      car: Math.floor(Math.random() * 500) + 100,
       person: Math.floor(Math.random() * 300) + 50,
+      truck: Math.floor(Math.random() * 200) + 50,
     },
-    timestamp: new Date().toISOString(),
+    eta: Math.floor((100 - newProgress) * 10),
+    fps: 24 + Math.random() * 6,
+    gpuUsage: 70 + Math.random() * 20, 
+    memoryUsage: 60 + Math.random() * 20,
+    
+// seconds
+processingSpeed: 1.2 + Math.random() * 0.3,
+    
+
+progress: newProgress,
+    
+
+taskId: "task-123",
+    
+timestamp: new Date().toISOString(),
+    totalFrames: 10000,
   };
 };
 
@@ -75,14 +84,14 @@ const generateMockLog = (): TaskLog => {
   ];
   
   return {
-    id: Math.random().toString(36).substr(2, 9),
-    type: logTypes[Math.floor(Math.random() * logTypes.length)] as TaskLog["type"],
-    message: messages[Math.floor(Math.random() * messages.length)],
-    timestamp: new Date().toISOString(),
     details: Math.random() > 0.7 ? {
       frame: Math.floor(Math.random() * 10000),
       objects: Math.floor(Math.random() * 20),
     } : undefined,
+    id: Math.random().toString(36).substr(2, 9),
+    message: messages[Math.floor(Math.random() * messages.length)],
+    timestamp: new Date().toISOString(),
+    type: logTypes[Math.floor(Math.random() * logTypes.length)] as TaskLog["type"],
   };
 };
 
@@ -95,8 +104,9 @@ export function TaskControlPanel({
   isStopping = false,
   isRestarting = false,
 }: TaskControlPanelProps) {
-  const { theme, colorScheme } = useTheme();
-  const isDark = colorScheme === "dark";
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
   const [wsConnected, setWsConnected] = useState(false);
   const [progress, setProgress] = useState<TaskProgress | null>(null);
   const [logs, setLogs] = useState<TaskLog[]>([]);
@@ -109,10 +119,10 @@ export function TaskControlPanel({
       const connectTimeout = setTimeout(() => {
         setWsConnected(true);
         notifications.show({
-          title: "WebSocket Connected",
-          message: "Real-time updates enabled",
           color: "green",
           icon: <Icons.Wifi size={16} />,
+          message: "Real-time updates enabled",
+          title: "WebSocket Connected",
         });
       }, 1000);
 
@@ -261,7 +271,7 @@ export function TaskControlPanel({
           p="md"
           radius="md"
           style={{
-            backgroundColor: isDark ? theme.colors.dark[6] : theme.colors.gray[0],
+            backgroundColor: isDark ? theme.colors.dark?.[6] || theme.colors.gray[7] : theme.colors.gray[0],
           }}
         >
           <Group justify="space-between" align="center">
@@ -342,7 +352,7 @@ export function TaskControlPanel({
                       <RingProgress
                         size={80}
                         thickness={8}
-                        sections={[{ value: progress.cpuUsage, color: "blue" }]}
+                        sections={[{ color: "blue", value: progress.cpuUsage }]}
                         label={
                           <Text size="sm" fw={700} ta="center">
                             {Math.round(progress.cpuUsage)}%
@@ -360,7 +370,7 @@ export function TaskControlPanel({
                       <RingProgress
                         size={80}
                         thickness={8}
-                        sections={[{ value: progress.memoryUsage, color: "green" }]}
+                        sections={[{ color: "green", value: progress.memoryUsage }]}
                         label={
                           <Text size="sm" fw={700} ta="center">
                             {Math.round(progress.memoryUsage)}%
@@ -378,7 +388,7 @@ export function TaskControlPanel({
                       <RingProgress
                         size={80}
                         thickness={8}
-                        sections={[{ value: progress.gpuUsage, color: "orange" }]}
+                        sections={[{ color: "orange", value: progress.gpuUsage }]}
                         label={
                           <Text size="sm" fw={700} ta="center">
                             {Math.round(progress.gpuUsage)}%
@@ -428,7 +438,7 @@ export function TaskControlPanel({
             p="sm"
             radius="md"
             style={{
-              backgroundColor: isDark ? theme.colors.dark[7] : theme.colors.gray[0],
+              backgroundColor: isDark ? theme.colors.dark?.[7] || theme.colors.gray[8] : theme.colors.gray[0],
               maxHeight: 300,
               overflow: "auto",
             }}

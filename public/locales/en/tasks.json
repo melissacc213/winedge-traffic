@@ -38,7 +38,8 @@
     "delete": "Delete Task",
     "viewMetrics": "View Metrics",
     "start": "Start Task",
-    "stop": "Stop Task"
+    "stop": "Stop Task",
+    "edit": "Edit Task"
   },
   "details": {
     "title": "Task Details",
@@ -133,7 +134,13 @@
     "taskStopError": "Failed to Stop Task",
     "taskDeleted": "Task Deleted",
     "taskDeletedMessage": "Task '{{name}}' has been deleted successfully",
-    "taskDeleteError": "Failed to Delete Task"
+    "taskDeleteError": "Failed to Delete Task",
+    "taskCreated": "Task Created",
+    "taskCreatedMessage": "Task '{{name}}' has been created successfully",
+    "taskCreateError": "Failed to Create Task",
+    "taskUpdated": "Task Updated",
+    "taskUpdatedMessage": "Task '{{name}}' has been updated successfully",
+    "taskUpdateError": "Failed to Update Task"
   },
   "modals": {
     "stopTask": {
@@ -156,5 +163,13 @@
     "customVideo": "Custom Video",
     "sampleVideo": "Sample Video",
     "frame": "Frame"
+  },
+  "edit": {
+    "title": "Edit Task",
+    "description": "Update task configuration for {{name}}",
+    "loading": "Loading task data...",
+    "error": "Error loading task data",
+    "formTitle": "Task Configuration",
+    "updateTask": "Update Task"
   }
 }

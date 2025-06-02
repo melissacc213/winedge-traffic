@@ -114,5 +114,6 @@
   "disabled": "Disabled",
   "errorOccurred": "An error occurred",
   "cancel": "Cancel",
-  "error": "Error"
+  "error": "Error",
+  "clearSearch": "Clear search"
 }

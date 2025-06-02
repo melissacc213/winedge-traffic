@@ -1,22 +1,21 @@
-import { useState } from 'react';
 import {
+  ActionIcon,
+  Badge,
+  Box,
+  Divider,
+  Grid,
   Group,
+  NumberInput,
+  Paper,
+  Stack,
+  Switch,
   Text,
   TextInput,
-  NumberInput,
-  Switch,
-  ActionIcon,
   Tooltip,
-  Box,
-  Stack,
-  Paper,
-  Badge,
-  useMantineTheme,
-  Grid,
-  Divider
-} from '@mantine/core';
-import { IconHelp, IconGripVertical, IconChevronDown, IconChevronUp } from '@tabler/icons-react';
-import { useTheme } from '@/providers/theme-provider';
+  useComputedColorScheme,  useMantineTheme} from '@mantine/core';
+import { IconChevronDown, IconChevronUp,IconGripVertical, IconHelp } from '@tabler/icons-react';
+import { useState } from 'react';
+
 import { ColorPicker } from '@/components/ui/color-picker';
 import type { ModelLabel } from '@/types/model';
 
@@ -36,15 +35,15 @@ export function LabelEditor({
   isNew = false,
   showReorderControls = true
 }: LabelEditorProps) {
-  const { colorScheme } = useTheme();
-  const mantineTheme = useMantineTheme();
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
   const [isExpanded, setIsExpanded] = useState(isNew && label.enabled);
   
-  const isDark = colorScheme === 'dark';
-  const surfaceBg = isDark ? mantineTheme.colors.dark?.[7] || mantineTheme.colors.gray[8] : mantineTheme.white;
-  const borderColor = isDark ? mantineTheme.colors.dark?.[4] || mantineTheme.colors.gray[6] : mantineTheme.colors.gray[3];
-  const mutedTextColor = isDark ? mantineTheme.colors.gray[5] : mantineTheme.colors.gray[6];
-  const highlightBorder = isNew ? (isDark ? mantineTheme.colors.blue[6] : mantineTheme.colors.blue[4]) : borderColor;
+  const surfaceBg = isDark ? theme.colors.dark?.[7] || theme.colors.gray[8] : theme.white;
+  const borderColor = isDark ? theme.colors.dark?.[4] || theme.colors.gray[6] : theme.colors.gray[3];
+  const mutedTextColor = isDark ? theme.colors.gray[5] : theme.colors.gray[6];
+  const highlightBorder = isNew ? (isDark ? theme.colors.blue[6] : theme.colors.blue[4]) : borderColor;
 
   const handleUpdate = (field: keyof ModelLabel, value: string | number | boolean) => {
     onUpdate(label.id, { [field]: value });
@@ -63,19 +62,19 @@ export function LabelEditor({
       withBorder
       style={{
         backgroundColor: surfaceBg,
-        borderColor: label.enabled ? (isNew ? highlightBorder : borderColor) : mantineTheme.colors.gray[5],
+        borderColor: label.enabled ? (isNew ? highlightBorder : borderColor) : theme.colors.gray[5],
         borderWidth: isNew ? '2px' : '1px',
+        boxShadow: isNew ? theme.other?.shadows?.md : theme.other?.shadows?.xs,
         opacity: label.enabled ? 1 : 0.7,
-        transition: 'all 0.2s ease',
-        boxShadow: isNew ? mantineTheme.shadows?.md : mantineTheme.shadows?.xs,
-        overflow: 'hidden'
+        overflow: 'hidden',
+        transition: 'all 0.2s ease'
       }}
     >
       {/* Header Row - Always Visible */}
       <Box
         p="sm"
         style={{
-          backgroundColor: isDark ? mantineTheme.colors.dark?.[6] || mantineTheme.colors.gray[7] : mantineTheme.colors.gray[0],
+          backgroundColor: isDark ? theme.colors.dark?.[6] || theme.colors.gray[7] : theme.colors.gray[0],
           borderBottom: isExpanded ? `1px solid ${borderColor}` : 'none',
           cursor: label.enabled ? 'pointer' : 'default'
         }}
@@ -97,12 +96,12 @@ export function LabelEditor({
             
             <Box
               style={{
-                width: 24,
-                height: 24,
                 backgroundColor: label.color,
-                borderRadius: mantineTheme.radius.sm,
                 border: `2px solid ${borderColor}`,
-                flexShrink: 0
+                borderRadius: theme.radius.sm,
+                flexShrink: 0,
+                height: 24,
+                width: 24
               }}
             />
             
@@ -110,8 +109,8 @@ export function LabelEditor({
               fw={600}
               size="sm"
               style={{
-                textDecoration: label.enabled ? 'none' : 'line-through',
-                color: label.enabled ? (isDark ? mantineTheme.white : mantineTheme.black) : mutedTextColor
+                color: label.enabled ? (isDark ? theme.white : theme.black) : mutedTextColor,
+                textDecoration: label.enabled ? 'none' : 'line-through'
               }}
             >
               {label.name}
@@ -181,7 +180,7 @@ export function LabelEditor({
                   placeholder="Enter label name"
                   styles={{
                     input: {
-                      backgroundColor: isDark ? mantineTheme.colors.dark?.[6] || mantineTheme.colors.gray[7] : mantineTheme.colors.gray[0]
+                      backgroundColor: isDark ? theme.colors.dark?.[6] || theme.colors.gray[7] : theme.colors.gray[0]
                     }
                   }}
                 />
@@ -226,7 +225,7 @@ export function LabelEditor({
                     size="sm"
                     styles={{
                       input: {
-                        backgroundColor: isDark ? mantineTheme.colors.dark?.[6] || mantineTheme.colors.gray[7] : mantineTheme.colors.gray[0]
+                        backgroundColor: isDark ? theme.colors.dark?.[6] || theme.colors.gray[7] : theme.colors.gray[0]
                       }
                     }}
                     rightSection={
@@ -250,7 +249,7 @@ export function LabelEditor({
                     size="sm"
                     styles={{
                       input: {
-                        backgroundColor: isDark ? mantineTheme.colors.dark?.[6] || mantineTheme.colors.gray[7] : mantineTheme.colors.gray[0]
+                        backgroundColor: isDark ? theme.colors.dark?.[6] || theme.colors.gray[7] : theme.colors.gray[0]
                       }
                     }}
                   />
@@ -267,7 +266,7 @@ export function LabelEditor({
                     size="sm"
                     styles={{
                       input: {
-                        backgroundColor: isDark ? mantineTheme.colors.dark?.[6] || mantineTheme.colors.gray[7] : mantineTheme.colors.gray[0]
+                        backgroundColor: isDark ? theme.colors.dark?.[6] || theme.colors.gray[7] : theme.colors.gray[0]
                       }
                     }}
                   />
@@ -284,7 +283,7 @@ export function LabelEditor({
                     size="sm"
                     styles={{
                       input: {
-                        backgroundColor: isDark ? mantineTheme.colors.dark?.[6] || mantineTheme.colors.gray[7] : mantineTheme.colors.gray[0]
+                        backgroundColor: isDark ? theme.colors.dark?.[6] || theme.colors.gray[7] : theme.colors.gray[0]
                       }
                     }}
                   />

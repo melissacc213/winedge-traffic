@@ -1,14 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { v4 as uuidv4 } from 'uuid';
+
 import { modelService } from '../api';
 import { useModelStore } from '../store/model-store';
-import { v4 as uuidv4 } from 'uuid';
 
 export const modelKeys = {
   all: ['models'] as const,
-  lists: () => [...modelKeys.all, 'list'] as const,
-  list: (filters: string) => [...modelKeys.lists(), { filters }] as const,
-  details: () => [...modelKeys.all, 'detail'] as const,
   detail: (id: string) => [...modelKeys.details(), id] as const,
+  details: () => [...modelKeys.all, 'detail'] as const,
+  list: (filters: string) => [...modelKeys.lists(), { filters }] as const,
+  lists: () => [...modelKeys.all, 'list'] as const,
 };
 
 export function useModels() {
@@ -17,7 +18,6 @@ export function useModels() {
   const setError = useModelStore((state) => state.setError);
 
   return useQuery({
-    queryKey: modelKeys.lists(),
     queryFn: async () => {
       setLoading(true);
       try {
@@ -32,6 +32,7 @@ export function useModels() {
         setLoading(false);
       }
     },
+    queryKey: modelKeys.lists(),
   });
 }
 
@@ -39,13 +40,13 @@ export function useModelDetails(id: string) {
   const updateModel = useModelStore((state) => state.updateModel);
 
   return useQuery({
-    queryKey: modelKeys.detail(id),
+    enabled: !!id,
     queryFn: async () => {
       const data = await modelService.getModel(id);
       updateModel(id, data);
       return data;
     },
-    enabled: !!id,
+    queryKey: modelKeys.detail(id),
   });
 }
 
@@ -66,9 +67,9 @@ export function useUploadModel() {
         id: tempId,
         name: file.name,
         size: file.size,
+        status: 'processing' as const,
         type: file.type || 'application/octet-stream',
         uploadedAt: new Date().toISOString(),
-        status: 'processing' as const,
       };
       
       // Add to store
@@ -109,14 +110,14 @@ export function useUploadModel() {
       } catch (error) {
         // Handle error
         updateModel(tempId, {
-          status: 'error',
           error: error instanceof Error ? error.message : 'Upload failed',
+          status: 'error',
         });
         
         setUploadProgress(tempId, {
-          status: 'error',
-          progress: 0,
           error: error instanceof Error ? error.message : 'Upload failed',
+          progress: 0,
+          status: 'error',
         });
         
         throw error;

@@ -1,44 +1,45 @@
-import { useState, useMemo } from 'react';
 import {
-  Table,
-  Badge,
   ActionIcon,
+  Badge,
+  Box,
   Group,
-  Text,
-  Tooltip,
+  Input,
   Menu,
   Pagination,
-  Box,
   Paper,
-  Input,
   Select,
+  Table,
+  Text,
+  Tooltip,
 } from '@mantine/core';
+import { modals } from '@mantine/modals';
 import {
+  IconDots,
+  IconDownload,
   IconEdit,
   IconEye,
-  IconTrash,
-  IconDots,
+  IconLicense,
   IconStar,
   IconStarFilled,
-  IconDownload,
-  IconLicense,
+  IconTrash,
 } from '@tabler/icons-react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { useKeys, useSetDefaultKey, useDeleteKey } from '../../lib/queries/settings';
-import { TableLoading } from '../ui';
-import { modals } from '@mantine/modals';
-import type { License } from '../../lib/validator/license';
+import type { ColumnDef,PaginationState, SortingState } from '@tanstack/react-table';
 import {
   flexRender,
   getCoreRowModel,
-  getSortedRowModel,
-  useReactTable,
   getFilteredRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
 } from '@tanstack/react-table';
-import type { PaginationState, SortingState, ColumnDef } from '@tanstack/react-table';
+import { useMemo,useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+
+import { useDeleteKey,useKeys, useSetDefaultKey } from '../../lib/queries/settings';
+import type { License } from '../../lib/validator/license';
 import { Icons } from '../icons';
+import { TableLoading } from '../ui';
 
 interface LicenseTableProps {
   onEditLicense?: (license: License) => void;
@@ -51,7 +52,7 @@ export function LicenseTable({ onEditLicense, isLoading: externalIsLoading }: Li
   const [page] = useState(1);
   const [size] = useState(10);
   const [sorting, setSorting] = useState<SortingState>([
-    { id: 'uploaded_at', desc: true },
+    { desc: true, id: 'uploaded_at' },
   ]);
   const [globalFilter, setGlobalFilter] = useState('');
   const [pagination, setPagination] = useState<PaginationState>({
@@ -81,18 +82,18 @@ export function LicenseTable({ onEditLicense, isLoading: externalIsLoading }: Li
 
   const handleDelete = (license: License) => {
     modals.openConfirmModal({
-      title: t('licenses:delete.title'),
       children: (
         <Text size="sm">
           {t('licenses:delete.message', { name: license.name })}
         </Text>
       ),
-      labels: { 
-        confirm: t('common:button.delete'), 
-        cancel: t('common:button.cancel') 
-      },
       confirmProps: { color: 'red' },
+      labels: { 
+        cancel: t('common:button.cancel'), 
+        confirm: t('common:button.delete') 
+      },
       onConfirm: () => deleteMutation.mutate(license.id),
+      title: t('licenses:delete.title'),
     });
   };
 
@@ -132,7 +133,6 @@ export function LicenseTable({ onEditLicense, isLoading: externalIsLoading }: Li
     () => [
       {
         accessorKey: 'name',
-        header: t('licenses:table.name'),
         cell: (info) => {
           const name = info.getValue() as string;
           return (
@@ -144,18 +144,18 @@ export function LicenseTable({ onEditLicense, isLoading: externalIsLoading }: Li
             </Box>
           );
         },
+        header: t('licenses:table.name'),
       },
       {
         accessorKey: 'file_size',
-        header: t('licenses:table.fileSize'),
         cell: (info) => {
           const fileSize = info.getValue() as number;
           return <Text size="sm">{formatFileSize(fileSize)}</Text>;
         },
+        header: t('licenses:table.fileSize'),
       },
       {
         accessorKey: 'status',
-        header: t('licenses:table.status'),
         cell: (info) => {
           const status = info.getValue() as string;
           return (
@@ -164,26 +164,26 @@ export function LicenseTable({ onEditLicense, isLoading: externalIsLoading }: Li
             </Badge>
           );
         },
+        header: t('licenses:table.status'),
       },
       {
         accessorKey: 'uploaded_by',
-        header: t('licenses:table.uploadedBy'),
         cell: (info) => {
           const uploadedBy = info.getValue() as string;
           return <Text size="sm">{uploadedBy}</Text>;
         },
+        header: t('licenses:table.uploadedBy'),
       },
       {
         accessorKey: 'uploaded_at',
-        header: t('licenses:table.uploadedAt'),
         cell: (info) => {
           const uploadedAt = info.getValue() as string;
           return <Text size="sm" c="dimmed">{formatDate(uploadedAt)}</Text>;
         },
+        header: t('licenses:table.uploadedAt'),
       },
       {
         accessorKey: 'expires_at',
-        header: t('licenses:table.expiresAt'),
         cell: (info) => {
           const expiresAt = info.getValue() as string | undefined;
           return (
@@ -192,10 +192,10 @@ export function LicenseTable({ onEditLicense, isLoading: externalIsLoading }: Li
             </Text>
           );
         },
+        header: t('licenses:table.expiresAt'),
       },
       {
         accessorKey: 'is_default',
-        header: t('licenses:table.default'),
         cell: (info) => {
           const isDefault = info.getValue() as boolean;
           return (
@@ -211,10 +211,10 @@ export function LicenseTable({ onEditLicense, isLoading: externalIsLoading }: Li
             </Tooltip>
           );
         },
+        header: t('licenses:table.default'),
       },
       {
         accessorKey: 'id',
-        header: t('licenses:table.actions'),
         cell: (info) => {
           const license = info.row.original;
           const id = info.getValue() as string;
@@ -263,6 +263,7 @@ export function LicenseTable({ onEditLicense, isLoading: externalIsLoading }: Li
             </Group>
           );
         },
+        header: t('licenses:table.actions'),
       },
     ],
     [t, navigate, onEditLicense, setDefaultMutation, deleteMutation, handleDelete]
@@ -271,22 +272,22 @@ export function LicenseTable({ onEditLicense, isLoading: externalIsLoading }: Li
   const licenses = data?.results || [];
 
   const table = useReactTable({
-    data: licenses,
     columns,
-    state: {
-      sorting,
-      globalFilter,
-      pagination,
-    },
+    data: licenses,
     enableGlobalFilter: true,
-    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    manualPagination: false,
     onGlobalFilterChange: setGlobalFilter,
     onPaginationChange: setPagination,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    manualPagination: false,
+    onSortingChange: setSorting,
+    state: {
+      globalFilter,
+      pagination,
+      sorting,
+    },
   });
 
   // Show loading state
@@ -342,8 +343,8 @@ export function LicenseTable({ onEditLicense, isLoading: externalIsLoading }: Li
                   onClick={header.column.getToggleSortingHandler()}
                   style={{
                     cursor: header.column.getCanSort() ? 'pointer' : 'default',
-                    width: header.id === 'id' ? 120 : header.id === 'is_default' ? 80 : 'auto',
                     textAlign: header.id === 'is_default' ? 'center' : undefined,
+                    width: header.id === 'id' ? 120 : header.id === 'is_default' ? 80 : 'auto',
                   }}
                 >
                   <Group justify="space-between" style={{ flexWrap: 'nowrap' }}>
@@ -420,8 +421,8 @@ export function LicenseTable({ onEditLicense, isLoading: externalIsLoading }: Li
             value={String(table.getState().pagination.pageSize)}
             onChange={(value) => table.setPageSize(Number(value))}
             data={['5', '10', '20', '30', '40', '50'].map((pageSize) => ({
-              value: pageSize,
               label: `${pageSize} ${t('common:pagination.per_page')}`,
+              value: pageSize,
             }))}
             w={110}
             radius="xl"

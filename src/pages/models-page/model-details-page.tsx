@@ -1,47 +1,49 @@
-import { useParams, useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import {
-  Stack,
-  Paper,
-  Group,
-  Title,
-  Text,
-  Button,
-  Badge,
-  Divider,
-  Box,
-  Grid,
-  Card,
-  Alert,
   ActionIcon,
-  Tooltip,
+  Alert,
+  Badge,
+  Box,
+  Button,
+  Card,
+  Divider,
+  Grid,
+  Group,
+  Paper,
   ScrollArea,
+  Stack,
+  Text,
   Timeline,
+  Title,
+  Tooltip,
+  useComputedColorScheme,
   useMantineTheme,
 } from "@mantine/core";
+import { modals } from "@mantine/modals";
+import { notifications } from "@mantine/notifications";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate,useParams } from "react-router-dom";
+
 import { Icons } from "@/components/icons";
 import { PageLayout } from "@/components/page-layout/page-layout";
 import { PageLoader } from "@/components/ui";
-import { useModelDetails, useDeleteModel } from "@/lib/queries/model";
-import { useTheme } from "@/providers/theme-provider";
-import type { ModelConfig } from "../../types/model";
-import { useState } from "react";
-import { modals } from "@mantine/modals";
-import { notifications } from "@mantine/notifications";
+import { useDeleteModel,useModelDetails } from "@/lib/queries/model";
 import { getRegionColor } from "@/lib/theme-utils";
+
+import type { ModelConfig } from "../../types/model";
 
 export function ModelDetailsPage() {
   const { t } = useTranslation(["models", "common"]);
   const { modelId } = useParams<{ modelId: string }>();
   const navigate = useNavigate();
-  const { colorScheme, theme } = useTheme();
-  const mantineTheme = useMantineTheme();
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
   const [isDeleting, setIsDeleting] = useState(false);
 
   const { data: model, isLoading, error } = useModelDetails(modelId!);
   const deleteModelMutation = useDeleteModel();
 
-  const isDark = colorScheme === "dark";
   const cardBg = isDark ? theme.colors.dark[7] : theme.white;
   const surfaceBg = isDark ? theme.colors.dark[6] : theme.colors.gray[0];
 
@@ -59,11 +61,11 @@ export function ModelDetailsPage() {
     if (!dateString) return "";
     const date = new Date(dateString);
     return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "long",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      month: "long",
+      year: "numeric",
     }).format(date);
   };
 
@@ -87,36 +89,36 @@ export function ModelDetailsPage() {
 
   const handleDelete = () => {
     modals.openConfirmModal({
-      title: t("models:details.delete.title"),
       children: (
         <Text size="sm">
           {t("models:details.delete.message", { name: model?.name })}
         </Text>
       ),
-      labels: {
-        confirm: t("common:action.delete"),
-        cancel: t("common:action.cancel"),
-      },
       confirmProps: { color: "red" },
+      labels: {
+        cancel: t("common:action.cancel"),
+        confirm: t("common:action.delete"),
+      },
       onConfirm: async () => {
         setIsDeleting(true);
         try {
           await deleteModelMutation.mutateAsync(modelId!);
           notifications.show({
-            title: t("models:details.delete.success"),
-            message: t("models:details.delete.success_message"),
             color: "green",
+            message: t("models:details.delete.success_message"),
+            title: t("models:details.delete.success"),
           });
           navigate("/models");
         } catch (error) {
           notifications.show({
-            title: t("models:details.delete.error"),
-            message: error instanceof Error ? error.message : "Unknown error",
             color: "red",
+            message: error instanceof Error ? error.message : "Unknown error",
+            title: t("models:details.delete.error"),
           });
           setIsDeleting(false);
         }
       },
+      title: t("models:details.delete.title"),
     });
   };
 
@@ -170,15 +172,15 @@ export function ModelDetailsPage() {
 
   // Mock model config for demonstration
   const mockConfig: ModelConfig = {
+    labels: [
+      { color: getRegionColor(theme, 0), confidence: 0.75, enabled: true, id: "1", name: "car" },
+      { color: getRegionColor(theme, 1), confidence: 0.8, enabled: true, id: "2", name: "truck" },
+      { color: getRegionColor(theme, 2), confidence: 0.7, enabled: true, id: "3", name: "bus" },
+      { color: getRegionColor(theme, 3), confidence: 0.65, enabled: false, id: "4", name: "motorcycle" },
+      { color: "#98D8C8", confidence: 0.6, enabled: true, id: "5", name: "bicycle" },
+    ],
     name: model.name,
     task: "object_detection",
-    labels: [
-      { id: "1", name: "car", color: getRegionColor(theme, 0), confidence: 0.75, enabled: true },
-      { id: "2", name: "truck", color: getRegionColor(theme, 1), confidence: 0.8, enabled: true },
-      { id: "3", name: "bus", color: getRegionColor(theme, 2), confidence: 0.7, enabled: true },
-      { id: "4", name: "motorcycle", color: getRegionColor(theme, 3), confidence: 0.65, enabled: false },
-      { id: "5", name: "bicycle", color: "#98D8C8", confidence: 0.6, enabled: true },
-    ],
   };
 
   const activeLabels = mockConfig.labels.filter((label) => label.enabled);
@@ -327,10 +329,10 @@ export function ModelDetailsPage() {
                               leftSection={
                                 <Box
                                   style={{
-                                    width: 8,
-                                    height: 8,
-                                    borderRadius: "50%",
                                     backgroundColor: label.color,
+                                    borderRadius: "50%",
+                                    height: 8,
+                                    width: 8,
                                   }}
                                 />
                               }
@@ -357,7 +359,7 @@ export function ModelDetailsPage() {
                 <Stack gap="md">
                   <Card p="sm" radius="sm" style={{ backgroundColor: surfaceBg }}>
                     <Group>
-                      <Icons.Cpu size={20} color={mantineTheme.colors.blue[6]} />
+                      <Icons.Cpu size={20} color={theme.colors.blue[6]} />
                       <Box style={{ flex: 1 }}>
                         <Text size="xs" c="dimmed">
                           {t("models:details.model_type")}
@@ -371,7 +373,7 @@ export function ModelDetailsPage() {
 
                   <Card p="sm" radius="sm" style={{ backgroundColor: surfaceBg }}>
                     <Group>
-                      <Icons.Database size={20} color={mantineTheme.colors.green[6]} />
+                      <Icons.Database size={20} color={theme.colors.green[6]} />
                       <Box style={{ flex: 1 }}>
                         <Text size="xs" c="dimmed">
                           {t("models:details.storage_size")}
@@ -385,7 +387,7 @@ export function ModelDetailsPage() {
 
                   <Card p="sm" radius="sm" style={{ backgroundColor: surfaceBg }}>
                     <Group>
-                      <Icons.FileZip size={20} color={mantineTheme.colors.orange[6]} />
+                      <Icons.FileZip size={20} color={theme.colors.orange[6]} />
                       <Box style={{ flex: 1 }}>
                         <Text size="xs" c="dimmed">
                           {t("models:details.file_format")}
@@ -399,7 +401,7 @@ export function ModelDetailsPage() {
 
                   <Card p="sm" radius="sm" style={{ backgroundColor: surfaceBg }}>
                     <Group>
-                      <Icons.Tag size={20} color={mantineTheme.colors.violet[6]} />
+                      <Icons.Tag size={20} color={theme.colors.violet[6]} />
                       <Box style={{ flex: 1 }}>
                         <Text size="xs" c="dimmed">
                           {t("models:details.version")}

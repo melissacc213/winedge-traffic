@@ -1,42 +1,44 @@
-import { useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import {
-  Card,
-  Text,
-  Group,
-  Stack,
-  Button,
   ActionIcon,
-  Loader,
-  Center,
-  Title,
   Badge,
+  Button,
+  Card,
+  Center,
+  Group,
+  Loader,
   Paper,
+  Stack,
+  Text,
+  Title,
 } from "@mantine/core";
-import { useTranslation } from "react-i18next";
-import { modals } from "@/lib/modal";
+import { useComputedColorScheme,useMantineTheme } from '@mantine/core';
 import { notifications } from "@mantine/notifications";
+import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate,useParams } from "react-router-dom";
+
 import { Icons } from "@/components/icons";
+import { TaskProgress } from "@/components/task-dashboard/task-progress";
+import { TaskStatusBadge } from "@/components/task-dashboard/task-status-badge";
+import { TaskVideoStream } from "@/components/task-video-stream";
+import { taskService } from "@/lib/api/task-service";
+import { modals } from "@/lib/modal";
 import {
-  useTask,
-  useStopTask,
   useDeleteTask,
   useStartTask,
+  useStopTask,
+  useTask,
 } from "@/lib/queries/task";
 import { useTaskStore } from "@/lib/store/task-store";
-import { TaskStatusBadge } from "@/components/task-dashboard/task-status-badge";
-import { TaskProgress } from "@/components/task-dashboard/task-progress";
-import { TaskVideoStream } from "@/components/task-video-stream";
 import { formatDistanceToNow, getTaskTypeColor } from "@/lib/utils";
-import { taskService } from "@/lib/api/task-service";
-import { useTheme } from "@/providers/theme-provider";
 
 export function TaskDetailsPage() {
   const { t } = useTranslation(["tasks", "common"]);
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
-  const { theme, colorScheme } = useTheme();
-  const isDark = colorScheme === "dark";
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
   const { selectTask } = useTaskStore();
   const { data: task, isLoading, error, refetch } = useTask(taskId || "");
   const { mutate: stopTask, isPending: isStoppingTask } = useStopTask();
@@ -63,19 +65,19 @@ export function TaskDetailsPage() {
     try {
       await taskService.startTask(task.id);
       notifications.show({
-        title: t("tasks:notifications.taskStarted"),
+        color: "green",
         message: t("tasks:notifications.taskStartedMessage", {
           name: task.name,
         }),
-        color: "green",
+        title: t("tasks:notifications.taskStarted"),
       });
       refetch();
     } catch (error) {
       notifications.show({
-        title: t("tasks:notifications.taskStartError"),
+        color: "red",
         message:
           error instanceof Error ? error.message : t("common:errorOccurred"),
-        color: "red",
+        title: t("tasks:notifications.taskStartError"),
       });
     }
   };
@@ -87,17 +89,17 @@ export function TaskDetailsPage() {
       // In a real implementation, this would call a restart API endpoint
       await taskService.startTask(task.id);
       notifications.show({
-        title: "Task Restarted",
-        message: `${task.name} has been restarted`,
         color: "blue",
+        message: `${task.name} has been restarted`,
+        title: "Task Restarted",
       });
       refetch();
     } catch (error) {
       notifications.show({
-        title: "Restart Failed",
+        color: "red",
         message:
           error instanceof Error ? error.message : t("common:errorOccurred"),
-        color: "red",
+        title: "Restart Failed",
       });
     }
   };
@@ -106,40 +108,40 @@ export function TaskDetailsPage() {
     if (!task) return;
 
     modals.openConfirmModal({
-      title: t("tasks:modals.stopTask.title"),
       children: (
         <Text size="sm">
           {t("tasks:modals.stopTask.message", { name: task.name })}
         </Text>
       ),
-      labels: {
-        confirm: t("tasks:modals.stopTask.confirm"),
-        cancel: t("common:cancel"),
-      },
       confirmProps: { color: "yellow" },
+      labels: {
+        cancel: t("common:cancel"),
+        confirm: t("tasks:modals.stopTask.confirm"),
+      },
       onConfirm: () => {
         stopTask(task.id, {
-          onSuccess: () => {
-            notifications.show({
-              title: t("tasks:notifications.taskStopped"),
-              message: t("tasks:notifications.taskStoppedMessage", {
-                name: task.name,
-              }),
-              color: "yellow",
-            });
-          },
           onError: (error) => {
             notifications.show({
-              title: t("tasks:notifications.taskStopError"),
+              color: "red",
               message:
                 error instanceof Error
                   ? error.message
                   : t("common:errorOccurred"),
-              color: "red",
+              title: t("tasks:notifications.taskStopError"),
+            });
+          },
+          onSuccess: () => {
+            notifications.show({
+              color: "yellow",
+              message: t("tasks:notifications.taskStoppedMessage", {
+                name: task.name,
+              }),
+              title: t("tasks:notifications.taskStopped"),
             });
           },
         });
       },
+      title: t("tasks:modals.stopTask.title"),
     });
   };
 
@@ -147,41 +149,41 @@ export function TaskDetailsPage() {
     if (!task) return;
 
     modals.openConfirmModal({
-      title: t("tasks:modals.deleteTask.title"),
       children: (
         <Text size="sm">
           {t("tasks:modals.deleteTask.message", { name: task.name })}
         </Text>
       ),
-      labels: {
-        confirm: t("tasks:modals.deleteTask.confirm"),
-        cancel: t("common:cancel"),
-      },
       confirmProps: { color: "red" },
+      labels: {
+        cancel: t("common:cancel"),
+        confirm: t("tasks:modals.deleteTask.confirm"),
+      },
       onConfirm: () => {
         deleteTask(task.id, {
-          onSuccess: () => {
-            notifications.show({
-              title: t("tasks:notifications.taskDeleted"),
-              message: t("tasks:notifications.taskDeletedMessage", {
-                name: task.name,
-              }),
-              color: "green",
-            });
-            navigate("/tasks");
-          },
           onError: (error) => {
             notifications.show({
-              title: t("tasks:notifications.taskDeleteError"),
+              color: "red",
               message:
                 error instanceof Error
                   ? error.message
                   : t("common:errorOccurred"),
-              color: "red",
+              title: t("tasks:notifications.taskDeleteError"),
             });
+          },
+          onSuccess: () => {
+            notifications.show({
+              color: "green",
+              message: t("tasks:notifications.taskDeletedMessage", {
+                name: task.name,
+              }),
+              title: t("tasks:notifications.taskDeleted"),
+            });
+            navigate("/tasks");
           },
         });
       },
+      title: t("tasks:modals.deleteTask.title"),
     });
   };
 
@@ -198,7 +200,7 @@ export function TaskDetailsPage() {
   if (error || !task) {
     return (
       <div style={{ padding: "2rem" }}>
-        <Center style={{ height: 300, flexDirection: "column" }}>
+        <Center style={{ flexDirection: "column", height: 300 }}>
           <Text c="red" mb="md">
             {error instanceof Error ? error.message : t("tasks:taskNotFound")}
           </Text>
@@ -217,10 +219,10 @@ export function TaskDetailsPage() {
   return (
     <div
       style={{
-        padding: "1rem",
-        maxWidth: "1200px",
         margin: "0 auto",
+        maxWidth: "1200px",
         minHeight: "100vh",
+        padding: "1rem",
       }}
     >
       {/* Page Header */}
@@ -293,6 +295,17 @@ export function TaskDetailsPage() {
             </Group>
 
             <Group gap="sm">
+              {task.status === "pending" && (
+                <Button
+                  variant="outline"
+                  leftSection={<Icons.Edit size={16} />}
+                  onClick={() => navigate(`/tasks/${taskId}/edit`)}
+                  size="md"
+                >
+                  {t("tasks:action.edit")}
+                </Button>
+              )}
+
               {(task.status === "pending" || task.status === "failed") && (
                 <Button
                   color="green"
@@ -373,7 +386,7 @@ export function TaskDetailsPage() {
         <TaskVideoStream task={task} />
       ) : (
         <Card p="xl" radius="md" withBorder style={{ height: "500px" }}>
-          <Center style={{ height: "100%", flexDirection: "column" }}>
+          <Center style={{ flexDirection: "column", height: "100%" }}>
             <Icons.Video size={72} style={{ opacity: 0.3 }} />
             <Text size="xl" fw={600} c="dimmed" mt="lg" ta="center">
               {task.status === "pending" &&

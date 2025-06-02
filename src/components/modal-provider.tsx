@@ -1,8 +1,12 @@
-import { Modal, Button, Group } from "@mantine/core";
+import { Button, Group, Modal, useComputedColorScheme,useMantineTheme } from "@mantine/core";
+
 import { useModals } from "../lib/modal";
 
 export function ModalProvider() {
   const { confirmModal, isOpen, handleConfirm, handleCancel } = useModals();
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
 
   if (!confirmModal || !isOpen) {
     return null;
@@ -14,6 +18,14 @@ export function ModalProvider() {
       onClose={handleCancel}
       title={confirmModal.title}
       centered
+      styles={{
+        content: {
+          backgroundColor: isDark ? theme.colors.gray[9] : theme.white,
+        },
+        header: {
+          backgroundColor: isDark ? theme.colors.gray[9] : theme.white,
+        },
+      }}
     >
       <div>{confirmModal.children}</div>
       <Group justify="right" mt="md">

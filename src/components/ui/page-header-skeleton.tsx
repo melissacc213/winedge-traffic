@@ -1,4 +1,5 @@
-import { Group, Box } from '@mantine/core';
+import { Box,Group } from '@mantine/core';
+
 import { Skeleton } from './skeleton';
 
 interface PageHeaderSkeletonProps {
@@ -24,7 +25,7 @@ export function PageHeaderSkeleton({
     <Group justify="space-between">
       <Group>
         {withIcon && (
-          <Box style={{ width: iconSize, height: iconSize }}>
+          <Box style={{ height: iconSize, width: iconSize }}>
             <Skeleton width={iconSize} height={iconSize} radius="xl" animate={animate} />
           </Box>
         )}

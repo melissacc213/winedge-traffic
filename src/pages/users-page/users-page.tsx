@@ -1,34 +1,36 @@
-import { useState } from "react";
 import {
-  Button,
-  Stack,
-  Menu,
   ActionIcon,
   Badge,
-  Group,
-  Text,
-  Modal,
-  Tabs,
-  Card,
-  Progress,
   Box,
+  Button,
+  Card,
+  Group,
+  Menu,
+  Modal,
+  Progress,
+  Stack,
+  Tabs,
+  Text,
 } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { notifications } from "@mantine/notifications";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+
 import { Icons } from "@/components/icons";
 import { PageLayout } from "@/components/page-layout/page-layout";
+import { DataTable } from "@/components/ui";
+import { confirmDelete } from "@/lib/confirmation";
+import {
+  useDeleteUser,
+  useToggleUserStatus,
+  useUsers,
+} from "@/lib/queries/user";
+import { highlightSearchTerm } from "@/lib/utils";
+import type { User } from "@/lib/validator/user";
+
 import { UserCreateDialog } from "./user-create-dialog";
 import { UserEdit } from "./user-edit";
-import { DataTable } from "@/components/ui";
-import { useDisclosure } from "@mantine/hooks";
-import { highlightSearchTerm } from "@/lib/utils";
-import {
-  useUsers,
-  useToggleUserStatus,
-  useDeleteUser,
-} from "@/lib/queries/user";
-import { notifications } from "@mantine/notifications";
-import { confirmDelete } from "@/lib/confirmation";
-import type { User } from "@/lib/validator/user";
 
 export function UsersPage() {
   const { t } = useTranslation(["users", "common"]);
@@ -52,83 +54,83 @@ export function UsersPage() {
   // Mock data for user relationships - in a real app this would come from API
   const getUserRelationships = (user: User) => {
     return {
-      tasks: [
+      activity: [
         {
-          id: "1",
-          name: "Traffic Analysis - Main Street",
-          status: "completed",
-          createdAt: "2024-12-20",
-          progress: 100,
+          description: "Created traffic analysis task",
+          timestamp: "2024-12-26T10:30:00Z",
+          type: "task_created",
         },
         {
-          id: "2",
-          name: "Vehicle Count - Highway A1",
-          status: "running",
-          createdAt: "2024-12-25",
-          progress: 75,
+          description: "Updated Highway Traffic Monitor recipe",
+          timestamp: "2024-12-25T14:15:00Z",
+          type: "recipe_updated",
         },
         {
-          id: "3",
-          name: "Speed Detection - Zone B",
-          status: "pending",
-          createdAt: "2024-12-26",
-          progress: 0,
+          description: "Logged into system",
+          timestamp: "2024-12-25T09:00:00Z",
+          type: "login",
+        },
+        {
+          description: "Completed Vehicle Count task",
+          timestamp: "2024-12-24T16:45:00Z",
+          type: "task_completed",
+        },
+      ],
+      permissions: [
+        { action: "create", granted: true, resource: "tasks" },
+        { action: "edit", granted: true, resource: "tasks" },
+        { action: "delete", granted: user.role === "admin", resource: "tasks" },
+        { action: "create", granted: true, resource: "recipes" },
+        { action: "edit", granted: true, resource: "recipes" },
+        {
+          action: "delete",
+          granted: user.role === "admin",
+          resource: "recipes",
+        },
+        { action: "manage", granted: user.role === "admin", resource: "users" },
+        {
+          action: "manage",
+          granted: user.role === "admin",
+          resource: "licenses",
         },
       ],
       recipes: [
         {
           id: "1",
+          lastUsed: "2024-12-25",
           name: "Highway Traffic Monitor",
           status: "active",
           usage: 24,
-          lastUsed: "2024-12-25",
         },
         {
           id: "2",
+          lastUsed: "2024-12-24",
           name: "City Center Detection",
           status: "active",
           usage: 12,
-          lastUsed: "2024-12-24",
         },
       ],
-      activity: [
+      tasks: [
         {
-          type: "task_created",
-          description: "Created traffic analysis task",
-          timestamp: "2024-12-26T10:30:00Z",
+          createdAt: "2024-12-20",
+          id: "1",
+          name: "Traffic Analysis - Main Street",
+          progress: 100,
+          status: "completed",
         },
         {
-          type: "recipe_updated",
-          description: "Updated Highway Traffic Monitor recipe",
-          timestamp: "2024-12-25T14:15:00Z",
+          createdAt: "2024-12-25",
+          id: "2",
+          name: "Vehicle Count - Highway A1",
+          progress: 75,
+          status: "running",
         },
         {
-          type: "login",
-          description: "Logged into system",
-          timestamp: "2024-12-25T09:00:00Z",
-        },
-        {
-          type: "task_completed",
-          description: "Completed Vehicle Count task",
-          timestamp: "2024-12-24T16:45:00Z",
-        },
-      ],
-      permissions: [
-        { resource: "tasks", action: "create", granted: true },
-        { resource: "tasks", action: "edit", granted: true },
-        { resource: "tasks", action: "delete", granted: user.role === "admin" },
-        { resource: "recipes", action: "create", granted: true },
-        { resource: "recipes", action: "edit", granted: true },
-        {
-          resource: "recipes",
-          action: "delete",
-          granted: user.role === "admin",
-        },
-        { resource: "users", action: "manage", granted: user.role === "admin" },
-        {
-          resource: "licenses",
-          action: "manage",
-          granted: user.role === "admin",
+          createdAt: "2024-12-26",
+          id: "3",
+          name: "Speed Detection - Zone B",
+          progress: 0,
+          status: "pending",
         },
       ],
     };
@@ -139,15 +141,15 @@ export function UsersPage() {
       try {
         await deleteUserMutation.mutateAsync(user.id);
         notifications.show({
-          title: t("users:notifications.deleteSuccess"),
-          message: t("users:notifications.deleteSuccessMessage"),
           color: "green",
+          message: t("users:notifications.deleteSuccessMessage"),
+          title: t("users:notifications.deleteSuccess"),
         });
       } catch (error) {
         notifications.show({
-          title: t("common:error"),
-          message: t("users:notifications.deleteError"),
           color: "red",
+          message: t("users:notifications.deleteError"),
+          title: t("common:error"),
         });
       }
     });
@@ -157,21 +159,21 @@ export function UsersPage() {
     const newStatus = !(user.is_active ?? user.active ?? true);
     try {
       await toggleStatusMutation.mutateAsync({
-        id: user.id,
         active: newStatus,
+        id: user.id,
       });
       notifications.show({
-        title: t("users:notifications.statusUpdated"),
+        color: "green",
         message: newStatus
           ? t("users:notifications.userEnabled")
           : t("users:notifications.userDisabled"),
-        color: "green",
+        title: t("users:notifications.statusUpdated"),
       });
     } catch (error) {
       notifications.show({
-        title: t("common:error"),
-        message: t("users:notifications.statusUpdateError"),
         color: "red",
+        message: t("users:notifications.statusUpdateError"),
+        title: t("common:error"),
       });
     }
   };
@@ -183,7 +185,7 @@ export function UsersPage() {
       render: (user: User, globalFilter?: string) => {
         if (globalFilter) {
           return (
-            <div style={{ fontWeight: 500, fontSize: '14px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 500 }}>
               {highlightSearchTerm(user.username, globalFilter)}
             </div>
           );
@@ -197,7 +199,7 @@ export function UsersPage() {
       render: (user: User, globalFilter?: string) => {
         if (globalFilter) {
           return (
-            <div style={{ fontSize: '14px', color: 'var(--mantine-color-dimmed)' }}>
+            <div style={{ color: 'var(--mantine-color-dimmed)', fontSize: '14px' }}>
               {highlightSearchTerm(user.email, globalFilter)}
             </div>
           );
@@ -208,17 +210,16 @@ export function UsersPage() {
     {
       key: "role",
       label: t("users:table.role"),
-      width: 120,
       render: (user: User) => (
         <Badge variant="light" color={user.role === "admin" ? "blue" : "gray"} size="md">
           {t(`users:role.${user.role}`)}
         </Badge>
       ),
+      width: 120,
     },
     {
       key: "status",
       label: t("users:table.status"),
-      width: 100,
       render: (user: User) => {
         const isActive = user.is_active ?? user.active ?? true;
         return (
@@ -227,24 +228,25 @@ export function UsersPage() {
           </Badge>
         );
       },
+      width: 100,
     },
     {
       key: "date_joined",
       label: t("users:table.created"),
-      width: 120,
       render: (user: User) => {
         const date = user.date_joined || user.created_at;
         return <Text size="sm">{date ? new Date(date).toLocaleDateString() : "—"}</Text>;
       },
+      width: 120,
     },
     {
       key: "last_login",
       label: t("users:table.lastLogin"),
-      width: 120,
       render: (user: User) => {
         if (!user.last_login) return <Text size="sm" c="dimmed">—</Text>;
         return <Text size="sm">{new Date(user.last_login).toLocaleDateString()}</Text>;
       },
+      width: 120,
     },
   ];
 

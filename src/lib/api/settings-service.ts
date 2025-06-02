@@ -1,18 +1,16 @@
-import { clients } from './index';
+import { createMockKey, deleteMockKey,getMockKey, getMockKeys, updateMockKey } from '../../mocks/data/keys';
+import { USE_MOCK_API } from '../config/mock-config';
 import type { 
   CreateLicenseRequest, 
-  UpdateLicenseRequest, 
   License, 
-  LicensesList 
-} from '../validator/license';
+  LicensesList, 
+  UpdateLicenseRequest} from '../validator/license';
 import { 
   createLicenseSchema, 
-  updateLicenseSchema, 
   licenseSchema, 
-  licensesListSchema 
-} from '../validator/license';
-import { USE_MOCK_API } from '../config/mock-config';
-import { getMockKeys, getMockKey, createMockKey, updateMockKey, deleteMockKey } from '../../mocks/data/keys';
+  licensesListSchema, 
+  updateLicenseSchema} from '../validator/license';
+import { clients } from './index';
 
 const api = clients.v1.private;
 
@@ -26,9 +24,9 @@ export const settingsService = {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         const mockKey = createMockKey({
-          name: data.name,
           file_name: data.file.name,
           is_default: data.is_default,
+          name: data.name,
         });
         
         return licenseSchema.parse(mockKey);
@@ -47,20 +45,28 @@ export const settingsService = {
       return licenseSchema.parse(response.data);
     },
 
-    // Get all keys/licenses with pagination
-    list: async (params?: { page?: number; size?: number }): Promise<LicensesList> => {
+    
+    
+// Delete a key/license
+delete: async (id: number): Promise<void> => {
       if (USE_MOCK_API) {
         // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 500));
-        return licensesListSchema.parse(getMockKeys(params?.page, params?.size));
+        const success = deleteMockKey(id);
+        if (!success) {
+          throw new Error('Key not found');
+        }
+        return;
       }
       
-      const response = await api.get('/key', { params });
-      return licensesListSchema.parse(response.data);
+      await api.delete(`/key/${id}`);
     },
 
-    // Get a single key/license by ID
-    get: async (id: number): Promise<License> => {
+    
+    
+
+// Get a single key/license by ID
+get: async (id: number): Promise<License> => {
       if (USE_MOCK_API) {
         // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 300));
@@ -75,8 +81,30 @@ export const settingsService = {
       return licenseSchema.parse(response.data);
     },
 
+    
+    
+// Get all keys/licenses with pagination
+list: async (params?: { page?: number; size?: number }): Promise<LicensesList> => {
+      if (USE_MOCK_API) {
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return licensesListSchema.parse(getMockKeys(params?.page, params?.size));
+      }
+      
+      const response = await api.get('/key', { params });
+      return licensesListSchema.parse(response.data);
+    },
+
+    
+    
+// Set key/license as default
+setDefault: async (id: number): Promise<License> => {
+      return settingsService.keys.update(id, { is_default: true });
+    },
+
+    
     // Update a key/license
-    update: async (id: number, data: UpdateLicenseRequest): Promise<License> => {
+update: async (id: number, data: UpdateLicenseRequest): Promise<License> => {
       const validatedData = updateLicenseSchema.parse(data);
       
       if (USE_MOCK_API) {
@@ -91,26 +119,6 @@ export const settingsService = {
       
       const response = await api.patch(`/key/${id}`, validatedData);
       return licenseSchema.parse(response.data);
-    },
-
-    // Delete a key/license
-    delete: async (id: number): Promise<void> => {
-      if (USE_MOCK_API) {
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 500));
-        const success = deleteMockKey(id);
-        if (!success) {
-          throw new Error('Key not found');
-        }
-        return;
-      }
-      
-      await api.delete(`/key/${id}`);
-    },
-
-    // Set key/license as default
-    setDefault: async (id: number): Promise<License> => {
-      return settingsService.keys.update(id, { is_default: true });
     },
   },
 };

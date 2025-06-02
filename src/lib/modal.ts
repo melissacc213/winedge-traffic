@@ -36,19 +36,19 @@ interface ModalsState {
 
 // Create a Zustand store for modals
 export const useModalsStore = create<ModalsState>((set) => ({
+  closeModal: () => set({ confirmModal: null, isOpen: false }),
   confirmModal: null,
   isOpen: false,
   openConfirmModal: (props) => set({ confirmModal: props, isOpen: true }),
-  closeModal: () => set({ isOpen: false, confirmModal: null }),
 }));
 
 // Export a modals object that mimics @mantine/modals API
 export const modals = {
-  openConfirmModal: (props: ConfirmModalProps) => {
-    useModalsStore.getState().openConfirmModal(props);
-  },
   closeAll: () => {
     useModalsStore.getState().closeModal();
+  },
+  openConfirmModal: (props: ConfirmModalProps) => {
+    useModalsStore.getState().openConfirmModal(props);
   },
 };
 
@@ -71,10 +71,10 @@ export function useModals() {
   }, [confirmModal, closeModal]);
 
   return {
-    confirmModal,
-    isOpen,
     closeModal,
-    handleConfirm,
+    confirmModal,
     handleCancel,
+    handleConfirm,
+    isOpen,
   };
 }

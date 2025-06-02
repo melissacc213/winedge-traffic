@@ -1,13 +1,14 @@
 import {
-  Table,
   Box,
   Group,
   Paper,
-  Title,
   Skeleton,
-  Text,
   Stack,
+  Table,
+  Text,
+  Title,
 } from "@mantine/core";
+
 import { Icons } from "../icons";
 
 interface TableLoadingProps {

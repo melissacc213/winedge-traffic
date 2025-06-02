@@ -1,7 +1,7 @@
-import { cn } from '@/lib/utils';
-import { Button, Tooltip } from '@mantine/core';
+import { Button, Tooltip, useComputedColorScheme,useMantineTheme } from '@mantine/core';
 import { Link } from 'react-router-dom';
-import { useTheme } from '@/providers/theme-provider';
+
+import { cn } from '@/lib/utils';
 
 type NavItemProps = {
   path: string;
@@ -13,8 +13,9 @@ type NavItemProps = {
 };
 
 export function NavItem({ path, label, icon, isActive, onClick, iconOnly = false }: NavItemProps) {
-  const { theme, colorScheme } = useTheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
   
   // Theme color utility function
   const getThemeColor = (colorPath: string): string => {
@@ -50,12 +51,22 @@ export function NavItem({ path, label, icon, isActive, onClick, iconOnly = false
         iconOnly && 'justify-center'
       )}
       styles={{
+        inner: {
+          justifyContent: iconOnly ? 'center' : 'flex-start',
+          transition: 'transform 0.3s ease'
+        },
+        label: {
+          fontSize: iconOnly ? '0' : '16px',
+          opacity: iconOnly ? '0' : '1',
+          transition: 'font-size 0.3s ease, opacity 0.3s ease',
+          whiteSpace: 'nowrap'
+        },
         root: {
-          height: iconOnly ? '52px' : '52px',
+          boxShadow: isActive ? (isDark ? `0 0 10px ${getThemeColor('blue.4')}33` : `0 0 10px ${getThemeColor('blue.5')}1a`) : 'none',
           fontSize: iconOnly ? '16px' : '17px',
           fontWeight: 500,
+          height: iconOnly ? '52px' : '52px',
           padding: iconOnly ? '0' : '0 16px',
-          boxShadow: isActive ? (isDark ? `0 0 10px ${getThemeColor('blue.4')}33` : `0 0 10px ${getThemeColor('blue.5')}1a`) : 'none',
           transition: 'all 0.3s ease',
           ...(isActive 
             ? { 
@@ -63,24 +74,14 @@ export function NavItem({ path, label, icon, isActive, onClick, iconOnly = false
                 color: isDark ? getThemeColor('blue.4') : getThemeColor('blue.5') 
               } 
             : { 
-                color: isDark ? getThemeColor('gray.4') : getThemeColor('gray.6'),
-                backgroundColor: 'transparent'
+                backgroundColor: 'transparent',
+                color: isDark ? getThemeColor('gray.4') : getThemeColor('gray.6')
               })
         },
         section: {
           color: isActive ? (isDark ? getThemeColor('blue.4') : getThemeColor('blue.5')) : (isDark ? getThemeColor('gray.4') : getThemeColor('gray.6')),
           marginRight: '14px',
           transform: 'scale(1.1)' // Slightly larger icons
-        },
-        inner: {
-          justifyContent: iconOnly ? 'center' : 'flex-start',
-          transition: 'transform 0.3s ease'
-        },
-        label: {
-          fontSize: iconOnly ? '0' : '16px',
-          transition: 'font-size 0.3s ease, opacity 0.3s ease',
-          opacity: iconOnly ? '0' : '1',
-          whiteSpace: 'nowrap'
         }
       }}
     >

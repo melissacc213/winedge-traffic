@@ -25,32 +25,32 @@ export function getBackgroundColor(
     }
     // Fallback mapping
     const grayFallbacks: Record<number, number> = {
-      9: 9,
-      8: 9,
-      7: 8,
-      6: 7,
-      5: 6,
-      4: 6,
-      3: 6,
-      2: 5,
-      1: 4,
       0: 3,
+      1: 4,
+      2: 5,
+      3: 6,
+      4: 6,
+      5: 6,
+      6: 7,
+      7: 8,
+      8: 9,
+      9: 9,
     };
     return theme.colors.gray[grayFallbacks[level] || 8];
   }
   
   // Light mode backgrounds
   const lightMapping: Record<number, string> = {
-    9: theme.white,
-    8: theme.white,
-    7: theme.colors.gray[0],
-    6: theme.colors.gray[1],
-    5: theme.colors.gray[2],
-    4: theme.colors.gray[2],
-    3: theme.colors.gray[3],
-    2: theme.colors.gray[4],
-    1: theme.colors.gray[5],
     0: theme.colors.gray[6],
+    1: theme.colors.gray[5],
+    2: theme.colors.gray[4],
+    3: theme.colors.gray[3],
+    4: theme.colors.gray[2],
+    5: theme.colors.gray[2],
+    6: theme.colors.gray[1],
+    7: theme.colors.gray[0],
+    8: theme.white,
+    9: theme.white,
   };
   
   return lightMapping[level] || theme.white;
@@ -69,9 +69,9 @@ export function getBorderColor(
   level: "subtle" | "default" | "strong" = "default"
 ): string {
   const levelMapping = {
-    subtle: isDark ? 6 : 1,
     default: isDark ? 5 : 2,
     strong: isDark ? 4 : 3,
+    subtle: isDark ? 6 : 1,
   };
   
   return getBackgroundColor(theme, levelMapping[level], isDark);
@@ -91,16 +91,16 @@ export function getHoverBackground(
 ): string {
   if (isDark) {
     const alphaMapping = {
-      subtle: 0.05,
       light: 0.08,
       medium: 0.1,
+      subtle: 0.05,
     };
     return `rgba(255, 255, 255, ${alphaMapping[intensity]})`;
   } else {
     const alphaMapping = {
-      subtle: 0.05,
       light: 0.08,
       medium: 0.1,
+      subtle: 0.05,
     };
     return `rgba(0, 0, 0, ${alphaMapping[intensity]})`;
   }
@@ -119,9 +119,9 @@ export function getTextColor(
   variant: "primary" | "secondary" | "dimmed" = "primary"
 ): string {
   const variantMapping = {
+    dimmed: isDark ? theme.colors.gray[5] : theme.colors.gray[6],
     primary: isDark ? theme.white : theme.black,
     secondary: isDark ? theme.colors.gray[3] : theme.colors.gray[7],
-    dimmed: isDark ? theme.colors.gray[5] : theme.colors.gray[6],
   };
   
   return variantMapping[variant];
@@ -148,11 +148,11 @@ export function getShadow(
   
   // Fallback shadows
   const fallbackShadows = {
-    xs: isDark ? "0 1px 3px rgba(0, 0, 0, 0.3)" : "0 1px 3px rgba(0, 0, 0, 0.05)",
-    sm: isDark ? "0 2px 4px rgba(0, 0, 0, 0.3)" : "0 2px 4px rgba(0, 0, 0, 0.1)",
-    md: isDark ? "0 4px 6px rgba(0, 0, 0, 0.3)" : "0 4px 6px rgba(0, 0, 0, 0.15)",
     lg: isDark ? "0 10px 15px rgba(0, 0, 0, 0.4)" : "0 10px 15px rgba(0, 0, 0, 0.2)",
+    md: isDark ? "0 4px 6px rgba(0, 0, 0, 0.3)" : "0 4px 6px rgba(0, 0, 0, 0.15)",
+    sm: isDark ? "0 2px 4px rgba(0, 0, 0, 0.3)" : "0 2px 4px rgba(0, 0, 0, 0.1)",
     xl: isDark ? "0 20px 25px rgba(0, 0, 0, 0.5)" : "0 20px 25px rgba(0, 0, 0, 0.25)",
+    xs: isDark ? "0 1px 3px rgba(0, 0, 0, 0.3)" : "0 1px 3px rgba(0, 0, 0, 0.05)",
   };
   
   return fallbackShadows[size];
@@ -212,9 +212,9 @@ export function getOverlayColor(
   
   // Fallbacks
   const fallbacks = {
-    gradient: isDark ? "rgba(0, 0, 0, 0.9)" : "rgba(0, 0, 0, 0.8)",
-    controls: "rgba(0, 0, 0, 0.6)",
     backdrop: "rgba(0, 0, 0, 0.15)",
+    controls: "rgba(0, 0, 0, 0.6)",
+    gradient: isDark ? "rgba(0, 0, 0, 0.9)" : "rgba(0, 0, 0, 0.8)",
     loading: isDark ? "rgba(0, 0, 0, 0.7)" : "rgba(255, 255, 255, 0.7)",
   };
   
@@ -229,10 +229,10 @@ export function getOverlayColor(
  */
 export function getGlassMorphism(theme: MantineTheme, isDark: boolean) {
   return {
+    WebkitBackdropFilter: "blur(10px)",
+    backdropFilter: "blur(10px)",
     backgroundColor: theme.other?.backgrounds?.glassMorphism || 
       (isDark ? "rgba(17, 25, 40, 0.9)" : "rgba(255, 255, 255, 0.9)"),
-    backdropFilter: "blur(10px)",
-    WebkitBackdropFilter: "blur(10px)",
     border: `1px solid ${getBorderColor(theme, isDark, "subtle")}`,
   };
 }
@@ -270,12 +270,12 @@ export function getStatusBadgeColor(
   status: string
 ): { color: string; variant: "filled" | "light" | "outline" } {
   const statusMapping: Record<string, { color: string; variant: "filled" | "light" | "outline" }> = {
-    pending: { color: theme.colors.gray[5], variant: "light" },
-    running: { color: theme.colors.blue[5], variant: "filled" },
+    cancelled: { color: theme.colors.gray[6], variant: "outline" },
     completed: { color: theme.colors.green[5], variant: "filled" },
     failed: { color: theme.colors.red[5], variant: "filled" },
     paused: { color: theme.colors.yellow[6], variant: "light" },
-    cancelled: { color: theme.colors.gray[6], variant: "outline" },
+    pending: { color: theme.colors.gray[5], variant: "light" },
+    running: { color: theme.colors.blue[5], variant: "filled" },
   };
 
   return statusMapping[status.toLowerCase()] || statusMapping.pending;
@@ -307,10 +307,10 @@ export function getNotificationColors(
   type: "success" | "error" | "warning" | "info" = "info"
 ) {
   const colorMapping = {
-    success: { background: theme.colors.green[1], text: theme.colors.green[8], border: theme.colors.green[3] },
-    error: { background: theme.colors.red[1], text: theme.colors.red[8], border: theme.colors.red[3] },
-    warning: { background: theme.colors.yellow[1], text: theme.colors.yellow[8], border: theme.colors.yellow[3] },
-    info: { background: theme.colors.blue[1], text: theme.colors.blue[8], border: theme.colors.blue[3] },
+    error: { background: theme.colors.red[1], border: theme.colors.red[3], text: theme.colors.red[8] },
+    info: { background: theme.colors.blue[1], border: theme.colors.blue[3], text: theme.colors.blue[8] },
+    success: { background: theme.colors.green[1], border: theme.colors.green[3], text: theme.colors.green[8] },
+    warning: { background: theme.colors.yellow[1], border: theme.colors.yellow[3], text: theme.colors.yellow[8] },
   };
 
   return colorMapping[type];

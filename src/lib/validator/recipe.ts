@@ -59,12 +59,77 @@ export type VideoValidation = z.infer<
 
 export function createRecipeValidationSchema(t: TFunction) {
   return z.object({
-    // Task Type
-    taskType: taskTypeSchema,
+    
+    
+classFilter: z.array(z.string()).optional(),
 
-    // Video
-    videoId: z.string().optional(),
-    videoFile: z
+    
+    
+
+
+confidenceThreshold: z
+      .number()
+      .min(0.1, { message: t("recipes:validation.confidenceRange") })
+      .max(1.0, { message: t("recipes:validation.confidenceRange") }),
+    
+
+
+
+description: z.string().optional(),
+    
+
+
+
+// Model Configuration
+modelId: z.string({
+      required_error: t("recipes:validation.modelRequired"),
+    }),
+
+    
+    
+
+
+
+// Recipe Information
+name: z.string(),
+
+    
+    
+
+
+
+// Regions must have at least one region
+regions: z
+      .array(
+        z.object({
+          id: z.string(),
+          name: z
+            .string()
+            .min(1, { message: t("recipes:validation.required") }),
+          points: z
+            .array(z.object({ x: z.number(), y: z.number() }))
+            .min(3, { message: t("recipes:validation.invalidRegion") }),
+          type: regionTypeSchema,
+        })
+      )
+      .min(1, { message: t("recipes:validation.regionRequired") }),
+    
+
+
+
+// Task Type
+taskType: taskTypeSchema,
+    
+
+
+
+useSampleVideo: z.boolean().optional(),
+
+    
+    
+
+
+videoFile: z
       .instanceof(File)
       .optional()
       .refine((file) => !file || file.size <= MAX_VIDEO_FILE_SIZE, {
@@ -73,37 +138,9 @@ export function createRecipeValidationSchema(t: TFunction) {
       .refine((file) => !file || ACCEPTED_VIDEO_TYPES.includes(file.type), {
         message: t("recipes:validation.fileType"),
       }),
-    useSampleVideo: z.boolean().optional(),
-
-    // Regions must have at least one region
-    regions: z
-      .array(
-        z.object({
-          id: z.string(),
-          name: z
-            .string()
-            .min(1, { message: t("recipes:validation.required") }),
-          type: regionTypeSchema,
-          points: z
-            .array(z.object({ x: z.number(), y: z.number() }))
-            .min(3, { message: t("recipes:validation.invalidRegion") }),
-        })
-      )
-      .min(1, { message: t("recipes:validation.regionRequired") }),
-
-    // Model Configuration
-    modelId: z.string({
-      required_error: t("recipes:validation.modelRequired"),
-    }),
-    confidenceThreshold: z
-      .number()
-      .min(0.1, { message: t("recipes:validation.confidenceRange") })
-      .max(1.0, { message: t("recipes:validation.confidenceRange") }),
-    classFilter: z.array(z.string()).optional(),
-
-    // Recipe Information
-    name: z.string(),
-    description: z.string().optional(),
+    
+// Video
+videoId: z.string().optional(),
   });
 }
 
@@ -114,24 +151,24 @@ export type RecipeFormValues = z.infer<
 
 // Recipe Response Type
 export const recipeSchema = z.object({
-  id: z.string(),
-  name: z.string(),
+  classFilter: z.array(z.string()).optional(),
+  confidenceThreshold: z.number(),
+  createdAt: z.string(),
   description: z.string().optional(),
-  taskType: taskTypeSchema,
-  videoId: z.string().optional(),
+  id: z.string(),
+  modelId: z.string(),
+  name: z.string(),
   regions: z.array(
     z.object({
       id: z.string(),
       name: z.string(),
-      type: regionTypeSchema,
       points: z.array(z.object({ x: z.number(), y: z.number() })),
+      type: regionTypeSchema,
     })
   ),
-  modelId: z.string(),
-  confidenceThreshold: z.number(),
-  classFilter: z.array(z.string()).optional(),
-  createdAt: z.string(),
   status: z.enum(["active", "inactive", "error"]),
+  taskType: taskTypeSchema,
+  videoId: z.string().optional(),
 });
 
 export type RecipeResponse = z.infer<typeof recipeSchema>;

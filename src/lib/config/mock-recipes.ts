@@ -7,11 +7,12 @@ function generateAdditionalRecipes(): Recipe[] {
   // Generate more traffic statistics recipes
   for (let i = 7; i <= 25; i++) {
     additionalRecipes.push({
-      id: `recipe-${i}`,
-      name: `交通監測方案 ${i}`,
+      confidenceThreshold: 0.7 + (i % 3) * 0.05,
+      createdAt: new Date(2024, 0, i).toISOString(),
       description: `用於特定場景的交通流量統計方案 ${i}`,
-      taskType: "trafficStatistics",
-      status: i % 3 === 0 ? "inactive" : "active",
+      id: `recipe-${i}`,
+      modelId: i % 2 === 0 ? "yolov8-traffic" : "yolov8-highway",
+      name: `交通監測方案 ${i}`,
       regions: [
         {
           id: `region-${i * 2 - 1}`,
@@ -30,20 +31,20 @@ function generateAdditionalRecipes(): Recipe[] {
           ],
         },
       ],
-      modelId: i % 2 === 0 ? "yolov8-traffic" : "yolov8-highway",
-      confidenceThreshold: 0.7 + (i % 3) * 0.05,
-      createdAt: new Date(2024, 0, i).toISOString(),
+      status: i % 3 === 0 ? "inactive" : "active",
+      taskType: "trafficStatistics",
     });
   }
   
   // Generate more train detection recipes
   for (let i = 26; i <= 40; i++) {
     additionalRecipes.push({
-      id: `recipe-${i}`,
-      name: `列車偵測方案 ${i - 25}`,
+      confidenceThreshold: 0.85 + (i % 4) * 0.03,
+      createdAt: new Date(2024, 1, i - 25).toISOString(),
       description: `鐵路系統列車監測方案 ${i - 25}`,
-      taskType: "trainDetection",
-      status: i % 4 === 0 ? "inactive" : "active",
+      id: `recipe-${i}`,
+      modelId: i % 3 === 0 ? "yolov8-hsr" : "yolov8-train",
+      name: `列車偵測方案 ${i - 25}`,
       regions: [
         {
           id: `region-${i * 2}`,
@@ -56,9 +57,8 @@ function generateAdditionalRecipes(): Recipe[] {
           ],
         },
       ],
-      modelId: i % 3 === 0 ? "yolov8-hsr" : "yolov8-train",
-      confidenceThreshold: 0.85 + (i % 4) * 0.03,
-      createdAt: new Date(2024, 1, i - 25).toISOString(),
+      status: i % 4 === 0 ? "inactive" : "active",
+      taskType: "trainDetection",
     });
   }
   
@@ -68,11 +68,12 @@ function generateAdditionalRecipes(): Recipe[] {
 export const mockRecipes: Recipe[] = [
   // Traffic Statistics Recipes
   {
-    id: "recipe-1",
-    name: "市區主幹道交通流量監測",
+    confidenceThreshold: 0.7,
+    createdAt: "2024-01-15T08:00:00Z",
     description: "用於監測市區主要道路的車流量統計",
-    taskType: "trafficStatistics",
-    status: "active",
+    id: "recipe-1",
+    modelId: "yolov8-traffic",
+    name: "市區主幹道交通流量監測",
     regions: [
       {
         id: "region-1",
@@ -91,16 +92,16 @@ export const mockRecipes: Recipe[] = [
         ],
       },
     ],
-    modelId: "yolov8-traffic",
-    confidenceThreshold: 0.7,
-    createdAt: "2024-01-15T08:00:00Z",
+    status: "active",
+    taskType: "trafficStatistics",
   },
   {
-    id: "recipe-2",
-    name: "十字路口車流分析",
+    confidenceThreshold: 0.75,
+    createdAt: "2024-01-20T10:30:00Z",
     description: "複雜十字路口的多向車流統計分析",
-    taskType: "trafficStatistics",
-    status: "active",
+    id: "recipe-2",
+    modelId: "yolov8-traffic",
+    name: "十字路口車流分析",
     regions: [
       {
         id: "region-3",
@@ -123,16 +124,16 @@ export const mockRecipes: Recipe[] = [
         ],
       },
     ],
-    modelId: "yolov8-traffic",
-    confidenceThreshold: 0.75,
-    createdAt: "2024-01-20T10:30:00Z",
+    status: "active",
+    taskType: "trafficStatistics",
   },
   {
-    id: "recipe-3",
-    name: "高速公路車流監測",
+    confidenceThreshold: 0.8,
+    createdAt: "2024-02-01T14:00:00Z",
     description: "高速公路多車道車流量即時統計",
-    taskType: "trafficStatistics",
-    status: "active",
+    id: "recipe-3",
+    modelId: "yolov8-highway",
+    name: "高速公路車流監測",
     regions: [
       {
         id: "region-5",
@@ -159,18 +160,18 @@ export const mockRecipes: Recipe[] = [
         ],
       },
     ],
-    modelId: "yolov8-highway",
-    confidenceThreshold: 0.8,
-    createdAt: "2024-02-01T14:00:00Z",
+    status: "active",
+    taskType: "trafficStatistics",
   },
 
   // Train Detection Recipes
   {
-    id: "recipe-4",
-    name: "台北車站月台監測",
+    confidenceThreshold: 0.85,
+    createdAt: "2024-01-25T09:00:00Z",
     description: "監測列車進出站狀態及停靠時間",
-    taskType: "trainDetection",
-    status: "active",
+    id: "recipe-4",
+    modelId: "yolov8-train",
+    name: "台北車站月台監測",
     regions: [
       {
         id: "region-8",
@@ -183,16 +184,16 @@ export const mockRecipes: Recipe[] = [
         ],
       },
     ],
-    modelId: "yolov8-train",
-    confidenceThreshold: 0.85,
-    createdAt: "2024-01-25T09:00:00Z",
+    status: "active",
+    taskType: "trainDetection",
   },
   {
-    id: "recipe-5",
-    name: "鐵路平交道安全監測",
+    confidenceThreshold: 0.9,
+    createdAt: "2024-02-05T11:30:00Z",
     description: "偵測平交道區域的列車通過情況",
-    taskType: "trainDetection",
-    status: "active",
+    id: "recipe-5",
+    modelId: "yolov8-train",
+    name: "鐵路平交道安全監測",
     regions: [
       {
         id: "region-9",
@@ -205,16 +206,16 @@ export const mockRecipes: Recipe[] = [
         ],
       },
     ],
-    modelId: "yolov8-train",
-    confidenceThreshold: 0.9,
-    createdAt: "2024-02-05T11:30:00Z",
+    status: "active",
+    taskType: "trainDetection",
   },
   {
-    id: "recipe-6",
-    name: "高鐵隧道監測系統",
+    confidenceThreshold: 0.88,
+    createdAt: "2024-01-18T13:45:00Z",
     description: "監測高速鐵路隧道進出口的列車狀態",
-    taskType: "trainDetection",
-    status: "inactive",
+    id: "recipe-6",
+    modelId: "yolov8-hsr",
+    name: "高鐵隧道監測系統",
     regions: [
       {
         id: "region-10",
@@ -227,9 +228,8 @@ export const mockRecipes: Recipe[] = [
         ],
       },
     ],
-    modelId: "yolov8-hsr",
-    confidenceThreshold: 0.88,
-    createdAt: "2024-01-18T13:45:00Z",
+    status: "inactive",
+    taskType: "trainDetection",
   },
   
   // Add generated recipes to simulate many recipes

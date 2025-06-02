@@ -1,34 +1,35 @@
-import { useState, useRef, useCallback } from 'react';
 import {
-  Box,
-  Text,
-  Button,
-  Group,
-  Stack,
-  Badge,
   ActionIcon,
-  Tooltip,
-  Progress,
-  FileButton,
   Alert,
+  Badge,
+  Box,
+  Button,
+  FileButton,
   Flex,
+  Group,
   Paper,
-  Transition
+  Progress,
+  Stack,
+  Text,
+  Tooltip,
+  Transition,
+  useComputedColorScheme,
+  useMantineTheme,
 } from '@mantine/core';
 import {
-  IconPlayerPlay,
-  IconPlayerPause,
-  IconPlayerStop,
-  IconVolume,
-  IconVolumeOff,
-  IconMaximize,
-  IconUpload,
-  IconVideo,
   IconClock,
   IconEye,
-  IconRefresh
-} from '@tabler/icons-react';
-import { useTheme } from '@/providers/theme-provider';
+  IconMaximize,
+  IconPlayerPause,
+  IconPlayerPlay,
+  IconPlayerStop,
+  IconRefresh,
+  IconUpload,
+  IconVideo,
+  IconVolume,
+  IconVolumeOff} from '@tabler/icons-react';
+import { useCallback,useRef, useState } from 'react';
+
 import { VideoPlayer } from '@/components/video-player';
 import type { Task } from '@/types/task';
 
@@ -63,7 +64,8 @@ export function TaskVideoStream({
   onFrameCapture,
   onStreamError
 }: TaskVideoStreamProps) {
-  const { colorScheme, theme } = useTheme();
+  const theme = useMantineTheme();
+  const colorScheme = useComputedColorScheme();
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileResetRef = useRef<() => void>(null);
   
@@ -295,10 +297,10 @@ export function TaskVideoStream({
           shadow="md"
           radius="lg"
           style={{
-            position: 'relative',
             backgroundColor: videoBg,
+            border: `2px solid ${borderColor}`,
             overflow: 'hidden',
-            border: `2px solid ${borderColor}`
+            position: 'relative'
           }}
         >
           <VideoPlayer
@@ -317,13 +319,13 @@ export function TaskVideoStream({
           {showControls && (
             <Box
               style={{
-                position: 'absolute',
+                backdropFilter: 'blur(4px)',
+                background: `linear-gradient(transparent, ${theme.other.overlay.gradient})`,
                 bottom: 0,
                 left: 0,
-                right: 0,
-                background: `linear-gradient(transparent, ${theme.other.overlay.gradient})`,
                 padding: theme.spacing?.md || '16px',
-                backdropFilter: 'blur(4px)'
+                position: 'absolute',
+                right: 0
               }}
             >
               <Stack gap="xs">
@@ -366,8 +368,8 @@ export function TaskVideoStream({
                         color="gray"
                         radius="xl"
                         style={{
-                          backgroundColor: theme.other.overlay.lightButton,
-                          backdropFilter: 'blur(8px)'
+                          backdropFilter: 'blur(8px)',
+                          backgroundColor: theme.other.overlay.lightButton
                         }}
                       >
                         <IconPlayerStop size={20} />
@@ -382,8 +384,8 @@ export function TaskVideoStream({
                         color="gray"
                         radius="xl"
                         style={{
-                          backgroundColor: theme.other.overlay.lightButton,
-                          backdropFilter: 'blur(8px)'
+                          backdropFilter: 'blur(8px)',
+                          backgroundColor: theme.other.overlay.lightButton
                         }}
                       >
                         {isMuted ? <IconVolumeOff size={20} /> : <IconVolume size={20} />}
@@ -392,10 +394,10 @@ export function TaskVideoStream({
                     
                     <Box
                       style={{
+                        backdropFilter: 'blur(8px)',
                         backgroundColor: theme.other.overlay.controls,
-                        padding: '6px 12px',
                         borderRadius: theme.radius?.md || '8px',
-                        backdropFilter: 'blur(8px)'
+                        padding: '6px 12px'
                       }}
                     >
                       <Text size="sm" c="white" fw={500}>
@@ -414,8 +416,8 @@ export function TaskVideoStream({
                           color="teal"
                           radius="xl"
                           style={{
-                            backgroundColor: theme.other.overlay.lightButton,
-                            backdropFilter: 'blur(8px)'
+                            backdropFilter: 'blur(8px)',
+                            backgroundColor: theme.other.overlay.lightButton
                           }}
                         >
                           <IconEye size={20} />
@@ -431,8 +433,8 @@ export function TaskVideoStream({
                         color="gray"
                         radius="xl"
                         style={{
-                          backgroundColor: theme.other.overlay.lightButton,
-                          backdropFilter: 'blur(8px)'
+                          backdropFilter: 'blur(8px)',
+                          backgroundColor: theme.other.overlay.lightButton
                         }}
                       >
                         <IconMaximize size={20} />

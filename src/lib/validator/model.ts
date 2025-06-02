@@ -58,19 +58,19 @@ export function validateModelFile(file: File): void {
 
 // Model schema
 export const modelSchema = z.object({
+  createdAt: z.string().datetime(),
+  description: z.string().optional(),
+  error: z.string().optional(),
+  format: z.string().optional(),
   id: z.string(),
   name: z.string().min(1, 'Model name is required'),
-  type: z.string(),
-  format: z.string().optional(),
+  parameters: z.record(z.string()).optional(),
   size: z.number().positive('Size must be positive'),
   status: z.enum(['active', 'available', 'pending', 'failed', 'processing', 'error']),
-  createdAt: z.string().datetime(),
-  uploadedAt: z.string().datetime().optional(),
-  description: z.string().optional(),
-  version: z.string().optional(),
   task: z.string().optional(),
-  parameters: z.record(z.string()).optional(),
-  error: z.string().optional(),
+  type: z.string(),
+  uploadedAt: z.string().datetime().optional(),
+  version: z.string().optional(),
 });
 
 export type ModelValidationSchema = z.infer<typeof modelSchema>;

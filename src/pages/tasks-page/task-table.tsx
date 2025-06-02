@@ -1,33 +1,34 @@
-import { useState, useMemo } from "react";
-import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import {
+  ActionIcon,
+  Badge,
+  Box,
+  Group,
+  Input,
+  Menu,
+  Pagination,
+  Paper,
+  Progress,
+  Select,
+  Table,
+  Text,
+  Title,
+} from "@mantine/core";
+import type { ColumnDef,PaginationState, SortingState } from "@tanstack/react-table";
 import {
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  getPaginationRowModel,
-  getFilteredRowModel,
 } from "@tanstack/react-table";
-import type { PaginationState, SortingState, ColumnDef } from "@tanstack/react-table";
-import {
-  Table,
-  Badge,
-  Text,
-  Group,
-  ActionIcon,
-  Menu,
-  Input,
-  Select,
-  Pagination,
-  Box,
-  Paper,
-  Title,
-  Progress,
-} from "@mantine/core";
+import { useMemo,useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+
 import { Icons } from "../../components/icons";
-import type { Task } from "../../types/task";
 import { TableLoading } from "../../components/ui";
+import type { Task } from "../../types/task";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -45,7 +46,7 @@ export function TaskTable({
   const { t } = useTranslation(["tasks", "common"]);
   const navigate = useNavigate();
   const [sorting, setSorting] = useState<SortingState>([
-    { id: "createdAt", desc: true },
+    { desc: true, id: "createdAt" },
   ]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [pagination, setPagination] = useState<PaginationState>({
@@ -118,7 +119,6 @@ export function TaskTable({
     () => [
       {
         accessorKey: "name",
-        header: t("tasks:table.name"),
         cell: (info) => {
           const name = info.getValue() as string;
           return (
@@ -130,10 +130,10 @@ export function TaskTable({
             </Box>
           );
         },
+        header: t("tasks:table.name"),
       },
       {
         accessorKey: "status",
-        header: t("tasks:table.status"),
         cell: (info) => {
           const status = info.getValue() as string;
           return (
@@ -142,10 +142,10 @@ export function TaskTable({
             </Badge>
           );
         },
+        header: t("tasks:table.status"),
       },
       {
         accessorKey: "progress",
-        header: t("tasks:table.progress"),
         cell: (info) => {
           const progress = info.getValue() as number;
           return (
@@ -164,10 +164,10 @@ export function TaskTable({
             </Box>
           );
         },
+        header: t("tasks:table.progress"),
       },
       {
         accessorKey: "resultType",
-        header: t("tasks:table.type"),
         cell: (info) => {
           const resultType = info.getValue() as string;
           return (
@@ -176,10 +176,10 @@ export function TaskTable({
             </Badge>
           );
         },
+        header: t("tasks:table.type"),
       },
       {
         accessorKey: "recipeName",
-        header: t("tasks:table.recipe"),
         cell: (info) => {
           const recipeName = info.getValue() as string;
           return (
@@ -188,18 +188,18 @@ export function TaskTable({
             </Text>
           );
         },
+        header: t("tasks:table.recipe"),
       },
       {
         accessorKey: "createdAt",
-        header: t("tasks:table.createdAt"),
         cell: (info) => {
           const createdAt = info.getValue() as string;
           return <Text size="sm">{formatDate(createdAt)}</Text>;
         },
+        header: t("tasks:table.createdAt"),
       },
       {
         accessorKey: "id",
-        header: t("tasks:table.actions"),
         cell: (info) => {
           const task = info.row.original;
           const id = info.getValue() as string;
@@ -248,28 +248,29 @@ export function TaskTable({
             </Group>
           );
         },
+        header: t("tasks:table.actions"),
       },
     ],
     [t, navigate, onCancel, onDelete]
   );
 
   const table = useReactTable({
-    data: tasks,
     columns,
-    state: {
-      sorting,
-      globalFilter,
-      pagination,
-    },
+    data: tasks,
     enableGlobalFilter: true,
-    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    manualPagination: false,
     onGlobalFilterChange: setGlobalFilter,
     onPaginationChange: setPagination,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    manualPagination: false,
+    onSortingChange: setSorting,
+    state: {
+      globalFilter,
+      pagination,
+      sorting,
+    },
   });
 
   // Show loading state
@@ -390,8 +391,8 @@ export function TaskTable({
             value={String(table.getState().pagination.pageSize)}
             onChange={(value) => table.setPageSize(Number(value))}
             data={["5", "10", "20", "30", "40", "50"].map((pageSize) => ({
-              value: pageSize,
               label: `${pageSize} ${t("common:pagination.per_page")}`,
+              value: pageSize,
             }))}
             w={110}
             radius="xl"

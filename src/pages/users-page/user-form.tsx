@@ -1,14 +1,16 @@
-import { useForm, zodResolver } from '@mantine/form';
 import {
-  TextInput,
+  Button,
+  Group,
   PasswordInput,
   Select,
   Stack,
-  Button,
-  Group,
+  TextInput,
 } from '@mantine/core';
-import { Icons } from '@/components/icons';
+import { useForm, zodResolver } from '@mantine/form';
 import { useTranslation } from 'react-i18next';
+
+import { Icons } from '@/components/icons';
+
 import type { CreateUserRequest, UserRole } from '../../lib/validator/user';
 import { createUserSchema } from '../../lib/validator/user';
 
@@ -33,18 +35,18 @@ export function UserForm({
 
   const form = useForm<CreateUserRequest>({
     initialValues: {
-      username: initialValues?.username || '',
       email: initialValues?.email || '',
       password: '',
       password2: '',
       role: initialValues?.role || 'Operator',
+      username: initialValues?.username || '',
     },
     validate: isEdit ? undefined : zodResolver(createUserSchema),
   });
 
   const roleOptions: { value: UserRole; label: string }[] = [
-    { value: 'admin', label: t('users:role.admin') },
-    { value: 'Operator', label: t('users:role.Operator') },
+    { label: t('users:role.admin'), value: 'admin' },
+    { label: t('users:role.Operator'), value: 'Operator' },
   ];
 
   const handleSubmit = (values: CreateUserRequest) => {

@@ -1,16 +1,17 @@
-import { useTranslation } from "react-i18next";
 import {
-  Badge,
-  Text,
-  Group,
   ActionIcon,
-  Menu,
+  Badge,
   Box,
+  Group,
+  Menu,
+  Text,
 } from "@mantine/core";
+import { useTranslation } from "react-i18next";
+
 import { Icons } from "../../components/icons";
-import type { Model } from "../../lib/store/model-store";
-import { DataTable } from "../../components/ui/data-table";
 import type { DataTableColumn } from "../../components/ui/data-table";
+import { DataTable } from "../../components/ui/data-table";
+import type { Model } from "../../lib/store/model-store";
 import { highlightSearchTerm } from "../../lib/utils";
 
 interface ModelTableProps {
@@ -42,11 +43,11 @@ export function ModelsTable({
     if (!dateString) return "";
     const date = new Date(dateString);
     return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      month: "short",
+      year: "numeric",
     }).format(date);
   };
 
@@ -95,15 +96,14 @@ export function ModelsTable({
     {
       key: "name",
       label: t("models:list.columns.name"),
-      sortable: true,
       render: (model, globalFilter) => {
         if (globalFilter) {
           return (
             <Box>
-              <div style={{ fontWeight: 500, fontSize: '14px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 500 }}>
                 {highlightSearchTerm(model.name, globalFilter)}
               </div>
-              <div style={{ fontSize: '12px', color: 'var(--mantine-color-dimmed)' }}>
+              <div style={{ color: 'var(--mantine-color-dimmed)', fontSize: '12px' }}>
                 {highlightSearchTerm(model.id, globalFilter)}
               </div>
             </Box>
@@ -118,12 +118,11 @@ export function ModelsTable({
           </Box>
         );
       },
+      sortable: true,
     },
     {
       key: "type",
       label: t("models:list.columns.type"),
-      width: 180,
-      sortable: true,
       render: (model) => {
         // Show task type if available, otherwise show model type
         const taskType = (model as any).task || model.type;
@@ -141,31 +140,33 @@ export function ModelsTable({
           </Group>
         );
       },
+      sortable: true,
+      width: 180,
     },
     {
       key: "size",
       label: t("models:list.columns.size"),
-      width: 120,
-      sortable: true,
       render: (model) => <Text size="sm">{formatSize(model.size)}</Text>,
+      sortable: true,
+      width: 120,
     },
     {
       key: "status",
       label: t("models:list.columns.status"),
-      width: 120,
-      sortable: true,
       render: (model) => (
         <Badge color={getStatusColor(model.status)} variant="light" size="md">
           {t(`models:status.${model.status}`)}
         </Badge>
       ),
+      sortable: true,
+      width: 120,
     },
     {
       key: "createdAt",
       label: t("models:list.columns.date"),
-      width: 180,
-      sortable: true,
       render: (model) => <Text size="sm" c="dimmed">{formatDate(model.createdAt)}</Text>,
+      sortable: true,
+      width: 180,
     },
   ];
 
@@ -210,7 +211,7 @@ export function ModelsTable({
       showPagination={true}
       actions={renderActions}
       emptyMessage={t("models:list.empty")}
-      defaultSort={{ key: "createdAt", direction: "desc" }}
+      defaultSort={{ direction: "desc", key: "createdAt" }}
       stickyHeader={true}
       height={700}
       enableGlobalFilter={true}

@@ -7,10 +7,11 @@ const API_URL = import.meta.env.VITE_API_URL || 'https://api.example.com';
 const createClient = (baseURL: string, useAuth = true) => {
   const client = axios.create({
     baseURL,
-    timeout: 30000, // 30 seconds
-    headers: {
+    // 30 seconds
+headers: {
       'Content-Type': 'application/json',
-    },
+    }, 
+    timeout: 30000,
   });
 
   // Add request interceptor for auth if required
@@ -47,8 +48,8 @@ const createClient = (baseURL: string, useAuth = true) => {
 // API clients
 export const clients = {
   v1: {
-    public: createClient(`${API_URL}/v1`, false),
     private: createClient(`${API_URL}/v1`),
+    public: createClient(`${API_URL}/v1`, false),
   },
 };
 

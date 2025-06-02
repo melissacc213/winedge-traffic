@@ -1,9 +1,10 @@
-import { useQuery, useSuspenseQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { notifications } from '@mantine/notifications';
+import { useMutation, useQuery, useQueryClient,useSuspenseQuery } from '@tanstack/react-query';
+
 import { userService } from '../api';
 import { userService as userManagementService } from '../api/user-service';
-import type { CreateUserRequest, UpdateUserRequest, User, UsersList } from '../validator/user';
-import { notifications } from '@mantine/notifications';
 import { USE_MOCK_DATA } from '../config/mock-data';
+import type { CreateUserRequest, UpdateUserRequest, User, UsersList } from '../validator/user';
 
 // Mock data generation based on validator schema
 const generateMockUsers = (): User[] => {
@@ -30,14 +31,14 @@ const generateMockUsers = (): User[] => {
     }
     
     return {
-      id: i + 1,
-      username,
-      email: `${username}@winedge.com`,
-      role,
       active,
       created_at: createdDate.toISOString(),
-      updated_at: updatedDate.toISOString(),
+      email: `${username}@winedge.com`,
+      id: i + 1,
       last_login: lastLoginDate?.toISOString() || null,
+      role,
+      updated_at: updatedDate.toISOString(),
+      username,
     };
   });
 };
@@ -47,25 +48,25 @@ const mockUsers = generateMockUsers();
 
 export const userKeys = {
   all: ['user'] as const,
-  self: () => [...userKeys.all, 'self'] as const,
-  lists: () => [...userKeys.all, 'list'] as const,
-  list: (params?: { page?: number; size?: number }) => [...userKeys.lists(), params] as const,
-  details: () => [...userKeys.all, 'detail'] as const,
   detail: (id: number) => [...userKeys.details(), id] as const,
+  details: () => [...userKeys.all, 'detail'] as const,
+  list: (params?: { page?: number; size?: number }) => [...userKeys.lists(), params] as const,
+  lists: () => [...userKeys.all, 'list'] as const,
+  self: () => [...userKeys.all, 'self'] as const,
 };
 
 export function useSelf() {
   return useQuery({
-    queryKey: userKeys.self(),
     queryFn: ({ signal }) => userService.getSelf({ signal }),
+    queryKey: userKeys.self(),
     retry: 1,
   });
 }
 
 export function useSuspenseSelf() {
   return useSuspenseQuery({
-    queryKey: userKeys.self(),
     queryFn: ({ signal }) => userService.getSelf({ signal }),
+    queryKey: userKeys.self(),
     retry: 1,
   });
 }
@@ -73,7 +74,6 @@ export function useSuspenseSelf() {
 // Get users list with pagination
 export function useUsers(params?: { page?: number; size?: number }, useMockData = USE_MOCK_DATA.users) {
   return useQuery({
-    queryKey: userKeys.list(params),
     queryFn: async () => {
       if (useMockData) {
         // Simulate network delay
@@ -98,13 +98,14 @@ export function useUsers(params?: { page?: number; size?: number }, useMockData 
       
       return userManagementService.getUsers(params);
     },
+    queryKey: userKeys.list(params),
   });
 }
 
 // Get single user details
 export function useUserDetails(id: number, useMockData = USE_MOCK_DATA.users) {
   return useQuery({
-    queryKey: userKeys.detail(id),
+    enabled: !!id,
     queryFn: async () => {
       if (useMockData) {
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -114,7 +115,7 @@ export function useUserDetails(id: number, useMockData = USE_MOCK_DATA.users) {
       }
       return userManagementService.getUser(id);
     },
-    enabled: !!id,
+    queryKey: userKeys.detail(id),
   });
 }
 
@@ -124,19 +125,19 @@ export function useCreateUser() {
   
   return useMutation({
     mutationFn: (data: CreateUserRequest) => userManagementService.createUser(data),
+    onError: (error: any) => {
+      notifications.show({
+        color: 'red',
+        message: error.response?.data?.message || 'Failed to create user',
+        title: 'Error',
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userKeys.lists() });
       notifications.show({
-        title: 'Success',
-        message: 'User created successfully',
         color: 'green',
-      });
-    },
-    onError: (error: any) => {
-      notifications.show({
-        title: 'Error',
-        message: error.response?.data?.message || 'Failed to create user',
-        color: 'red',
+        message: 'User created successfully',
+        title: 'Success',
       });
     },
   });
@@ -149,20 +150,20 @@ export function useUpdateUser() {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateUserRequest }) => 
       userManagementService.updateUser(id, data),
+    onError: (error: any) => {
+      notifications.show({
+        color: 'red',
+        message: error.response?.data?.message || 'Failed to update user',
+        title: 'Error',
+      });
+    },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: userKeys.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: userKeys.lists() });
       notifications.show({
-        title: 'Success',
-        message: 'User updated successfully',
         color: 'green',
-      });
-    },
-    onError: (error: any) => {
-      notifications.show({
-        title: 'Error',
-        message: error.response?.data?.message || 'Failed to update user',
-        color: 'red',
+        message: 'User updated successfully',
+        title: 'Success',
       });
     },
   });
@@ -175,15 +176,15 @@ export function useToggleUserStatus() {
   return useMutation({
     mutationFn: ({ id, active }: { id: string; active: boolean }) => 
       userManagementService.toggleUserStatus(id, active),
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
-    },
     onError: (error: any) => {
       notifications.show({
-        title: 'Error',
-        message: error.response?.data?.message || 'Failed to update user status',
         color: 'red',
+        message: error.response?.data?.message || 'Failed to update user status',
+        title: 'Error',
       });
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
     },
   });
 }
@@ -194,15 +195,15 @@ export function useDeleteUser() {
   
   return useMutation({
     mutationFn: (id: string) => userManagementService.deleteUser(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
-    },
     onError: (error: any) => {
       notifications.show({
-        title: 'Error',
-        message: error.response?.data?.message || 'Failed to delete user',
         color: 'red',
+        message: error.response?.data?.message || 'Failed to delete user',
+        title: 'Error',
       });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
     },
   });
 }

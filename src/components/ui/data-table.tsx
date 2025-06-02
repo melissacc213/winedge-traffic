@@ -1,42 +1,44 @@
-import { useState, useMemo, useEffect } from "react";
-import type { ReactNode } from "react";
 import {
-  Box,
-  Table,
-  ScrollArea,
-  Group,
-  Text,
-  Select,
-  Paper,
   ActionIcon,
-  Checkbox,
-  Stack,
   Badge,
-  Transition,
-  TextInput,
-  Flex,
-  Center,
-  Loader,
-  Tooltip,
+  Box,
   Button,
+  Center,
+  Checkbox,
+  Flex,
+  Group,
+  Loader,
+  Paper,
+  ScrollArea,
+  Select,
+  Stack,
+  Table,
+  Text,
+  TextInput,
+  Tooltip,
+  Transition,
+  useComputedColorScheme,
+  useMantineTheme,
 } from "@mantine/core";
-import {
-  useReactTable,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  flexRender,
-} from "@tanstack/react-table";
 import type {
   ColumnDef,
-  SortingState,
   ColumnFiltersState,
-  VisibilityState,
   RowSelectionState,
+  SortingState,
+  VisibilityState,
 } from "@tanstack/react-table";
+import {
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import type { ReactNode } from "react";
+import { useEffect,useMemo, useState } from "react";
+
 import { Icons } from "@/components/icons";
-import { useTheme } from "@/providers/theme-provider";
 import { highlightSearchTerm } from "@/lib/utils";
 
 export interface DataTableColumn<T> {
@@ -94,13 +96,14 @@ export function DataTable<T extends Record<string, any>>({
   onSelectionChange,
   enableGlobalFilter = true,
 }: DataTableProps<T>) {
-  const { theme, colorScheme } = useTheme();
-  const isDark = colorScheme === "dark";
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
 
   // Table states
   const [sorting, setSorting] = useState<SortingState>(
     defaultSort
-      ? [{ id: defaultSort.key, desc: defaultSort.direction === "desc" }]
+      ? [{ desc: defaultSort.direction === "desc", id: defaultSort.key }]
       : []
   );
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -148,27 +151,6 @@ export function DataTable<T extends Record<string, any>>({
     // Selection column
     if (showSelection) {
       cols.push({
-        id: "select",
-        size: 48,
-        header: ({ table }) => (
-          <Center>
-            <Checkbox
-              checked={table.getIsAllRowsSelected()}
-              indeterminate={table.getIsSomeRowsSelected()}
-              onChange={table.getToggleAllRowsSelectedHandler()}
-              styles={{
-                input: {
-                  cursor: "pointer",
-                  border: `1.5px solid ${isDark ? theme.colors.dark?.[3] || theme.colors.gray[6] : theme.colors.gray[4]}`,
-                  "&:checked": {
-                    backgroundColor: theme.colors.blue[6],
-                    borderColor: theme.colors.blue[6],
-                  },
-                },
-              }}
-            />
-          </Center>
-        ),
         cell: ({ row }) => (
           <Center>
             <Checkbox
@@ -177,94 +159,47 @@ export function DataTable<T extends Record<string, any>>({
               onClick={(e) => e.stopPropagation()}
               styles={{
                 input: {
-                  cursor: "pointer",
-                  border: `1.5px solid ${isDark ? theme.colors.dark?.[3] || theme.colors.gray[6] : theme.colors.gray[4]}`,
                   "&:checked": {
                     backgroundColor: theme.colors.blue[6],
                     borderColor: theme.colors.blue[6],
                   },
+                  border: `1.5px solid ${isDark ? theme.colors.dark?.[3] || theme.colors.gray[6] : theme.colors.gray[4]}`,
+                  cursor: "pointer",
                 },
               }}
             />
           </Center>
         ),
-        enableSorting: false,
         enableHiding: false,
+        enableSorting: false,
+        header: ({ table }) => (
+          <Center>
+            <Checkbox
+              checked={table.getIsAllRowsSelected()}
+              indeterminate={table.getIsSomeRowsSelected()}
+              onChange={table.getToggleAllRowsSelectedHandler()}
+              styles={{
+                input: {
+                  "&:checked": {
+                    backgroundColor: theme.colors.blue[6],
+                    borderColor: theme.colors.blue[6],
+                  },
+                  border: `1.5px solid ${isDark ? theme.colors.dark?.[3] || theme.colors.gray[6] : theme.colors.gray[4]}`,
+                  cursor: "pointer",
+                },
+              }}
+            />
+          </Center>
+        ),
+        id: "select",
+        size: 48,
       });
     }
 
     // Data columns
     columns.forEach((column) => {
       cols.push({
-        id: column.key,
         accessorKey: column.key,
-        header: ({ column: col }) => {
-          const isSorted = col.getIsSorted();
-          const canSort = column.sortable !== false;
-
-          return (
-            <Group
-              gap={8}
-              justify="apart"
-              wrap="nowrap"
-              align="center"
-              style={{ cursor: canSort ? "pointer" : "default" }}
-              onClick={canSort ? col.getToggleSortingHandler() : undefined}
-            >
-              <Text
-                size="xs"
-                fw={600}
-                tt="uppercase"
-                style={{
-                  letterSpacing: "0.05em",
-                  fontSize: "11px",
-                  lineHeight: "16px",
-                  color: isDark ? theme.colors.gray[4] : theme.colors.gray[6],
-                }}
-              >
-                {column.label}
-              </Text>
-              {canSort && (
-                <Box
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 2,
-                  }}
-                >
-                  <Icons.ChevronUp
-                    size={10}
-                    style={{
-                      opacity: isSorted === "asc" ? 1 : 0.3,
-                      color:
-                        isSorted === "asc"
-                          ? theme.colors.blue[6]
-                          : isDark
-                            ? theme.colors.gray[6]
-                            : theme.colors.gray[5],
-                      transition: "all 0.2s ease",
-                    }}
-                  />
-                  <Icons.ChevronDown
-                    size={10}
-                    style={{
-                      opacity: isSorted === "desc" ? 1 : 0.3,
-                      color:
-                        isSorted === "desc"
-                          ? theme.colors.blue[6]
-                          : isDark
-                            ? theme.colors.gray[6]
-                            : theme.colors.gray[5],
-                      transition: "all 0.2s ease",
-                    }}
-                  />
-                </Box>
-              )}
-            </Group>
-          );
-        },
         cell: ({ row }) => {
           const value = row.original[column.key];
 
@@ -285,17 +220,86 @@ export function DataTable<T extends Record<string, any>>({
           // Otherwise return the value as-is
           return value;
         },
-        size: column.width as number,
-        enableSorting: column.sortable !== false,
         enableHiding: true,
+        enableSorting: column.sortable !== false,
+        header: ({ column: col }) => {
+          const isSorted = col.getIsSorted();
+          const canSort = column.sortable !== false;
+
+          return (
+            <Group
+              gap={8}
+              justify="apart"
+              wrap="nowrap"
+              align="center"
+              style={{ cursor: canSort ? "pointer" : "default" }}
+              onClick={canSort ? col.getToggleSortingHandler() : undefined}
+            >
+              <Text
+                size="xs"
+                fw={600}
+                tt="uppercase"
+                style={{
+                  color: isDark ? theme.colors.gray[4] : theme.colors.gray[6],
+                  fontSize: "11px",
+                  letterSpacing: "0.05em",
+                  lineHeight: "16px",
+                }}
+              >
+                {column.label}
+              </Text>
+              {canSort && (
+                <Box
+                  style={{
+                    alignItems: "center",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                    justifyContent: "center",
+                  }}
+                >
+                  <Icons.ChevronUp
+                    size={10}
+                    style={{
+                      color:
+                        isSorted === "asc"
+                          ? theme.colors.blue[6]
+                          : isDark
+                            ? theme.colors.gray[6]
+                            : theme.colors.gray[5],
+                      opacity: isSorted === "asc" ? 1 : 0.3,
+                      transition: "all 0.2s ease",
+                    }}
+                  />
+                  <Icons.ChevronDown
+                    size={10}
+                    style={{
+                      color:
+                        isSorted === "desc"
+                          ? theme.colors.blue[6]
+                          : isDark
+                            ? theme.colors.gray[6]
+                            : theme.colors.gray[5],
+                      opacity: isSorted === "desc" ? 1 : 0.3,
+                      transition: "all 0.2s ease",
+                    }}
+                  />
+                </Box>
+              )}
+            </Group>
+          );
+        },
+        id: column.key,
+        size: column.width as number,
       });
     });
 
     // Actions column
     if (actions) {
       cols.push({
-        id: "actions",
-        size: 80,
+        cell: ({ row }) => actions(row.original),
+        enableHiding: false,
+        enableSorting: false,
         header: () => (
           <Text
             size="xs"
@@ -308,9 +312,8 @@ export function DataTable<T extends Record<string, any>>({
             Actions
           </Text>
         ),
-        cell: ({ row }) => actions(row.original),
-        enableSorting: false,
-        enableHiding: false,
+        id: "actions",
+        size: 80,
       });
     }
 
@@ -319,18 +322,20 @@ export function DataTable<T extends Record<string, any>>({
 
   // Create table instance
   const table = useReactTable({
-    data,
     columns: tableColumns,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-      globalFilter,
+    data,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    initialState: {
+      pagination: {
+        pageSize: initialPageSize,
+      },
     },
-    onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
+    onGlobalFilterChange: setGlobalFilter,
     onRowSelectionChange: (updater) => {
       setRowSelection(updater);
       if (showSelection && onSelectionChange) {
@@ -345,15 +350,13 @@ export function DataTable<T extends Record<string, any>>({
         onSelectionChange(newSelectedIds);
       }
     },
-    onGlobalFilterChange: setGlobalFilter,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    initialState: {
-      pagination: {
-        pageSize: initialPageSize,
-      },
+    onSortingChange: setSorting,
+    state: {
+      columnFilters,
+      columnVisibility,
+      globalFilter,
+      rowSelection,
+      sorting,
     },
   });
 
@@ -362,12 +365,12 @@ export function DataTable<T extends Record<string, any>>({
       <Paper
         radius="lg"
         style={{
-          overflow: "hidden",
           background: isDark
             ? theme.colors.dark?.[7] || theme.colors.gray[8]
             : theme.white,
           border: `1px solid ${isDark ? theme.colors.dark?.[5] || theme.colors.gray[6] : theme.colors.gray[2]}`,
           height,
+          overflow: "hidden",
         }}
       >
         <Center h="100%">
@@ -386,10 +389,6 @@ export function DataTable<T extends Record<string, any>>({
     <Paper
       radius="lg"
       style={{
-        height: height,
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
         background: isDark
           ? theme.colors.dark?.[7] || theme.colors.gray[8]
           : theme.white,
@@ -397,18 +396,22 @@ export function DataTable<T extends Record<string, any>>({
         boxShadow: isDark
           ? "0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)"
           : "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+        display: "flex",
+        flexDirection: "column",
+        height: height,
+        overflow: "hidden",
       }}
     >
       {/* Fixed Header with Search */}
       {enableGlobalFilter && (
         <Box
           style={{
-            borderBottom: `1px solid ${isDark ? theme.colors.dark?.[5] || theme.colors.gray[6] : theme.colors.gray[2]}`,
-            padding: "12px 20px",
             background: isDark
               ? theme.colors.dark?.[6] || theme.colors.gray[7]
               : theme.colors.gray[0],
+            borderBottom: `1px solid ${isDark ? theme.colors.dark?.[5] || theme.colors.gray[6] : theme.colors.gray[2]}`,
             flexShrink: 0,
+            padding: "12px 20px",
           }}
         >
           <Flex justify="flex-end" align="center" gap="md">
@@ -435,14 +438,14 @@ export function DataTable<T extends Record<string, any>>({
                 }
                 styles={{
                   input: {
-                    backgroundColor: isDark
-                      ? theme.colors.dark?.[7] || theme.colors.gray[8]
-                      : theme.white,
-                    border: `1px solid ${isDark ? theme.colors.dark?.[4] || theme.colors.gray[6] : theme.colors.gray[3]}`,
                     "&:focus": {
                       borderColor:
                         theme.colors.blue?.[6] || theme.colors.blue[5],
                     },
+                    backgroundColor: isDark
+                      ? theme.colors.dark?.[7] || theme.colors.gray[8]
+                      : theme.white,
+                    border: `1px solid ${isDark ? theme.colors.dark?.[4] || theme.colors.gray[6] : theme.colors.gray[3]}`,
                   },
                 }}
               />
@@ -474,22 +477,22 @@ export function DataTable<T extends Record<string, any>>({
                 borderCollapse: "collapse",
                 fontSize: "14px",
               },
-              thead: {
-                borderBottom: "none",
-              },
               tbody: {
                 tr: {
-                  borderBottom: `1px solid ${isDark ? theme.colors.dark?.[5] || theme.colors.gray[6] : theme.colors.gray[1]}`,
-                  transition: "all 0.15s ease",
-                  "&:last-child": {
-                    borderBottom: "none",
-                  },
                   "&:hover": {
                     backgroundColor: isDark
                       ? "rgba(255, 255, 255, 0.02)"
                       : theme.colors.gray[0],
                   },
+                  "&:last-child": {
+                    borderBottom: "none",
+                  },
+                  borderBottom: `1px solid ${isDark ? theme.colors.dark?.[5] || theme.colors.gray[6] : theme.colors.gray[1]}`,
+                  transition: "all 0.15s ease",
                 },
+              },
+              thead: {
+                borderBottom: "none",
               },
             }}
           >
@@ -500,17 +503,17 @@ export function DataTable<T extends Record<string, any>>({
                     <Table.Th
                       key={header.id}
                       style={{
-                        width: header.getSize(),
-                        position: stickyHeader ? "sticky" : undefined,
-                        top: stickyHeader ? 0 : undefined,
                         background: isDark
                           ? theme.colors.dark?.[7] || theme.colors.gray[8]
                           : theme.white,
-                        zIndex: stickyHeader ? 10 : undefined,
-                        padding: "14px 20px",
                         borderBottom: `2px solid ${isDark ? theme.colors.dark?.[5] || theme.colors.gray[6] : theme.colors.gray[2]}`,
                         fontWeight: 600,
+                        padding: "14px 20px",
+                        position: stickyHeader ? "sticky" : undefined,
+                        top: stickyHeader ? 0 : undefined,
                         transition: "all 0.2s ease",
+                        width: header.getSize(),
+                        zIndex: stickyHeader ? 10 : undefined,
                       }}
                     >
                       {header.isPlaceholder
@@ -530,11 +533,11 @@ export function DataTable<T extends Record<string, any>>({
                   <Table.Td
                     colSpan={table.getAllColumns().length}
                     style={{
-                      textAlign: "center",
-                      padding: "80px 20px",
                       color: isDark
                         ? theme.colors.gray[5]
                         : theme.colors.gray[6],
+                      padding: "80px 20px",
+                      textAlign: "center",
                     }}
                   >
                     <Stack align="center" gap="md">
@@ -584,24 +587,24 @@ export function DataTable<T extends Record<string, any>>({
                           onClick={() => onRowClick?.(rowData)}
                           style={{
                             ...styles,
-                            cursor: onRowClick ? "pointer" : "default",
                             backgroundColor: isSelected
                               ? isDark
                                 ? "rgba(59, 130, 246, 0.08)"
                                 : "rgba(59, 130, 246, 0.04)"
                               : undefined,
+                            cursor: onRowClick ? "pointer" : "default",
                             position: "relative",
                           }}
                         >
                           {isSelected && (
                             <Box
                               style={{
-                                position: "absolute",
-                                left: 0,
-                                top: 0,
-                                bottom: 0,
-                                width: 3,
                                 backgroundColor: theme.colors.blue[6],
+                                bottom: 0,
+                                left: 0,
+                                position: "absolute",
+                                top: 0,
+                                width: 3,
                               }}
                             />
                           )}
@@ -609,11 +612,11 @@ export function DataTable<T extends Record<string, any>>({
                             <Table.Td
                               key={cell.id}
                               style={{
-                                padding: "14px 20px",
-                                fontSize: "14px",
                                 color: isDark
                                   ? theme.colors.gray[3]
                                   : theme.colors.gray[7],
+                                fontSize: "14px",
+                                padding: "14px 20px",
                               }}
                               onClick={(e) => {
                                 // Prevent row click when clicking on actions column
@@ -643,12 +646,12 @@ export function DataTable<T extends Record<string, any>>({
       {showPagination && (
         <Box
           style={{
-            borderTop: `1px solid ${isDark ? theme.colors.dark?.[5] || theme.colors.gray[6] : theme.colors.gray[2]}`,
             background: isDark
               ? theme.colors.dark?.[6] || theme.colors.gray[7]
               : theme.colors.gray[0],
-            padding: "12px 20px",
+            borderTop: `1px solid ${isDark ? theme.colors.dark?.[5] || theme.colors.gray[6] : theme.colors.gray[2]}`,
             flexShrink: 0,
+            padding: "12px 20px",
           }}
         >
           <Flex justify="space-between" align="center" w="100%">
@@ -726,22 +729,22 @@ export function DataTable<T extends Record<string, any>>({
                     table.setPageSize(Number(value!));
                   }}
                   data={[
-                    { value: "10", label: "10" },
-                    { value: "20", label: "20" },
-                    { value: "50", label: "50" },
-                    { value: "100", label: "100" },
+                    { label: "10", value: "10" },
+                    { label: "20", value: "20" },
+                    { label: "50", value: "50" },
+                    { label: "100", value: "100" },
                   ]}
                   size="xs"
                   w={70}
                   styles={{
                     input: {
+                      "&:focus": {
+                        borderColor: theme.colors.blue[6],
+                      },
                       backgroundColor: isDark
                         ? theme.colors.dark?.[7] || theme.colors.gray[8]
                         : theme.white,
                       border: `1px solid ${isDark ? theme.colors.dark?.[4] || theme.colors.gray[6] : theme.colors.gray[3]}`,
-                      "&:focus": {
-                        borderColor: theme.colors.blue[6],
-                      },
                     },
                   }}
                 />

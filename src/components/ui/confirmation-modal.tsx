@@ -1,6 +1,6 @@
-import { Modal, Text, Button, Group, Stack, ThemeIcon, useMantineTheme, Box } from "@mantine/core";
+import { Box,Button, Group, Modal, Stack, Text, ThemeIcon, useComputedColorScheme,useMantineTheme } from "@mantine/core";
+
 import { Icons } from "../icons";
-import { useTheme } from "../../providers/theme-provider";
 
 export interface ConfirmationModalProps {
   opened: boolean;
@@ -33,9 +33,9 @@ export function ConfirmationModal({
   variant = "standard",
   subMessage,
 }: ConfirmationModalProps) {
-  const { colorScheme } = useTheme();
-  const mantineTheme = useMantineTheme();
-  const isDark = colorScheme === "dark";
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
 
   const getIcon = () => {
     switch (icon) {
@@ -79,43 +79,43 @@ export function ConfirmationModal({
       shadow="xl"
       padding={0}
       styles={{
-        root: {
-          zIndex: 1000,
+        body: {
+          padding: `${theme.spacing.lg} ${theme.spacing.xl} ${theme.spacing.xl}`,
         },
-        inner: {
-          padding: mantineTheme.spacing.md,
+        close: {
+          '&:hover': {
+            backgroundColor: isDark ? theme.colors.gray[8] : theme.colors.gray[1],
+            borderColor: isDark ? theme.colors.gray[6] : theme.colors.gray[4],
+          },
+          alignItems: 'center',
+          border: `2px solid ${isDark ? theme.colors.gray[7] : theme.colors.gray[3]}`,
+          borderRadius: theme.radius.xl,
+          color: isDark ? theme.colors.gray[4] : theme.colors.gray[6],
+          display: 'flex',
+          height: 34,
+          justifyContent: 'center',
+          width: 34,
         },
         content: {
-          backgroundColor: isDark ? mantineTheme.colors.dark?.[7] || mantineTheme.colors.gray[9] : mantineTheme.white,
+          backgroundColor: isDark ? theme.colors.gray[9] : theme.white,
           border: 'none',
           overflow: 'visible',
         },
         header: {
           backgroundColor: 'transparent',
           borderBottom: 'none',
-          padding: `${mantineTheme.spacing.xl} ${mantineTheme.spacing.xl} 0`,
+          padding: `${theme.spacing.xl} ${theme.spacing.xl} 0`,
+        },
+        inner: {
+          padding: theme.spacing.md,
+        },
+        root: {
+          zIndex: 1000,
         },
         title: {
-          fontWeight: 600,
+          color: isDark ? theme.colors.gray[1] : theme.colors.gray[9],
           fontSize: 20,
-          color: isDark ? mantineTheme.colors.gray[1] : mantineTheme.colors.gray[9],
-        },
-        close: {
-          color: isDark ? mantineTheme.colors.gray[4] : mantineTheme.colors.gray[6],
-          border: `2px solid ${isDark ? mantineTheme.colors.gray[7] : mantineTheme.colors.gray[3]}`,
-          borderRadius: mantineTheme.radius.xl,
-          width: 34,
-          height: 34,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          '&:hover': {
-            backgroundColor: isDark ? mantineTheme.colors.dark?.[6] || mantineTheme.colors.gray[8] : mantineTheme.colors.gray[1],
-            borderColor: isDark ? mantineTheme.colors.gray[6] : mantineTheme.colors.gray[4],
-          },
-        },
-        body: {
-          padding: `${mantineTheme.spacing.lg} ${mantineTheme.spacing.xl} ${mantineTheme.spacing.xl}`,
+          fontWeight: 600,
         }
       }}
     >
@@ -125,14 +125,14 @@ export function ConfirmationModal({
           <Group gap="md" align="flex-start" wrap="nowrap">
             <Box
               style={{
-                width: 48,
-                height: 48,
-                borderRadius: '50%',
-                backgroundColor: mantineTheme.colors[getIconColor()][1],
-                display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
+                backgroundColor: theme.colors[getIconColor()][1],
+                borderRadius: '50%',
+                display: 'flex',
                 flexShrink: 0,
+                height: 48,
+                justifyContent: 'center',
+                width: 48,
               }}
             >
               <ThemeIcon
@@ -147,8 +147,8 @@ export function ConfirmationModal({
               <Text 
                 size="md" 
                 style={{ 
+                  color: isDark ? theme.colors.gray[2] : theme.colors.gray[7],
                   lineHeight: 1.5,
-                  color: isDark ? mantineTheme.colors.gray[2] : mantineTheme.colors.gray[7],
                 }}
               >
                 {message}
@@ -157,8 +157,8 @@ export function ConfirmationModal({
                 <Text 
                   size="sm" 
                   style={{ 
+                    color: isDark ? theme.colors.gray[4] : theme.colors.gray[6],
                     lineHeight: 1.5,
-                    color: isDark ? mantineTheme.colors.gray[4] : mantineTheme.colors.gray[6],
                   }}
                 >
                   {subMessage}
@@ -170,8 +170,8 @@ export function ConfirmationModal({
           <Text 
             size="md" 
             style={{ 
+              color: isDark ? theme.colors.gray[2] : theme.colors.gray[7],
               lineHeight: 1.5,
-              color: isDark ? mantineTheme.colors.gray[2] : mantineTheme.colors.gray[7],
             }}
           >
             {message}
@@ -204,7 +204,7 @@ export function ConfirmationModal({
               size="md"
               radius="md"
               style={{
-                color: isDark ? mantineTheme.colors.gray[4] : mantineTheme.colors.gray[7],
+                color: isDark ? theme.colors.gray[4] : theme.colors.gray[7],
                 fontWeight: 500,
               }}
             >

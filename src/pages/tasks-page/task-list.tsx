@@ -1,8 +1,9 @@
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useTasks, useCancelTask, useDeleteTask } from "../../lib/queries/task";
-import { TaskTable } from "./task-table";
+
+import { useCancelTask, useDeleteTask,useTasks } from "../../lib/queries/task";
 import type { TaskFilter } from "../../types/task";
+import { TaskTable } from "./task-table";
 
 // TaskList component props
 interface TaskListProps {

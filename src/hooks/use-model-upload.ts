@@ -1,10 +1,11 @@
-import { useState, useCallback, useEffect } from "react";
 import type { FileWithPath } from "@mantine/dropzone";
-import { useTranslation } from "react-i18next";
 import { notifications } from "@mantine/notifications";
+import { useCallback, useEffect,useState } from "react";
+import { useTranslation } from "react-i18next";
+
+import { confirmDelete } from "../lib/confirmation";
 import { useModelStore } from "../lib/store/model-store";
 import { validateModelFile } from "../lib/validator/model";
-import { confirmDelete } from "../lib/confirmation";
 
 interface UploadProgressState {
   fileName: string;
@@ -16,9 +17,9 @@ export function useModelUpload() {
   const { t } = useTranslation(["models", "common"]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgressState>({
+    error: null,
     fileName: "",
     progress: 0,
-    error: null,
   });
 
   // Get models from store
@@ -42,18 +43,18 @@ export function useModelUpload() {
         validateModelFile(file);
       } catch (error) {
         notifications.show({
-          title: t("models:notification.upload_error"),
-          message: error instanceof Error ? error.message : String(error),
           color: "red",
+          message: error instanceof Error ? error.message : String(error),
+          title: t("models:notification.upload_error"),
         });
         return;
       }
 
       setIsUploading(true);
       setUploadProgress({
+        error: null,
         fileName: file.name,
         progress: 0,
-        error: null,
       });
 
       // Simulate file upload with progress
@@ -88,29 +89,29 @@ export function useModelUpload() {
 
         // Add model to store
         addModel({
-          id,
-          name: file.name.split(".")[0],
-          type: file.name.split(".").pop() || "unknown",
-          size: file.size,
-          status: "active",
           createdAt: new Date().toISOString(),
           description: "",
+          id,
+          name: file.name.split(".")[0],
+          size: file.size,
+          status: "active",
+          type: file.name.split(".").pop() || "unknown",
         });
 
         notifications.show({
-          title: t("models:notification.upload_success"),
+          color: "green",
           message: t("models:notification.upload_success_message", {
             name: file.name,
           }),
-          color: "green",
+          title: t("models:notification.upload_success"),
         });
 
         // Reset upload state
         setIsUploading(false);
         setUploadProgress({
+          error: null,
           fileName: "",
           progress: 0,
-          error: null,
         });
       } catch (error) {
         clearInterval(uploadInterval);
@@ -121,9 +122,9 @@ export function useModelUpload() {
         }));
 
         notifications.show({
-          title: t("models:notification.upload_error"),
-          message: error instanceof Error ? error.message : String(error),
           color: "red",
+          message: error instanceof Error ? error.message : String(error),
+          title: t("models:notification.upload_error"),
         });
 
         setIsUploading(false);
@@ -142,9 +143,9 @@ export function useModelUpload() {
         removeModel(id);
 
         notifications.show({
-          title: t("models:notification.delete_success"),
-          message: t("models:notification.delete_success_message"),
           color: "green",
+          message: t("models:notification.delete_success_message"),
+          title: t("models:notification.delete_success"),
         });
       });
     },
@@ -156,19 +157,19 @@ export function useModelUpload() {
   const resetUpload = useCallback(() => {
     setIsUploading(false);
     setUploadProgress({
+      error: null,
       fileName: "",
       progress: 0,
-      error: null,
     });
   }, []);
 
   return {
-    models,
-    isLoading,
-    uploadProgress,
-    isUploading,
-    handleDrop,
     handleDelete,
+    handleDrop,
+    isLoading,
+    isUploading,
+    models,
     resetUpload,
+    uploadProgress,
   };
 }

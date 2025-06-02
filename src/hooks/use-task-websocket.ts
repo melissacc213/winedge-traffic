@@ -1,12 +1,13 @@
-import { useState, useEffect, useCallback, useRef } from "react";
 import { notifications } from "@mantine/notifications";
+import { useCallback, useEffect, useRef,useState } from "react";
+
 import type {
-  TaskWebSocketEvent,
-  TaskProgress,
   TaskLog,
+  TaskProgress,
   TaskStreamFrame,
-  WebSocketState,
   TaskWebSocketConfig,
+  TaskWebSocketEvent,
+  WebSocketState,
 } from "@/types/task-websocket";
 
 interface UseTaskWebSocketReturn {
@@ -53,26 +54,26 @@ class MockWebSocket {
       this.currentProgress = Math.min(this.currentProgress + Math.random() * 2, 100);
       
       const progressEvent: TaskWebSocketEvent = {
-        type: "progress",
         data: {
-          taskId: this.taskId,
-          progress: this.currentProgress,
-          currentFrame: Math.floor(this.currentProgress * 100),
-          totalFrames: 10000,
-          fps: 24 + Math.random() * 6,
-          eta: Math.floor((100 - this.currentProgress) * 10),
-          processingSpeed: 1.2 + Math.random() * 0.3,
           cpuUsage: 45 + Math.random() * 25,
-          memoryUsage: 60 + Math.random() * 20,
-          gpuUsage: 70 + Math.random() * 20,
+          currentFrame: Math.floor(this.currentProgress * 100),
           detections: {
-            car: Math.floor(Math.random() * 500) + 100,
-            truck: Math.floor(Math.random() * 200) + 50,
             bus: Math.floor(Math.random() * 100) + 20,
+            car: Math.floor(Math.random() * 500) + 100,
             person: Math.floor(Math.random() * 300) + 50,
+            truck: Math.floor(Math.random() * 200) + 50,
           },
+          eta: Math.floor((100 - this.currentProgress) * 10),
+          fps: 24 + Math.random() * 6,
+          gpuUsage: 70 + Math.random() * 20,
+          memoryUsage: 60 + Math.random() * 20,
+          processingSpeed: 1.2 + Math.random() * 0.3,
+          progress: this.currentProgress,
+          taskId: this.taskId,
           timestamp: new Date().toISOString(),
+          totalFrames: 10000,
         },
+        type: "progress",
       };
 
       this.emit("message", { data: JSON.stringify(progressEvent) });
@@ -89,13 +90,13 @@ class MockWebSocket {
         ];
 
         const logEvent: TaskWebSocketEvent = {
-          type: "log",
           data: {
             id: Math.random().toString(36).substr(2, 9),
-            type: logTypes[Math.floor(Math.random() * logTypes.length)],
             message: messages[Math.floor(Math.random() * messages.length)],
             timestamp: new Date().toISOString(),
+            type: logTypes[Math.floor(Math.random() * logTypes.length)],
           },
+          type: "log",
         };
 
         this.emit("message", { data: JSON.stringify(logEvent) });
@@ -114,22 +115,22 @@ class MockWebSocket {
     }
     
     const completeEvent: TaskWebSocketEvent = {
-      type: "complete",
-      taskId: this.taskId,
       summary: {
-        totalFramesProcessed: 10000,
-        totalObjectsDetected: 4523,
-        processingTime: 420,
         averageFps: 23.8,
         detectionsByType: {
-          car: 2341,
-          truck: 892,
           bus: 423,
+          car: 2341,
           person: 867,
+          truck: 892,
         },
-        peakMemoryUsage: 82,
         peakCpuUsage: 76,
+        peakMemoryUsage: 82,
+        processingTime: 420,
+        totalFramesProcessed: 10000,
+        totalObjectsDetected: 4523,
       },
+      taskId: this.taskId,
+      type: "complete",
     };
 
     this.emit("message", { data: JSON.stringify(completeEvent) });
@@ -159,9 +160,9 @@ export function useTaskWebSocket(config: TaskWebSocketConfig): UseTaskWebSocketR
         case "connected":
           setState("connected");
           notifications.show({
-            title: "Connected",
-            message: "Real-time updates enabled",
             color: "green",
+            message: "Real-time updates enabled",
+            title: "Connected",
           });
           break;
 
@@ -179,9 +180,9 @@ export function useTaskWebSocket(config: TaskWebSocketConfig): UseTaskWebSocketR
 
         case "error":
           notifications.show({
-            title: "WebSocket Error",
-            message: data.error,
             color: "red",
+            message: data.error,
+            title: "WebSocket Error",
           });
           break;
 
@@ -215,7 +216,7 @@ export function useTaskWebSocket(config: TaskWebSocketConfig): UseTaskWebSocketR
       
       // Send initial handshake
       if (ws instanceof WebSocket) {
-        ws.send(JSON.stringify({ type: "subscribe", taskId: config.taskId }));
+        ws.send(JSON.stringify({ taskId: config.taskId, type: "subscribe" }));
       }
     });
 
@@ -238,9 +239,9 @@ export function useTaskWebSocket(config: TaskWebSocketConfig): UseTaskWebSocketR
         const delay = (config.reconnectDelay || 5000) * reconnectAttemptsRef.current;
         
         notifications.show({
-          title: "Connection Lost",
-          message: `Reconnecting in ${delay / 1000} seconds...`,
           color: "yellow",
+          message: `Reconnecting in ${delay / 1000} seconds...`,
+          title: "Connection Lost",
         });
 
         reconnectTimeoutRef.current = setTimeout(() => {
@@ -282,12 +283,12 @@ export function useTaskWebSocket(config: TaskWebSocketConfig): UseTaskWebSocketR
   }, [config.taskId]); // Only reconnect if taskId changes
 
   return {
-    state,
-    progress,
-    logs,
-    latestFrame,
+    clearLogs,
     connect,
     disconnect,
-    clearLogs,
+    latestFrame,
+    logs,
+    progress,
+    state,
   };
 }

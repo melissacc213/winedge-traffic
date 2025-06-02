@@ -1,6 +1,6 @@
+import { Box, Tooltip } from '@mantine/core';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Box, Tooltip } from '@mantine/core';
 
 type RoadType = 'straight' | 'tJunction' | 'crossroads';
 
@@ -15,14 +15,14 @@ export function RoadTypeIcon({ type, size = 32, showLabel = false }: RoadTypeIco
   
   const svgContent = useMemo(() => {
     const commonProps = {
-      width: size,
-      height: size,
-      viewBox: "0 0 24 24",
       fill: "none",
+      height: size,
       stroke: "currentColor",
-      strokeWidth: 2,
       strokeLinecap: "round" as const,
-      strokeLinejoin: "round" as const
+      strokeLinejoin: "round" as const,
+      strokeWidth: 2,
+      viewBox: "0 0 24 24",
+      width: size
     };
 
     switch (type) {
@@ -66,7 +66,7 @@ export function RoadTypeIcon({ type, size = 32, showLabel = false }: RoadTypeIco
 
   if (showLabel) {
     return (
-      <Box style={{ display: 'flex', alignItems: 'center', gap: 'var(--mantine-spacing-xs)' }}>
+      <Box style={{ alignItems: 'center', display: 'flex', gap: 'var(--mantine-spacing-xs)' }}>
         {svgContent}
         <span>{label}</span>
       </Box>
@@ -100,11 +100,11 @@ export function RoadTypeSelector({
           key={type}
           onClick={() => onChange(type)}
           style={{
+            backgroundColor: value === type ? 'var(--mantine-color-blue-0)' : 'transparent',
+            border: `2px solid ${value === type ? 'var(--mantine-color-blue-6)' : 'transparent'}`,
+            borderRadius: '4px',
             cursor: 'pointer',
             padding: '8px',
-            borderRadius: '4px',
-            border: `2px solid ${value === type ? 'var(--mantine-color-blue-6)' : 'transparent'}`,
-            backgroundColor: value === type ? 'var(--mantine-color-blue-0)' : 'transparent',
             transition: 'all 0.2s ease'
           }}
           onMouseEnter={(e) => {

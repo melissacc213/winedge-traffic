@@ -1,5 +1,7 @@
-import { useSelf } from '@/lib/queries/user';
 import { Navigate, Outlet } from 'react-router-dom';
+
+import { useSelf } from '@/lib/queries/user';
+
 import { AppLoader } from './ui/app-loader';
 
 export function AuthOutlet() {

@@ -1,13 +1,14 @@
+import { ActionIcon, Badge, Button, Menu, Stack, Text } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Button, Stack, Menu, ActionIcon, Badge, Text } from "@mantine/core";
+
 import { Icons } from "@/components/icons";
 import { PageLayout } from "@/components/page-layout/page-layout";
 import { DataTable } from "@/components/ui";
-import { useRecipes, useDeleteRecipe } from "@/lib/queries/recipe";
-import { useRecipeStore } from "@/lib/store/recipe-store";
-import { notifications } from "@mantine/notifications";
 import { confirmDelete } from "@/lib/confirmation";
+import { useDeleteRecipe,useRecipes } from "@/lib/queries/recipe";
+import { useRecipeStore } from "@/lib/store/recipe-store";
 import { getTaskTypeColor } from "@/lib/utils";
 import type { Recipe } from "@/types/recipe";
 
@@ -35,15 +36,15 @@ export function RecipesPage() {
       try {
         await deleteRecipeMutation.mutateAsync(recipe.id);
         notifications.show({
-          title: t("recipes:notifications.deleteSuccess"),
-          message: t("recipes:notifications.deleteSuccessMessage"),
           color: "green",
+          message: t("recipes:notifications.deleteSuccessMessage"),
+          title: t("recipes:notifications.deleteSuccess"),
         });
       } catch (error) {
         notifications.show({
-          title: t("common:error"),
-          message: t("recipes:notifications.deleteError"),
           color: "red",
+          message: t("recipes:notifications.deleteError"),
+          title: t("common:error"),
         });
       }
     });
@@ -71,7 +72,6 @@ export function RecipesPage() {
     {
       key: "taskType",
       label: t("recipes:table.taskType"),
-      width: 140,
       render: (recipe: Recipe) => (
         <Badge
           color={getTaskTypeColor(recipe.taskType)}
@@ -81,11 +81,11 @@ export function RecipesPage() {
           {t(`recipes:taskType.${recipe.taskType}`)}
         </Badge>
       ),
+      width: 140,
     },
     {
       key: "status",
       label: t("recipes:table.status"),
-      width: 100,
       render: (recipe: Recipe) => (
         <Badge
           variant="light"
@@ -95,14 +95,15 @@ export function RecipesPage() {
           {t(`recipes:status.${recipe.status}`)}
         </Badge>
       ),
+      width: 100,
     },
     {
       key: "regions",
       label: t("recipes:table.regions"),
-      width: 100,
       render: (recipe: Recipe) => (
         <Text size="sm">{recipe.regions?.length || 0} regions</Text>
       ),
+      width: 100,
     },
     {
       key: "modelId",
@@ -114,12 +115,12 @@ export function RecipesPage() {
     {
       key: "createdAt",
       label: t("recipes:table.createdAt"),
-      width: 120,
       render: (recipe: Recipe) => {
         if (!recipe.createdAt) return <Text size="sm">—</Text>;
         const date = new Date(recipe.createdAt);
         return <Text size="sm">{date.toLocaleDateString()}</Text>;
       },
+      width: 120,
     },
   ];
 
@@ -178,7 +179,7 @@ export function RecipesPage() {
           onRowClick={handleViewDetails}
           height={700}
           emptyMessage={t("recipes:noRecipes")}
-          defaultSort={{ key: "createdAt", direction: "desc" }}
+          defaultSort={{ direction: "desc", key: "createdAt" }}
           showPagination={true}
           pageSize={10}
           enableGlobalFilter={true}

@@ -1,151 +1,216 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import {
-  Paper,
-  Stack,
-  Group,
-  Title,
-  Button,
-  Badge,
-  Text,
-  Box,
-  Grid,
-  Card,
   ActionIcon,
-  Loader,
+  Badge,
+  Box,
+  Button,
+  Card,
   Center,
-  Tabs,
-  ScrollArea,
   Container,
-  useMantineTheme,
-  rem,
   Divider,
+  Grid,
+  Group,
+  Loader,
+  Paper,
+  rem,
+  ScrollArea,
   SimpleGrid,
+  Stack,
+  Tabs,
+  Text,
+  Title,
+  useComputedColorScheme,
+  useMantineTheme,
 } from "@mantine/core";
-import { Icons } from "@/components/icons";
-import { useTranslation } from "react-i18next";
-import { useTheme } from "@/providers/theme-provider";
-import { getRegionColor } from "@/lib/theme-utils";
-import { notifications } from "@mantine/notifications";
 import { modals } from "@mantine/modals";
-import { getTaskTypeColor, formatDateSimple } from "@/lib/utils";
+import { notifications } from "@mantine/notifications";
+import { useEffect,useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate,useParams } from "react-router-dom";
+
+import { Icons } from "@/components/icons";
 import { useRecipeStore } from "@/lib/store/recipe-store";
+import { getRegionColor } from "@/lib/theme-utils";
+import { formatDateSimple,getTaskTypeColor } from "@/lib/utils";
 import type { Region } from "@/types/recipe";
 
 // Generate mock data for the recipe details using theme colors
 const generateMockRecipeDetails = (theme: any, showOverflow: boolean = false) => ({
-  id: "recipe-1",
-  name: "市區主幹道交通流量監測",
-  description:
-    "用於監測市區主要道路的車流量統計，包含車輛計數、速度估算和流量分析",
-  taskType: "trafficStatistics",
-  status: "active",
-  createdAt: "2024-01-15T08:00:00Z",
-  updatedAt: "2024-12-20T14:30:00Z",
-
   // Task type specific configuration
-  configuration: {
-    frameInterval: 5,
-    confidenceThreshold: 0.7,
-    inferenceStep: 5,
+configuration: {
     classFilter: ["car", "truck", "bus", "motorcycle", "bicycle"],
+    confidenceThreshold: 0.7,
+    frameInterval: 5,
+    inferenceStep: 5,
   },
+  
+// Connections between regions
+connections: showOverflow ?
+    // Generate realistic connection patterns
+    [
+      // Main routes
+      { destinationId: "region-2", id: "conn-1", sourceId: "region-1" },
+      { destinationId: "region-3", id: "conn-2", sourceId: "region-2" },
+      { destinationId: "region-4", id: "conn-3", sourceId: "region-3" },
+      { destinationId: "region-5", id: "conn-4", sourceId: "region-4" },
+      { destinationId: "region-6", id: "conn-5", sourceId: "region-5" },
+      // Cross connections
+      { destinationId: "region-4", id: "conn-6", sourceId: "region-1" },
+      { destinationId: "region-5", id: "conn-7", sourceId: "region-2" },
+      { destinationId: "region-6", id: "conn-8", sourceId: "region-3" },
+      // Return routes
+      { destinationId: "region-7", id: "conn-9", sourceId: "region-6" },
+      { destinationId: "region-8", id: "conn-10", sourceId: "region-7" },
+      { destinationId: "region-9", id: "conn-11", sourceId: "region-8" },
+      { destinationId: "region-10", id: "conn-12", sourceId: "region-9" },
+      // Additional complex routes
+      { destinationId: "region-11", id: "conn-13", sourceId: "region-10" },
+      { destinationId: "region-12", id: "conn-14", sourceId: "region-11" },
+      { destinationId: "region-1", id: "conn-15", sourceId: "region-12" },
+      // Shortcuts
+      { destinationId: "region-10", id: "conn-16", sourceId: "region-7" },
+      { destinationId: "region-11", id: "conn-17", sourceId: "region-8" },
+      { destinationId: "region-12", id: "conn-18", sourceId: "region-9" },
+    ] :
+    // Normal case
+    [
+      {
+        destinationId: "region-2",
+        id: "conn-1",
+        sourceId: "region-1",
+      },
+    ],
+  
 
-  // Model configuration
-  model: {
+createdAt: "2024-01-15T08:00:00Z",
+  
+
+description:
+    "用於監測市區主要道路的車流量統計，包含車輛計數、速度估算和流量分析",
+  
+
+
+id: "recipe-1",
+  
+
+
+
+// Performance metrics
+metrics: {
+    averageProcessingTime: "2.4s",
+    lastUsed: "2024-12-25T10:30:00Z",
+    successRate: 98.5,
+    totalTasksRun: 156,
+  },
+  
+
+
+
+// Model configuration
+model: {
     id: "yolov8-traffic",
-    name: "YOLOv8 Traffic Model",
-    version: "v1.2.0",
-    type: "object_detection",
-    size: "45.2 MB",
     labels: showOverflow ?
       // Generate comprehensive traffic-related labels
       [
-        { id: "1", name: "Person", color: getRegionColor(theme, 0), confidence: 0.85, enabled: true, width_threshold: 32, height_threshold: 32 },
-        { id: "2", name: "Car", color: getRegionColor(theme, 1), confidence: 0.90, enabled: true, width_threshold: 48, height_threshold: 48 },
-        { id: "3", name: "Truck", color: getRegionColor(theme, 2), confidence: 0.85, enabled: true, width_threshold: 64, height_threshold: 64 },
-        { id: "4", name: "Bus", color: getRegionColor(theme, 3), confidence: 0.88, enabled: true, width_threshold: 80, height_threshold: 80 },
-        { id: "5", name: "Motorcycle", color: getRegionColor(theme, 4), confidence: 0.75, enabled: true, width_threshold: 32, height_threshold: 48 },
-        { id: "6", name: "Bicycle", color: getRegionColor(theme, 5), confidence: 0.70, enabled: true, width_threshold: 24, height_threshold: 32 },
-        { id: "7", name: "Van", color: getRegionColor(theme, 6), confidence: 0.82, enabled: true, width_threshold: 56, height_threshold: 56 },
-        { id: "8", name: "Trailer", color: getRegionColor(theme, 7), confidence: 0.78, enabled: false, width_threshold: 96, height_threshold: 64 },
-        { id: "9", name: "Police Car", color: getRegionColor(theme, 8), confidence: 0.92, enabled: true, width_threshold: 48, height_threshold: 48 },
-        { id: "10", name: "Ambulance", color: getRegionColor(theme, 9), confidence: 0.91, enabled: true, width_threshold: 64, height_threshold: 56 },
-        { id: "11", name: "Fire Truck", color: getRegionColor(theme, 10), confidence: 0.89, enabled: true, width_threshold: 80, height_threshold: 64 },
-        { id: "12", name: "Taxi", color: getRegionColor(theme, 11), confidence: 0.86, enabled: true, width_threshold: 48, height_threshold: 48 },
-        { id: "13", name: "School Bus", color: getRegionColor(theme, 12), confidence: 0.87, enabled: false, width_threshold: 80, height_threshold: 72 },
-        { id: "14", name: "Delivery Truck", color: getRegionColor(theme, 13), confidence: 0.83, enabled: true, width_threshold: 64, height_threshold: 64 },
-        { id: "15", name: "Scooter", color: getRegionColor(theme, 14), confidence: 0.68, enabled: true, width_threshold: 24, height_threshold: 32 },
-        { id: "16", name: "Construction Vehicle", color: getRegionColor(theme, 15), confidence: 0.76, enabled: false, width_threshold: 96, height_threshold: 80 },
-        { id: "17", name: "Mini Van", color: getRegionColor(theme, 16), confidence: 0.81, enabled: true, width_threshold: 48, height_threshold: 48 },
-        { id: "18", name: "Pickup Truck", color: getRegionColor(theme, 17), confidence: 0.84, enabled: true, width_threshold: 56, height_threshold: 48 },
-        { id: "19", name: "Semi Truck", color: getRegionColor(theme, 18), confidence: 0.86, enabled: true, width_threshold: 96, height_threshold: 80 },
-        { id: "20", name: "Tanker", color: getRegionColor(theme, 19), confidence: 0.79, enabled: false, width_threshold: 96, height_threshold: 72 },
+        { color: getRegionColor(theme, 0), confidence: 0.85, enabled: true, height_threshold: 32, id: "1", name: "Person", width_threshold: 32 },
+        { color: getRegionColor(theme, 1), confidence: 0.90, enabled: true, height_threshold: 48, id: "2", name: "Car", width_threshold: 48 },
+        { color: getRegionColor(theme, 2), confidence: 0.85, enabled: true, height_threshold: 64, id: "3", name: "Truck", width_threshold: 64 },
+        { color: getRegionColor(theme, 3), confidence: 0.88, enabled: true, height_threshold: 80, id: "4", name: "Bus", width_threshold: 80 },
+        { color: getRegionColor(theme, 4), confidence: 0.75, enabled: true, height_threshold: 48, id: "5", name: "Motorcycle", width_threshold: 32 },
+        { color: getRegionColor(theme, 5), confidence: 0.70, enabled: true, height_threshold: 32, id: "6", name: "Bicycle", width_threshold: 24 },
+        { color: getRegionColor(theme, 6), confidence: 0.82, enabled: true, height_threshold: 56, id: "7", name: "Van", width_threshold: 56 },
+        { color: getRegionColor(theme, 7), confidence: 0.78, enabled: false, height_threshold: 64, id: "8", name: "Trailer", width_threshold: 96 },
+        { color: getRegionColor(theme, 8), confidence: 0.92, enabled: true, height_threshold: 48, id: "9", name: "Police Car", width_threshold: 48 },
+        { color: getRegionColor(theme, 9), confidence: 0.91, enabled: true, height_threshold: 56, id: "10", name: "Ambulance", width_threshold: 64 },
+        { color: getRegionColor(theme, 10), confidence: 0.89, enabled: true, height_threshold: 64, id: "11", name: "Fire Truck", width_threshold: 80 },
+        { color: getRegionColor(theme, 11), confidence: 0.86, enabled: true, height_threshold: 48, id: "12", name: "Taxi", width_threshold: 48 },
+        { color: getRegionColor(theme, 12), confidence: 0.87, enabled: false, height_threshold: 72, id: "13", name: "School Bus", width_threshold: 80 },
+        { color: getRegionColor(theme, 13), confidence: 0.83, enabled: true, height_threshold: 64, id: "14", name: "Delivery Truck", width_threshold: 64 },
+        { color: getRegionColor(theme, 14), confidence: 0.68, enabled: true, height_threshold: 32, id: "15", name: "Scooter", width_threshold: 24 },
+        { color: getRegionColor(theme, 15), confidence: 0.76, enabled: false, height_threshold: 80, id: "16", name: "Construction Vehicle", width_threshold: 96 },
+        { color: getRegionColor(theme, 16), confidence: 0.81, enabled: true, height_threshold: 48, id: "17", name: "Mini Van", width_threshold: 48 },
+        { color: getRegionColor(theme, 17), confidence: 0.84, enabled: true, height_threshold: 48, id: "18", name: "Pickup Truck", width_threshold: 56 },
+        { color: getRegionColor(theme, 18), confidence: 0.86, enabled: true, height_threshold: 80, id: "19", name: "Semi Truck", width_threshold: 96 },
+        { color: getRegionColor(theme, 19), confidence: 0.79, enabled: false, height_threshold: 72, id: "20", name: "Tanker", width_threshold: 96 },
       ] :
       // Normal case
       [
         {
-          id: "1",
-          name: "Person",
           color: getRegionColor(theme, 0),
           confidence: 0.7,
           enabled: true,
-          width_threshold: 32,
           height_threshold: 32,
+          id: "1",
+          name: "Person",
+          width_threshold: 32,
         },
         {
-          id: "2",
-          name: "Vehicle",
           color: getRegionColor(theme, 1),
           confidence: 0.75,
           enabled: true,
-          width_threshold: 32,
           height_threshold: 32,
+          id: "2",
+          name: "Vehicle",
+          width_threshold: 32,
         },
         {
-          id: "3",
-          name: "Truck",
           color: getRegionColor(theme, 2),
           confidence: 0.8,
           enabled: true,
-          width_threshold: 32,
           height_threshold: 32,
+          id: "3",
+          name: "Truck",
+          width_threshold: 32,
         },
         {
-          id: "4",
-          name: "Motorcycle",
           color: getRegionColor(theme, 3),
           confidence: 0.65,
           enabled: false,
-          width_threshold: 32,
           height_threshold: 32,
+          id: "4",
+          name: "Motorcycle",
+          width_threshold: 32,
         },
       ],
+    name: "YOLOv8 Traffic Model",
+    size: "45.2 MB",
+    type: "object_detection",
+    version: "v1.2.0",
   },
 
-  // Region configuration based on the API structure
-  regions: showOverflow ? 
+  
+  
+
+
+name: "市區主幹道交通流量監測",
+
+  
+  
+
+// Region configuration based on the API structure
+regions: showOverflow ? 
     // Generate comprehensive mock data for review
     Array.from({ length: 12 }, (_, i) => ({
-      id: `region-${i + 1}`,
-      name: String.fromCharCode(65 + (i % 26)) + (Math.floor(i / 26) > 0 ? Math.floor(i / 26) : ''), // A, B, C... then AA, AB, etc.
-      type: "areaOfInterest" as const,
       color: getRegionColor(theme, i),
-      points: [
+      id: `region-${i + 1}`, 
+      name: String.fromCharCode(65 + (i % 26)) + (Math.floor(i / 26) > 0 ? Math.floor(i / 26) : ''),
+      
+points: [
         { x: 100 + (i * 50), y: 300 },
         { x: 300 + (i * 50), y: 300 },
         { x: 300 + (i * 50), y: 500 },
         { x: 100 + (i * 50), y: 500 },
       ],
-      roadType: i === 0 ? "straight" : i % 3 === 1 ? "tJunction" : "crossroads" as const,
+      
+roadType: i === 0 ? "straight" : i % 3 === 1 ? "tJunction" : "crossroads" as const,
+      // A, B, C... then AA, AB, etc.
+type: "areaOfInterest" as const,
     })) :
     // Normal case with few regions
     [
       {
+        color: getRegionColor(theme, 0),
         id: "region-1",
         name: "A",
-        type: "areaOfInterest" as const,
-        color: getRegionColor(theme, 0),
         points: [
           { x: 100, y: 300 },
           { x: 300, y: 300 },
@@ -153,12 +218,12 @@ const generateMockRecipeDetails = (theme: any, showOverflow: boolean = false) =>
           { x: 100, y: 500 },
         ],
         roadType: "straight" as const,
+        type: "areaOfInterest" as const,
       },
       {
+        color: getRegionColor(theme, 1),
         id: "region-2",
         name: "B",
-        type: "areaOfInterest" as const,
-        color: getRegionColor(theme, 1),
         points: [
           { x: 400, y: 300 },
           { x: 600, y: 300 },
@@ -166,65 +231,42 @@ const generateMockRecipeDetails = (theme: any, showOverflow: boolean = false) =>
           { x: 400, y: 500 },
         ],
         roadType: "straight" as const,
+        type: "areaOfInterest" as const,
       },
     ],
 
-  // Connections between regions
-  connections: showOverflow ?
-    // Generate realistic connection patterns
-    [
-      // Main routes
-      { id: "conn-1", sourceId: "region-1", destinationId: "region-2" },
-      { id: "conn-2", sourceId: "region-2", destinationId: "region-3" },
-      { id: "conn-3", sourceId: "region-3", destinationId: "region-4" },
-      { id: "conn-4", sourceId: "region-4", destinationId: "region-5" },
-      { id: "conn-5", sourceId: "region-5", destinationId: "region-6" },
-      // Cross connections
-      { id: "conn-6", sourceId: "region-1", destinationId: "region-4" },
-      { id: "conn-7", sourceId: "region-2", destinationId: "region-5" },
-      { id: "conn-8", sourceId: "region-3", destinationId: "region-6" },
-      // Return routes
-      { id: "conn-9", sourceId: "region-6", destinationId: "region-7" },
-      { id: "conn-10", sourceId: "region-7", destinationId: "region-8" },
-      { id: "conn-11", sourceId: "region-8", destinationId: "region-9" },
-      { id: "conn-12", sourceId: "region-9", destinationId: "region-10" },
-      // Additional complex routes
-      { id: "conn-13", sourceId: "region-10", destinationId: "region-11" },
-      { id: "conn-14", sourceId: "region-11", destinationId: "region-12" },
-      { id: "conn-15", sourceId: "region-12", destinationId: "region-1" },
-      // Shortcuts
-      { id: "conn-16", sourceId: "region-7", destinationId: "region-10" },
-      { id: "conn-17", sourceId: "region-8", destinationId: "region-11" },
-      { id: "conn-18", sourceId: "region-9", destinationId: "region-12" },
-    ] :
-    // Normal case
-    [
-      {
-        id: "conn-1",
-        sourceId: "region-1",
-        destinationId: "region-2",
-      },
-    ],
+  
+  
 
-  // Sample frame for visualization
-  sampleFrame: "/api/placeholder/800/600",
 
-  // Performance metrics
-  metrics: {
-    totalTasksRun: 156,
-    averageProcessingTime: "2.4s",
-    successRate: 98.5,
-    lastUsed: "2024-12-25T10:30:00Z",
-  },
+// Sample frame for visualization
+sampleFrame: "/api/placeholder/800/600",
+
+  
+  
+
+
+
+status: "active",
+
+  
+  
+
+
+taskType: "trafficStatistics",
+
+  
+  
+updatedAt: "2024-12-20T14:30:00Z",
 });
 
 export function RecipeDetailsPage() {
   const { t } = useTranslation(["recipes", "common"]);
   const { recipeId } = useParams<{ recipeId: string }>();
   const navigate = useNavigate();
-  const { theme, colorScheme } = useTheme();
-  const mantineTheme = useMantineTheme();
-  const isDark = colorScheme === "dark";
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string | null>("regions");
   const [showOverflow] = useState(true); // Set to true to see comprehensive mock data
@@ -239,27 +281,27 @@ export function RecipeDetailsPage() {
   const recipeFromStore = recipes.find(r => r.id === recipeId);
   const recipe = recipeFromStore ? {
     ...mockRecipeDetails,
-    id: recipeFromStore.id,
-    name: recipeFromStore.name,
-    description: recipeFromStore.description || mockRecipeDetails.description,
-    taskType: recipeFromStore.taskType,
-    status: recipeFromStore.status,
-    createdAt: recipeFromStore.createdAt,
     configuration: {
-      frameInterval: formValues.inferenceStep || 5,
-      confidenceThreshold: formValues.confidenceThreshold || recipeFromStore.confidenceThreshold || 0.7,
       classFilter: formValues.classFilter || recipeFromStore.classFilter || mockRecipeDetails.configuration.classFilter,
+      confidenceThreshold: formValues.confidenceThreshold || recipeFromStore.confidenceThreshold || 0.7,
+      frameInterval: formValues.inferenceStep || 5,
       inferenceStep: formValues.inferenceStep || 5,
     },
+    connections: formValues.connections || mockRecipeDetails.connections,
+    createdAt: recipeFromStore.createdAt,
+    description: recipeFromStore.description || mockRecipeDetails.description,
+    id: recipeFromStore.id,
     model: formValues.modelConfig && formValues.name === recipeFromStore.name ? {
       ...mockRecipeDetails.model,
       id: formValues.modelId,
-      name: formValues.modelName || mockRecipeDetails.model.name,
       labels: formValues.modelConfig.labels || mockRecipeDetails.model.labels,
+      name: formValues.modelName || mockRecipeDetails.model.name,
     } : mockRecipeDetails.model,
+    name: recipeFromStore.name,
     regions: formValues.regions?.length > 0 && formValues.name === recipeFromStore.name ? 
       formValues.regions : recipeFromStore.regions || mockRecipeDetails.regions,
-    connections: formValues.connections || mockRecipeDetails.connections,
+    status: recipeFromStore.status,
+    taskType: recipeFromStore.taskType,
   } : mockRecipeDetails;
 
 
@@ -281,25 +323,25 @@ export function RecipeDetailsPage() {
 
   const handleDelete = () => {
     modals.openConfirmModal({
-      title: t("recipes:confirmDelete.title"),
       children: (
         <Text size="sm">
           {t("recipes:confirmDelete.message", { name: recipe.name })}
         </Text>
       ),
-      labels: {
-        confirm: t("common:action.delete"),
-        cancel: t("common:action.cancel"),
-      },
       confirmProps: { color: "red" },
+      labels: {
+        cancel: t("common:action.cancel"),
+        confirm: t("common:action.delete"),
+      },
       onConfirm: () => {
         notifications.show({
-          title: t("recipes:notifications.deleteSuccess"),
-          message: t("recipes:notifications.deleteSuccessMessage"),
           color: "green",
+          message: t("recipes:notifications.deleteSuccessMessage"),
+          title: t("recipes:notifications.deleteSuccess"),
         });
         navigate("/recipes");
       },
+      title: t("recipes:confirmDelete.title"),
     });
   };
 
@@ -379,7 +421,7 @@ export function RecipeDetailsPage() {
         <Grid.Col span={{ base: 12, lg: 4 }}>
           <Stack gap="md" h={500} style={{ minHeight: 0 }}>
             {/* Regions Section - Now takes 50% height */}
-            <Card p="lg" radius="md" withBorder style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <Card p="lg" radius="md" withBorder style={{ display: 'flex', flex: 1, flexDirection: 'column', minHeight: 0 }}>
               <Group justify="space-between" mb="md">
                 <Title order={5}>Defined Regions</Title>
                 <Badge size="sm" variant="light" color="blue">
@@ -394,17 +436,17 @@ export function RecipeDetailsPage() {
                       <Group gap="sm" mb="xs">
                         <Box
                           style={{
-                            width: 20,
-                            height: 20,
+                            alignItems: "center",
                             backgroundColor: region.color || getRegionColor(theme, index),
                             borderRadius: "50%",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
                             color: "white",
+                            display: "flex",
+                            flexShrink: 0,
                             fontSize: rem(11),
                             fontWeight: 600,
-                            flexShrink: 0,
+                            height: 20,
+                            justifyContent: "center",
+                            width: 20,
                           }}
                         >
                           {region.name}
@@ -427,7 +469,7 @@ export function RecipeDetailsPage() {
             
             {/* Connections Section - Now takes 50% height */}
             {recipe.connections && recipe.connections.length > 0 && (
-              <Card p="lg" radius="md" withBorder style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+              <Card p="lg" radius="md" withBorder style={{ display: 'flex', flex: 1, flexDirection: 'column', minHeight: 0 }}>
                 <Group justify="space-between" mb="md">
                   <Title order={5}>Connections</Title>
                   <Badge size="sm" variant="light" color="blue">
@@ -447,25 +489,25 @@ export function RecipeDetailsPage() {
                           radius="sm"
                           withBorder
                           style={{
-                            backgroundColor: isDark ? mantineTheme.colors.dark?.[7] || mantineTheme.colors.gray[8] : mantineTheme.white,
-                            borderColor: isDark ? mantineTheme.colors.dark?.[4] || mantineTheme.colors.gray[6] : mantineTheme.colors.gray[2],
+                            backgroundColor: isDark ? theme.colors.dark?.[7] || theme.colors.gray[8] : theme.white,
+                            borderColor: isDark ? theme.colors.dark?.[4] || theme.colors.gray[6] : theme.colors.gray[2],
                           }}
                         >
                           <Group gap="xs" wrap="nowrap" justify="center">
                             <Group gap={6} wrap="nowrap">
                               <Box
                                 style={{
-                                  width: 18,
-                                  height: 18,
+                                  alignItems: 'center',
                                   backgroundColor: (sourceRegion as any)?.color || theme.colors.gray[6],
                                   borderRadius: '50%',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
                                   color: 'white',
+                                  display: 'flex',
+                                  flexShrink: 0,
                                   fontSize: rem(10),
                                   fontWeight: 700,
-                                  flexShrink: 0,
+                                  height: 18,
+                                  justifyContent: 'center',
+                                  width: 18,
                                 }}
                               >
                                 {sourceRegion?.name}
@@ -475,17 +517,17 @@ export function RecipeDetailsPage() {
                             
                             <Box
                               style={{
-                                display: 'flex',
                                 alignItems: 'center',
+                                color: theme.colors.blue[5],
+                                display: 'flex',
                                 gap: rem(4),
-                                color: mantineTheme.colors.blue[5],
                               }}
                             >
                               <Box
                                 style={{
-                                  width: 16,
+                                  backgroundColor: theme.colors.blue[3],
                                   height: 1,
-                                  backgroundColor: mantineTheme.colors.blue[3],
+                                  width: 16,
                                 }}
                               />
                               <Icons.ChevronRight size={14} />
@@ -494,17 +536,17 @@ export function RecipeDetailsPage() {
                             <Group gap={6} wrap="nowrap">
                               <Box
                                 style={{
-                                  width: 18,
-                                  height: 18,
+                                  alignItems: 'center',
                                   backgroundColor: (destRegion as any)?.color || theme.colors.gray[6],
                                   borderRadius: '50%',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
                                   color: 'white',
+                                  display: 'flex',
+                                  flexShrink: 0,
                                   fontSize: rem(10),
                                   fontWeight: 700,
-                                  flexShrink: 0,
+                                  height: 18,
+                                  justifyContent: 'center',
+                                  width: 18,
                                 }}
                               >
                                 {destRegion?.name}
@@ -595,11 +637,11 @@ export function RecipeDetailsPage() {
                           <Group gap="md">
                             <Box
                               style={{
-                                width: 40,
-                                height: 40,
                                 backgroundColor: label.color,
-                                borderRadius: mantineTheme.radius.md,
+                                borderRadius: theme.radius.md,
+                                height: 40,
                                 opacity: label.enabled ? 1 : 0.5,
+                                width: 40,
                               }}
                             />
                             <div style={{ flex: 1 }}>
@@ -635,13 +677,13 @@ export function RecipeDetailsPage() {
                   {recipe.model.labels.length > 5 && (
                     <Box
                       style={{
-                        position: 'absolute',
+                        background: `linear-gradient(to bottom, transparent, ${isDark ? theme.colors.dark[8] : 'white'})`,
                         bottom: 0,
-                        left: 0,
-                        right: 0,
                         height: 40,
-                        background: `linear-gradient(to bottom, transparent, ${isDark ? mantineTheme.colors.dark[8] : 'white'})`,
+                        left: 0,
                         pointerEvents: 'none',
+                        position: 'absolute',
+                        right: 0,
                       }}
                     />
                   )}
@@ -678,7 +720,7 @@ export function RecipeDetailsPage() {
   if (!recipe) {
     return (
       <div style={{ padding: '2rem' }}>
-        <Center style={{ height: 300, flexDirection: "column" }}>
+        <Center style={{ flexDirection: "column", height: 300 }}>
           <Text c="red" mb="md">
             {t("recipes:details.notFound")}
           </Text>
@@ -700,17 +742,17 @@ export function RecipeDetailsPage() {
         display: "flex",
         flexDirection: "column",
         height: "calc(100vh - 70px)",
-        position: "relative",
         overflow: "hidden",
+        position: "relative",
       }}
     >
       {/* Header */}
       <Box
         style={{
           backgroundColor: isDark
-            ? mantineTheme.colors.dark[8]
-            : mantineTheme.white,
-          borderBottom: `1px solid ${isDark ? mantineTheme.colors.dark[5] : mantineTheme.colors.gray[2]}`,
+            ? theme.colors.dark[8]
+            : theme.white,
+          borderBottom: `1px solid ${isDark ? theme.colors.dark[5] : theme.colors.gray[2]}`,
           zIndex: 10,
         }}
       >
@@ -818,11 +860,11 @@ export function RecipeDetailsPage() {
       {/* Content Area - Scrollable */}
       <Box
         style={{
+          backgroundColor: isDark
+            ? theme.colors.dark[7]
+            : theme.colors.gray[0],
           flex: 1,
           overflowY: "auto",
-          backgroundColor: isDark
-            ? mantineTheme.colors.dark[7]
-            : theme.colors.gray[0],
         }}
       >
         <Container size="xl" py="xl">

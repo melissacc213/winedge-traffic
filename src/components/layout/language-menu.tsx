@@ -1,7 +1,8 @@
-import { Icons } from '../icons';
 import { ActionIcon, Menu } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { Icons } from '../icons';
 
 export default function LanguageMenu() {
   const { i18n } = useTranslation();
@@ -13,12 +14,12 @@ export default function LanguageMenu() {
 
   const languages = [
     {
-      label: 'English',
       code: 'en',
+      label: 'English',
     },
     {
-      label: '繁體中文',
       code: 'zh-TW',
+      label: '繁體中文',
     },
   ];
 

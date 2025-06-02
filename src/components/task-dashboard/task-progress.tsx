@@ -1,5 +1,6 @@
+import { Group, Progress, rem,Text } from "@mantine/core";
+
 import type { TaskStatus } from "@/lib/validator/task";
-import { Progress, Text, Group, rem } from "@mantine/core";
 
 interface TaskProgressProps {
   progress: number;

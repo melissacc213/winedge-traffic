@@ -1,4 +1,5 @@
-import { Table, Box, Group } from "@mantine/core";
+import { Box, Group,Table } from "@mantine/core";
+
 import { Skeleton } from "./skeleton";
 
 interface TableSkeletonProps {
@@ -37,7 +38,7 @@ export function TableSkeleton({
     : colWidths;
 
   return (
-    <Box style={{ height, width, overflow: "hidden" }}>
+    <Box style={{ height, overflow: "hidden", width }}>
       <Table striped withTableBorder withColumnBorders>
         {withHeader && (
           <Table.Thead>
@@ -45,7 +46,7 @@ export function TableSkeleton({
               {Array.from({ length: actualColumns }).map((_, i) => (
                 <Table.Th
                   key={`header-${i}`}
-                  style={{ width: actualColWidths[i], height: headerHeight }}
+                  style={{ height: headerHeight, width: actualColWidths[i] }}
                 >
                   <Skeleton
                     height={24}

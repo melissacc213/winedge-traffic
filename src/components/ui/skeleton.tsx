@@ -1,7 +1,7 @@
 import {
+  type MantineSpacing,
   Skeleton as MantineSkeleton,
   Stack,
-  type MantineSpacing,
 } from "@mantine/core";
 import type { CSSProperties } from "react";
 

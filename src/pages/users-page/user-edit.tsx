@@ -1,8 +1,10 @@
 import { Modal } from "@mantine/core";
-import { UserForm } from "./user-form";
-import { useUpdateUser } from "@/lib/queries/user";
 import { useTranslation } from "react-i18next";
+
+import { useUpdateUser } from "@/lib/queries/user";
 import type { User } from "@/lib/validator/user";
+
+import { UserForm } from "./user-form";
 
 interface UserEditProps {
   user: User;
@@ -23,8 +25,8 @@ export function UserEdit({ user, opened, onClose, onSuccess }: UserEditProps) {
     }
     
     await updateMutation.mutateAsync({ 
-      id: user.id, 
-      data: updates 
+      data: updates, 
+      id: user.id 
     });
     onSuccess?.();
   };
@@ -40,9 +42,9 @@ export function UserEdit({ user, opened, onClose, onSuccess }: UserEditProps) {
     >
       <UserForm
         initialValues={{
-          username: user.username,
           email: user.email,
           role: user.role,
+          username: user.username,
         }}
         onSubmit={handleSubmit}
         submitLabel={t("common:action.save")}

@@ -1,7 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { licenseService } from '../api/license-service';
-import type { CreateLicenseRequest, UpdateLicenseRequest, License, LicensesList } from '../validator/license';
 import { notifications } from '@mantine/notifications';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
+import { licenseService } from '../api/license-service';
+import type { CreateLicenseRequest, License, LicensesList,UpdateLicenseRequest } from '../validator/license';
 
 // Mock data generation based on validator schema
 const generateMockLicenses = (): License[] => {
@@ -32,15 +33,20 @@ const generateMockLicenses = (): License[] => {
     }
     
     return {
-      id: i + 1,
-      name: `${type} License ${year}`,
-      file_name: `winedge_${type.toLowerCase()}_${year}${extension}`,
-      file_size: Math.floor(Math.random() * 4096) + 1024, // 1KB to 5KB
-      is_default: i === 0, // First license is default
-      uploaded_by: uploader,
-      uploaded_at: uploadedDate.toISOString(),
       expires_at: hasExpiry ? expiresDate.toISOString() : null,
-      status,
+      file_name: `winedge_${type.toLowerCase()}_${year}${extension}`,
+      file_size: Math.floor(Math.random() * 4096) + 1024,
+      
+id: i + 1, 
+      // 1KB to 5KB
+is_default: i === 0, 
+      name: `${type} License ${year}`,
+      
+status,
+      
+uploaded_at: uploadedDate.toISOString(),
+      // First license is default
+uploaded_by: uploader,
     };
   });
 };
@@ -51,16 +57,15 @@ const mockLicenses = generateMockLicenses();
 // Query keys
 export const licenseKeys = {
   all: ['licenses'] as const,
-  lists: () => [...licenseKeys.all, 'list'] as const,
-  list: (params?: { page?: number; size?: number }) => [...licenseKeys.lists(), params] as const,
-  details: () => [...licenseKeys.all, 'detail'] as const,
   detail: (id: number) => [...licenseKeys.details(), id] as const,
+  details: () => [...licenseKeys.all, 'detail'] as const,
+  list: (params?: { page?: number; size?: number }) => [...licenseKeys.lists(), params] as const,
+  lists: () => [...licenseKeys.all, 'list'] as const,
 };
 
 // Get licenses list with pagination
 export function useLicenses(params?: { page?: number; size?: number }, useMockData = false) {
   return useQuery({
-    queryKey: licenseKeys.list(params),
     queryFn: async () => {
       if (useMockData) {
         // Simulate network delay
@@ -85,13 +90,14 @@ export function useLicenses(params?: { page?: number; size?: number }, useMockDa
       
       return licenseService.getLicenses(params);
     },
+    queryKey: licenseKeys.list(params),
   });
 }
 
 // Get single license details
 export function useLicenseDetails(id: number, useMockData = false) {
   return useQuery({
-    queryKey: licenseKeys.detail(id),
+    enabled: !!id,
     queryFn: async () => {
       if (useMockData) {
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -101,7 +107,7 @@ export function useLicenseDetails(id: number, useMockData = false) {
       }
       return licenseService.getLicense(id);
     },
-    enabled: !!id,
+    queryKey: licenseKeys.detail(id),
   });
 }
 
@@ -112,19 +118,19 @@ export function useUploadLicense() {
   return useMutation({
     mutationFn: (data: CreateLicenseRequest & { file: File }) => 
       licenseService.uploadLicense(data),
+    onError: (error: any) => {
+      notifications.show({
+        color: 'red',
+        message: error.response?.data?.message || 'Failed to upload license',
+        title: 'Error',
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: licenseKeys.lists() });
       notifications.show({
-        title: 'Success',
-        message: 'License uploaded successfully',
         color: 'green',
-      });
-    },
-    onError: (error: any) => {
-      notifications.show({
-        title: 'Error',
-        message: error.response?.data?.message || 'Failed to upload license',
-        color: 'red',
+        message: 'License uploaded successfully',
+        title: 'Success',
       });
     },
   });
@@ -137,20 +143,20 @@ export function useUpdateLicense() {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateLicenseRequest }) => 
       licenseService.updateLicense(id, data),
+    onError: (error: any) => {
+      notifications.show({
+        color: 'red',
+        message: error.response?.data?.message || 'Failed to update license',
+        title: 'Error',
+      });
+    },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: licenseKeys.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: licenseKeys.lists() });
       notifications.show({
-        title: 'Success',
-        message: 'License updated successfully',
         color: 'green',
-      });
-    },
-    onError: (error: any) => {
-      notifications.show({
-        title: 'Error',
-        message: error.response?.data?.message || 'Failed to update license',
-        color: 'red',
+        message: 'License updated successfully',
+        title: 'Success',
       });
     },
   });
@@ -162,19 +168,19 @@ export function useDeleteLicense() {
   
   return useMutation({
     mutationFn: (id: number) => licenseService.deleteLicense(id),
+    onError: (error: any) => {
+      notifications.show({
+        color: 'red',
+        message: error.response?.data?.message || 'Failed to delete license',
+        title: 'Error',
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: licenseKeys.lists() });
       notifications.show({
-        title: 'Success',
-        message: 'License deleted successfully',
         color: 'green',
-      });
-    },
-    onError: (error: any) => {
-      notifications.show({
-        title: 'Error',
-        message: error.response?.data?.message || 'Failed to delete license',
-        color: 'red',
+        message: 'License deleted successfully',
+        title: 'Success',
       });
     },
   });
@@ -186,19 +192,19 @@ export function useSetDefaultLicense() {
   
   return useMutation({
     mutationFn: (id: number) => licenseService.setDefaultLicense(id),
+    onError: (error: any) => {
+      notifications.show({
+        color: 'red',
+        message: error.response?.data?.message || 'Failed to set default license',
+        title: 'Error',
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: licenseKeys.lists() });
       notifications.show({
-        title: 'Success',
-        message: 'Default license updated successfully',
         color: 'green',
-      });
-    },
-    onError: (error: any) => {
-      notifications.show({
-        title: 'Error',
-        message: error.response?.data?.message || 'Failed to set default license',
-        color: 'red',
+        message: 'Default license updated successfully',
+        title: 'Success',
       });
     },
   });

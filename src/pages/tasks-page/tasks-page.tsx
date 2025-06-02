@@ -1,13 +1,14 @@
+import { ActionIcon, Badge, Box, Button, Menu, Progress,Stack, Text } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Button, Stack, Menu, ActionIcon, Badge, Text, Box, Progress } from "@mantine/core";
+
 import { Icons } from "@/components/icons";
 import { PageLayout } from "@/components/page-layout/page-layout";
 import { DataTable } from "@/components/ui";
-import { useTasks, useDeleteTask } from "@/lib/queries/task";
-import { notifications } from "@mantine/notifications";
 import { confirmDelete } from "@/lib/confirmation";
+import { useDeleteTask,useTasks } from "@/lib/queries/task";
 import { getTaskTypeColor } from "@/lib/utils";
 import type { Task } from "@/types/task";
 
@@ -34,15 +35,15 @@ export function TasksPage() {
       try {
         await deleteTaskMutation.mutateAsync(task.id);
         notifications.show({
-          title: t("tasks:notifications.deleteSuccess"),
-          message: t("tasks:notifications.deleteSuccessMessage"),
           color: "green",
+          message: t("tasks:notifications.deleteSuccessMessage"),
+          title: t("tasks:notifications.deleteSuccess"),
         });
       } catch (error) {
         notifications.show({
-          title: t("common:error"),
-          message: t("tasks:notifications.deleteError"),
           color: "red",
+          message: t("tasks:notifications.deleteError"),
+          title: t("common:error"),
         });
       }
     });
@@ -82,17 +83,16 @@ export function TasksPage() {
     {
       key: "status",
       label: t("tasks:table.status"),
-      width: 120,
       render: (task: Task) => (
         <Badge color={getStatusColor(task.status)} variant="light" size="md">
           {t(`tasks:status.${task.status}`)}
         </Badge>
       ),
+      width: 120,
     },
     {
       key: "progress",
       label: t("tasks:table.progress"),
-      width: 150,
       render: (task: Task) => (
         <Box style={{ width: "100%" }}>
           <Progress
@@ -108,16 +108,17 @@ export function TasksPage() {
           </Text>
         </Box>
       ),
+      width: 150,
     },
     {
       key: "resultType",
       label: t("tasks:table.type"),
-      width: 140,
       render: (task: Task) => (
         <Badge color={getTaskTypeColor(task.resultType)} variant="light" size="md">
           {t(`tasks:taskType.${task.resultType}`)}
         </Badge>
       ),
+      width: 140,
     },
     {
       key: "recipeName",
@@ -131,12 +132,12 @@ export function TasksPage() {
     {
       key: "createdAt",
       label: t("tasks:table.createdAt"),
-      width: 120,
       render: (task: Task) => {
         if (!task.createdAt) return <Text size="sm">—</Text>;
         const date = new Date(task.createdAt);
         return <Text size="sm">{date.toLocaleDateString()}</Text>;
       },
+      width: 120,
     },
   ];
 
@@ -196,7 +197,7 @@ export function TasksPage() {
           onRowClick={handleViewDetails}
           height={700}
           emptyMessage={t("tasks:noTasks")}
-          defaultSort={{ key: 'createdAt', direction: 'desc' }}
+          defaultSort={{ direction: 'desc', key: 'createdAt' }}
           showPagination={true}
           pageSize={10}
           enableGlobalFilter={true}

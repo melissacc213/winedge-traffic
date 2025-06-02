@@ -3,162 +3,162 @@ import type { ModelConfig, ModelLabel } from "@/types/model";
 // Mock labels for different task types
 const trafficLabels: ModelLabel[] = [
   {
-    id: "1",
-    name: "car",
+    area_threshold: 1024,
     color: "#FF6B6B",
     confidence: 0.75,
-    width_threshold: 32,
-    height_threshold: 32,
-    area_threshold: 1024,
     enabled: true,
+    height_threshold: 32,
+    id: "1",
+    name: "car",
+    width_threshold: 32,
   },
   {
-    id: "2",
-    name: "truck",
+    area_threshold: 2304,
     color: "#4ECDC4",
     confidence: 0.8,
-    width_threshold: 48,
-    height_threshold: 48,
-    area_threshold: 2304,
     enabled: true,
+    height_threshold: 48,
+    id: "2",
+    name: "truck",
+    width_threshold: 48,
   },
   {
-    id: "3",
-    name: "bus",
+    area_threshold: 4096,
     color: "#45B7D1",
     confidence: 0.7,
-    width_threshold: 64,
-    height_threshold: 64,
-    area_threshold: 4096,
     enabled: true,
+    height_threshold: 64,
+    id: "3",
+    name: "bus",
+    width_threshold: 64,
   },
   {
-    id: "4",
-    name: "motorcycle",
+    area_threshold: 576,
     color: "#FFA07A",
     confidence: 0.65,
-    width_threshold: 24,
-    height_threshold: 24,
-    area_threshold: 576,
     enabled: true,
+    height_threshold: 24,
+    id: "4",
+    name: "motorcycle",
+    width_threshold: 24,
   },
   {
-    id: "5",
-    name: "bicycle",
+    area_threshold: 400,
     color: "#98D8C8",
     confidence: 0.6,
-    width_threshold: 20,
-    height_threshold: 20,
-    area_threshold: 400,
     enabled: true,
+    height_threshold: 20,
+    id: "5",
+    name: "bicycle",
+    width_threshold: 20,
   },
   {
-    id: "6",
-    name: "person",
+    area_threshold: 512,
     color: "#DDA0DD",
     confidence: 0.7,
-    width_threshold: 16,
-    height_threshold: 32,
-    area_threshold: 512,
     enabled: true,
+    height_threshold: 32,
+    id: "6",
+    name: "person",
+    width_threshold: 16,
   },
   {
-    id: "7",
-    name: "traffic_light",
+    area_threshold: 288,
     color: "#F7DC6F",
     confidence: 0.85,
-    width_threshold: 12,
-    height_threshold: 24,
-    area_threshold: 288,
     enabled: false,
+    height_threshold: 24,
+    id: "7",
+    name: "traffic_light",
+    width_threshold: 12,
   },
   {
-    id: "8",
-    name: "stop_sign",
+    area_threshold: 400,
     color: "#BB8FCE",
     confidence: 0.9,
-    width_threshold: 20,
-    height_threshold: 20,
-    area_threshold: 400,
     enabled: false,
+    height_threshold: 20,
+    id: "8",
+    name: "stop_sign",
+    width_threshold: 20,
   },
 ];
 
 const trainLabels: ModelLabel[] = [
   {
-    id: "1",
-    name: "locomotive",
+    area_threshold: 8000,
     color: "#FF6B6B",
     confidence: 0.85,
-    width_threshold: 100,
-    height_threshold: 80,
-    area_threshold: 8000,
     enabled: true,
+    height_threshold: 80,
+    id: "1",
+    name: "locomotive",
+    width_threshold: 100,
   },
   {
-    id: "2",
-    name: "passenger_car",
+    area_threshold: 4800,
     color: "#4ECDC4",
     confidence: 0.8,
-    width_threshold: 80,
-    height_threshold: 60,
-    area_threshold: 4800,
     enabled: true,
+    height_threshold: 60,
+    id: "2",
+    name: "passenger_car",
+    width_threshold: 80,
   },
   {
-    id: "3",
-    name: "freight_car",
+    area_threshold: 4800,
     color: "#45B7D1",
     confidence: 0.8,
-    width_threshold: 80,
-    height_threshold: 60,
-    area_threshold: 4800,
     enabled: true,
+    height_threshold: 60,
+    id: "3",
+    name: "freight_car",
+    width_threshold: 80,
   },
   {
-    id: "4",
-    name: "track",
+    area_threshold: 800,
     color: "#FFA07A",
     confidence: 0.75,
-    width_threshold: 40,
-    height_threshold: 20,
-    area_threshold: 800,
     enabled: true,
+    height_threshold: 20,
+    id: "4",
+    name: "track",
+    width_threshold: 40,
   },
   {
-    id: "5",
-    name: "signal",
+    area_threshold: 450,
     color: "#98D8C8",
     confidence: 0.9,
-    width_threshold: 15,
-    height_threshold: 30,
-    area_threshold: 450,
     enabled: true,
+    height_threshold: 30,
+    id: "5",
+    name: "signal",
+    width_threshold: 15,
   },
 ];
 
 // Mock model configurations for different scenarios
 export const mockModelConfigs = {
+  default: {
+    description: "General purpose object detection model",
+    labels: trafficLabels.slice(0, 5),
+    name: "Object Detection Model",
+    task: "object_detection",
+    version: "1.0.0", // First 5 labels only
+  },
   trafficDetection: {
-    name: "Traffic Detection Model v2.1",
     description: "Advanced traffic object detection model with support for multiple vehicle types and pedestrians",
+    labels: trafficLabels,
+    name: "Traffic Detection Model v2.1",
     task: "trafficStatistics",
     version: "2.1.0",
-    labels: trafficLabels,
   },
   trainDetection: {
-    name: "Railway Detection Model v1.0",
     description: "Specialized model for detecting trains and railway infrastructure",
+    labels: trainLabels,
+    name: "Railway Detection Model v1.0",
     task: "trainDetection",
     version: "1.0.0",
-    labels: trainLabels,
-  },
-  default: {
-    name: "Object Detection Model",
-    description: "General purpose object detection model",
-    task: "object_detection",
-    version: "1.0.0",
-    labels: trafficLabels.slice(0, 5), // First 5 labels only
   },
 };
 
@@ -183,8 +183,8 @@ export function getMockModelConfig(
   ) {
     return {
       ...mockModelConfigs.trainDetection,
-      name: model?.name || mockModelConfigs.trainDetection.name,
       description: model?.description || mockModelConfigs.trainDetection.description,
+      name: model?.name || mockModelConfigs.trainDetection.name,
     };
   }
 
@@ -197,16 +197,16 @@ export function getMockModelConfig(
   ) {
     return {
       ...mockModelConfigs.trafficDetection,
-      name: model?.name || mockModelConfigs.trafficDetection.name,
       description: model?.description || mockModelConfigs.trafficDetection.description,
+      name: model?.name || mockModelConfigs.trafficDetection.name,
     };
   }
 
   // Default configuration
   return {
     ...mockModelConfigs.default,
-    name: model?.name || mockModelConfigs.default.name,
     description: model?.description || mockModelConfigs.default.description,
+    name: model?.name || mockModelConfigs.default.name,
   };
 }
 
@@ -220,14 +220,15 @@ export function generateRandomModelConfig(): ModelConfig {
   // Randomize some values
   const labels = randomConfig.labels.map((label, index) => ({
     ...label,
-    id: `${Date.now()}-${index}`,
-    confidence: Math.round((0.5 + Math.random() * 0.4) * 100) / 100, // 0.5 to 0.9
-    enabled: Math.random() > 0.2, // 80% chance of being enabled
+    confidence: Math.round((0.5 + Math.random() * 0.4) * 100) / 100,
+    // 0.5 to 0.9
+enabled: Math.random() > 0.2, 
+    id: `${Date.now()}-${index}`, // 80% chance of being enabled
   }));
 
   return {
     ...randomConfig,
-    name: `${randomConfig.name} (Copy)`,
     labels,
+    name: `${randomConfig.name} (Copy)`,
   };
 }

@@ -1,28 +1,33 @@
-import { useRef, useState, useEffect } from "react";
 import {
   Box,
   Button,
   Card,
   Group,
-  Stack,
-  Text,
   Progress,
   rem,
+  Stack,
+  Text,
 } from "@mantine/core";
-import { useTheme } from "@/providers/theme-provider";
+import { useComputedColorScheme,useMantineTheme } from '@mantine/core';
 import { Dropzone } from "@mantine/dropzone";
-import { useTranslation } from "react-i18next";
-import { IconCloudUpload, IconPlus, IconCheck } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
-import { useModelUpload } from "../../hooks/use-model-upload";
-import { ModelsTable } from "../../pages/models-page/models-table";
-import { PageLayout } from "@/components/page-layout/page-layout";
+import { IconCheck,IconCloudUpload, IconPlus } from "@tabler/icons-react";
+import { useEffect,useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+
 import { ModelUploadDialog } from "@/components/model-config-editor";
+import { PageLayout } from "@/components/page-layout/page-layout";
+import { getOverlayColor } from "@/lib/theme-utils";
+
+import { useModelUpload } from "../../hooks/use-model-upload";
 import type { Model } from "../../lib/store/model-store";
+import { ModelsTable } from "../../pages/models-page/models-table";
 
 // Create custom styles for the full-page dropzone
 const useStyles = () => {
-  const { theme, colorScheme } = useTheme();
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const colorScheme = computedColorScheme;
   
   // Theme color utility function
   const getThemeColor = (colorPath: string): string => {
@@ -44,37 +49,37 @@ const useStyles = () => {
   
   return ({
   container: {
-    position: "relative" as const,
     height: "100%",
-  },
-  fullPageDropzone: {
-    position: "absolute" as const,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 999,
-    backgroundColor: theme.other.overlay.backdrop,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    pointerEvents: "all" as const,
+    position: "relative" as const,
   },
   dropzoneContent: {
     backgroundColor: colorScheme === "dark" ? getThemeColor("gray.9") : "white",
-    borderRadius: "12px",
-    padding: rem(40),
     border: `2px dashed ${colorScheme === "dark" ? getThemeColor("gray.6") : getThemeColor("gray.3")}`,
+    borderRadius: "12px",
     boxShadow: `0 8px 24px ${getThemeColor("ui.shadow")}`,
+    padding: rem(40),
     textAlign: "center" as const,
-    width: rem(320),
     transition: "all 0.2s ease",
+    width: rem(320),
+  },
+  fullPageDropzone: {
+    alignItems: "center",
+    backgroundColor: getOverlayColor(theme, "backdrop", colorScheme === "dark"),
+    bottom: 0,
+    display: "flex",
+    justifyContent: "center",
+    left: 0,
+    pointerEvents: "all" as const,
+    position: "absolute" as const,
+    right: 0,
+    top: 0,
+    zIndex: 999,
   },
   uploadIcon: {
-    width: rem(48),
-    height: rem(48),
     color: colorScheme === "dark" ? getThemeColor("gray.5") : getThemeColor("gray.5"),
+    height: rem(48),
     marginBottom: rem(12),
+    width: rem(48),
   },
 });
 };
@@ -83,7 +88,8 @@ export function ModelsPage() {
   const [createModalOpened, setCreateModalOpened] = useState(false);
   const [editingModel, setEditingModel] = useState<Model | null>(null);
   const { t } = useTranslation(["models", "common"]);
-  const { theme, colorScheme } = useTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const colorScheme = computedColorScheme;
   
   const styles = useStyles();
   const openRef = useRef<() => void>(null);
@@ -186,7 +192,6 @@ export function ModelsPage() {
           style={{ display: "none" }}
           maxSize={500 * 1024 * 1024}
           accept={{
-            "application/zip": [".zip", ".onnx"],
             "application/octet-stream": [
               ".pt",
               ".pth",
@@ -195,6 +200,7 @@ export function ModelsPage() {
               ".tflite",
             ],
             "application/x-zip-compressed": [".zip"],
+            "application/zip": [".zip", ".onnx"],
           }}
           disabled={isUploading}
         />
@@ -213,7 +219,6 @@ export function ModelsPage() {
             multiple
             maxSize={500 * 1024 * 1024}
             accept={{
-              "application/zip": [".zip", ".onnx"],
               "application/octet-stream": [
                 ".pt",
                 ".pth",
@@ -222,6 +227,7 @@ export function ModelsPage() {
                 ".tflite",
               ],
               "application/x-zip-compressed": [".zip"],
+              "application/zip": [".zip", ".onnx"],
             }}
             style={styles.fullPageDropzone}
           >
@@ -304,30 +310,30 @@ export function ModelsPage() {
         title={editingModel ? t("models:actions.editTitle") : t("models:actions.createTitle")}
         isEditMode={!!editingModel}
         initialConfig={editingModel ? {
-          id: 1,
-          name: editingModel.name,
           description: editingModel.description || "",
-          task: editingModel.type,
+          id: 1,
           labels: [
             {
-              id: "1",
-              name: "Vehicle",
               color: "#FF6B6B",
               confidence: 0.7,
-              enabled: true
+              enabled: true,
+              id: "1",
+              name: "Vehicle"
             }
-          ]
+          ],
+          name: editingModel.name,
+          task: editingModel.type
         } : undefined}
         onModelConfigured={(config) => {
           console.log(editingModel ? 'Model updated:' : 'Model created:', config);
           // Show success notification
           notifications.show({
-            title: editingModel ? 'Model Updated Successfully' : 'Model Created Successfully',
+            color: 'green',
+            icon: <IconCheck size={16} />,
             message: editingModel 
               ? `${config.name} configuration has been updated`
               : `${config.name} with ${config.labels.length} labels has been configured`,
-            color: 'green',
-            icon: <IconCheck size={16} />
+            title: editingModel ? 'Model Updated Successfully' : 'Model Created Successfully'
           });
           // Here you can integrate with your model storage system
           // For example: 

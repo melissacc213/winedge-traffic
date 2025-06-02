@@ -1,23 +1,24 @@
-import { useState, useRef, useEffect, useCallback } from "react";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import {
   Box,
   Button,
+  Center,
   Group,
-  Text,
-  Stack,
+  Loader,
   Paper,
   Progress,
-  Loader,
-  Tooltip,
-  Center,
+  Stack,
+  Text,
   ThemeIcon,
+  Tooltip,
+  useComputedColorScheme,
   useMantineTheme,
 } from "@mantine/core";
-import { useTheme } from "../../providers/theme-provider";
-import { Icons } from "../icons";
+import { useCallback,useEffect, useRef, useState } from "react";
+
 import type { FrameData } from "../../types/recipe";
+import { Icons } from "../icons";
 
 interface UnifiedVideoPlayerProps {
   file: File | null;
@@ -59,17 +60,17 @@ export function UnifiedVideoPlayer({
 }: UnifiedVideoPlayerProps) {
   // Unified loading state
   const [loadingStatus, setLoadingStatus] = useState<LoadingStatus>({
-    state: "idle",
-    progress: 0,
     message: "",
+    progress: 0,
+    state: "idle",
   });
 
   // Video state
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
-  const { colorScheme } = useTheme();
-  const mantineTheme = useMantineTheme();
-  const isDark = colorScheme === "dark";
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
 
   // Refs
   const ffmpegRef = useRef<FFmpeg | null>(null);
@@ -141,7 +142,7 @@ export function UnifiedVideoPlayer({
   useEffect(() => {
     if (!file) {
       setVideoUrl(null);
-      setLoadingStatus({ state: "idle", progress: 0, message: "" });
+      setLoadingStatus({ message: "", progress: 0, state: "idle" });
       currentFileRef.current = null;
       return;
     }
@@ -167,9 +168,9 @@ export function UnifiedVideoPlayer({
         if (Date.now() - cached.timestamp < CACHE_DURATION) {
           setVideoUrl(cached.url);
           setLoadingStatus({
-            state: "ready",
-            progress: 100,
             message: "Video loaded from cache",
+            progress: 100,
+            state: "ready",
           });
           return;
         } else {
@@ -181,9 +182,9 @@ export function UnifiedVideoPlayer({
 
       // Update loading state
       setLoadingStatus({
-        state: "loading-ffmpeg",
-        progress: 0,
         message: "Initializing video processor...",
+        progress: 0,
+        state: "loading-ffmpeg",
       });
 
       // Ensure FFmpeg is loaded
@@ -219,12 +220,12 @@ export function UnifiedVideoPlayer({
 
           // If successful, cache and use direct URL
           manageCacheSize();
-          videoCache.set(fileKey, { url, timestamp: Date.now() });
+          videoCache.set(fileKey, { timestamp: Date.now(), url });
           setVideoUrl(url);
           setLoadingStatus({
-            state: "ready",
-            progress: 100,
             message: "Video loaded successfully",
+            progress: 100,
+            state: "ready",
           });
           return;
         } catch (e) {}
@@ -232,9 +233,9 @@ export function UnifiedVideoPlayer({
 
       // Process with FFmpeg
       setLoadingStatus({
-        state: "processing-video",
-        progress: 10,
         message: "Processing video file...",
+        progress: 10,
+        state: "processing-video",
       });
 
       const inputName = videoFile.name;
@@ -242,8 +243,8 @@ export function UnifiedVideoPlayer({
       // Write file to FFmpeg
       setLoadingStatus((prev) => ({
         ...prev,
-        progress: 20,
         message: "Reading video file...",
+        progress: 20,
       }));
 
       await ffmpeg.writeFile(inputName, await fetchFile(videoFile));
@@ -251,8 +252,8 @@ export function UnifiedVideoPlayer({
       // Convert to MP4
       setLoadingStatus((prev) => ({
         ...prev,
-        progress: 30,
         message: "Converting video format...",
+        progress: 30,
       }));
 
       // Optimized conversion parameters based on speed preference
@@ -317,8 +318,8 @@ export function UnifiedVideoPlayer({
       // Read output
       setLoadingStatus((prev) => ({
         ...prev,
-        progress: 90,
         message: "Finalizing video...",
+        progress: 90,
       }));
 
       const data = await ffmpeg.readFile("output.mp4");
@@ -327,20 +328,20 @@ export function UnifiedVideoPlayer({
 
       // Cache the processed video URL
       manageCacheSize();
-      videoCache.set(fileKey, { url, timestamp: Date.now() });
+      videoCache.set(fileKey, { timestamp: Date.now(), url });
 
       setVideoUrl(url);
       setLoadingStatus({
-        state: "ready",
-        progress: 100,
         message: "Video ready!",
+        progress: 100,
+        state: "ready",
       });
     } catch (error) {
       console.error("Video processing error:", error);
       setLoadingStatus({
-        state: "error",
-        progress: 0,
         message: "Failed to process video. Please try another file.",
+        progress: 0,
+        state: "error",
       });
     }
   };
@@ -382,8 +383,8 @@ export function UnifiedVideoPlayer({
     ctx.drawImage(video, 0, 0, width, height);
 
     const frame: FrameData = {
-      imageDataUrl: canvas.toDataURL("image/jpeg", 0.95),
       frameTime: video.currentTime,
+      imageDataUrl: canvas.toDataURL("image/jpeg", 0.95),
       objects: [],
     };
 
@@ -495,10 +496,10 @@ export function UnifiedVideoPlayer({
         radius="md"
         withBorder
         style={{
-          overflow: "hidden",
           backgroundColor: isDark
-            ? mantineTheme.colors.dark[8]
-            : mantineTheme.colors.gray[0],
+            ? theme.colors.dark[8]
+            : theme.colors.gray[0],
+          overflow: "hidden",
         }}
       >
         {videoUrl && (
@@ -510,14 +511,14 @@ export function UnifiedVideoPlayer({
               width={width}
               height={height}
               style={{
+                backgroundColor: isDark
+                  ? theme.colors.dark[9]
+                  : theme.colors.gray[1],
                 display: "block",
-                width: "100%",
                 height: "auto",
                 maxHeight: height,
                 objectFit: "contain",
-                backgroundColor: isDark
-                  ? mantineTheme.colors.dark[9]
-                  : mantineTheme.colors.gray[1],
+                width: "100%",
               }}
               onLoadedMetadata={() => {
                 // Video loaded successfully

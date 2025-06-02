@@ -1,28 +1,29 @@
-import { useTranslation } from "react-i18next";
-import { useState } from "react";
-import { Stage, Layer, Image as KonvaImage } from "react-konva";
 import {
+  Box,
+  Button,
+  Center,
+  Grid,
+  Group,
+  Paper,
+  rem,
   Stack,
   Text,
-  Paper,
-  Group,
-  Button,
-  Box,
   ThemeIcon,
-  Grid,
   Title,
+  useComputedColorScheme,
   useMantineTheme,
-  Center,
-  rem,
 } from "@mantine/core";
-import { Icons } from "../../icons";
-import { Dropzone } from "@mantine/dropzone";
-import { useRecipeStore } from "../../../lib/store/recipe-store";
-import useImage from "use-image";
-import { useTheme } from "../../../providers/theme-provider";
-import type { TaskType, FrameData } from "../../../types/recipe";
-import { UnifiedVideoPlayer } from "../../video-player/unified-video-player";
 import { Modal } from "@mantine/core";
+import { Dropzone } from "@mantine/dropzone";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Image as KonvaImage,Layer, Stage } from "react-konva";
+import useImage from "use-image";
+
+import { useRecipeStore } from "../../../lib/store/recipe-store";
+import type { FrameData,TaskType } from "../../../types/recipe";
+import { Icons } from "../../icons";
+import { UnifiedVideoPlayer } from "../../video-player/unified-video-player";
 
 const STAGE_WIDTH = 500;
 const STAGE_HEIGHT = 300;
@@ -36,8 +37,9 @@ export function TaskTypeWithVideoStep() {
     setExtractedFrame,
     clearVideoData,
   } = useRecipeStore();
-  const mantineTheme = useMantineTheme();
-  const { theme, colorScheme } = useTheme();
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
 
   // Modal states
   const [showVideoChangeModal, setShowVideoChangeModal] = useState(false);
@@ -88,29 +90,29 @@ export function TaskTypeWithVideoStep() {
 
   const taskTypes = [
     {
-      id: "trafficStatistics" as TaskType,
-      label: t(
-        "recipes:creation.taskType.types.trafficStatistics",
-        "Traffic Statistics"
-      ),
-      icon: <Icons.ChartBar size={20} />,
       color: "teal",
       description: t(
         "recipes:creation.taskType.descriptions.trafficStatistics",
         "Analyze and collect traffic flow statistics"
       ),
+      icon: <Icons.ChartBar size={20} />,
+      id: "trafficStatistics" as TaskType,
+      label: t(
+        "recipes:creation.taskType.types.trafficStatistics",
+        "Traffic Statistics"
+      ),
     },
     {
-      id: "trainDetection" as TaskType,
-      label: t(
-        "recipes:creation.taskType.types.trainDetection",
-        "Train Detection"
-      ),
-      icon: <Icons.Train size={20} />,
       color: "blue",
       description: t(
         "recipes:creation.taskType.descriptions.trainDetection",
         "Detect and track trains in railway environments"
+      ),
+      icon: <Icons.Train size={20} />,
+      id: "trainDetection" as TaskType,
+      label: t(
+        "recipes:creation.taskType.types.trainDetection",
+        "Train Detection"
       ),
     },
   ];
@@ -164,18 +166,18 @@ export function TaskTypeWithVideoStep() {
                     radius="md"
                     withBorder
                     style={{
-                      cursor: "pointer",
-                      borderWidth: 2,
-                      borderColor:
-                        formValues.taskType === item.id
-                          ? mantineTheme.colors[item.color][5]
-                          : "transparent",
                       backgroundColor:
                         formValues.taskType === item.id
-                          ? colorScheme === "dark"
-                            ? mantineTheme.colors.dark[6]
-                            : mantineTheme.colors[item.color][0]
+                          ? isDark
+                            ? theme.colors.dark[6]
+                            : theme.colors[item.color][0]
                           : undefined,
+                      borderColor:
+                        formValues.taskType === item.id
+                          ? theme.colors[item.color][5]
+                          : "transparent",
+                      borderWidth: 2,
+                      cursor: "pointer",
                       transition: "all 200ms ease",
                     }}
                     onClick={() => {
@@ -193,24 +195,24 @@ export function TaskTypeWithVideoStep() {
                     <Group wrap="nowrap" align="flex-start">
                       <Box
                         style={{
-                          width: rem(20),
-                          height: rem(20),
-                          borderRadius: "50%",
-                          border: `2px solid ${formValues.taskType === item.id ? mantineTheme.colors[item.color][5] : mantineTheme.colors.gray[4]}`,
-                          display: "flex",
                           alignItems: "center",
-                          justifyContent: "center",
+                          border: `2px solid ${formValues.taskType === item.id ? theme.colors[item.color][5] : theme.colors.gray[4]}`,
+                          borderRadius: "50%",
+                          display: "flex",
                           flexShrink: 0,
+                          height: rem(20),
+                          justifyContent: "center",
+                          width: rem(20),
                         }}
                       >
                         {formValues.taskType === item.id && (
                           <Box
                             style={{
-                              width: rem(10),
-                              height: rem(10),
-                              borderRadius: "50%",
                               backgroundColor:
-                                mantineTheme.colors[item.color][5],
+                                theme.colors[item.color][5],
+                              borderRadius: "50%",
+                              height: rem(10),
+                              width: rem(10),
                             }}
                           />
                         )}
@@ -352,10 +354,10 @@ export function TaskTypeWithVideoStep() {
                     {capturedFrame ? (
                       <Box
                         style={{
+                          margin: "0 auto",
+                          maxWidth: STAGE_WIDTH,
                           position: "relative",
                           width: "100%",
-                          maxWidth: STAGE_WIDTH,
-                          margin: "0 auto",
                         }}
                       >
                         <Stage
@@ -363,12 +365,12 @@ export function TaskTypeWithVideoStep() {
                           height={STAGE_HEIGHT}
                           style={{
                             background:
-                              colorScheme === "dark"
+                              isDark
                                 ? getThemeColor("gray.8")
                                 : getThemeColor("gray.1"),
-                            cursor: "grab",
-                            border: `1px solid ${colorScheme === "dark" ? getThemeColor("gray.7") : getThemeColor("gray.3")}`,
+                            border: `1px solid ${isDark ? getThemeColor("gray.7") : getThemeColor("gray.3")}`,
                             borderRadius: 8,
+                            cursor: "grab",
                           }}
                         >
                           <Layer>
@@ -398,38 +400,38 @@ export function TaskTypeWithVideoStep() {
                   onDrop={(files) => handleFileChange(files[0])}
                   accept={{
                     "video/mp4": [".mp4"],
-                    "video/x-matroska": [".mkv"],
                     "video/webm": [".webm"],
+                    "video/x-matroska": [".mkv"],
                   }}
                   maxSize={500 * 1024 * 1024}
                   disabled={!formValues.taskType}
                   styles={(theme) => ({
-                    root: {
-                      border: `1px dashed ${colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[4]}`,
-                      borderRadius: "8px",
-                      padding: "24px",
-                      backgroundColor:
-                        colorScheme === "dark"
-                          ? theme.colors.dark[7]
-                          : theme.colors.gray[0],
-                      cursor: formValues.taskType ? "pointer" : "not-allowed",
-                      opacity: formValues.taskType ? 1 : 0.6,
-                      transition: "all 0.2s ease",
-                      "&:hover": formValues.taskType
-                        ? {
-                            borderColor:
-                              colorScheme === "dark"
-                                ? theme.colors.dark[3]
-                                : theme.colors.gray[5],
-                            backgroundColor:
-                              colorScheme === "dark"
-                                ? theme.colors.dark[6]
-                                : theme.colors.gray[1],
-                          }
-                        : {},
-                    },
                     inner: {
                       backgroundColor: "transparent !important",
+                    },
+                    root: {
+                      "&:hover": formValues.taskType
+                        ? {
+                            backgroundColor:
+                              isDark
+                                ? theme.colors.dark[6]
+                                : theme.colors.gray[1],
+                            borderColor:
+                              isDark
+                                ? theme.colors.dark[3]
+                                : theme.colors.gray[5],
+                          }
+                        : {},
+                      backgroundColor:
+                        isDark
+                          ? theme.colors.dark[7]
+                          : theme.colors.gray[0],
+                      border: `1px dashed ${isDark ? theme.colors.dark[4] : theme.colors.gray[4]}`,
+                      borderRadius: "8px",
+                      cursor: formValues.taskType ? "pointer" : "not-allowed",
+                      opacity: formValues.taskType ? 1 : 0.6,
+                      padding: "24px",
+                      transition: "all 0.2s ease",
                     },
                   })}
                 >
@@ -495,10 +497,10 @@ export function TaskTypeWithVideoStep() {
               variant="outline"
               onClick={() => setShowVideoChangeModal(false)}
               style={{
-                borderColor: colorScheme === "dark"
-                  ? mantineTheme.colors.dark[4]
+                borderColor: isDark
+                  ? theme.colors.dark[4]
                   : theme.colors.gray[4],
-                color: colorScheme === "dark"
+                color: isDark
                   ? theme.colors.gray[3]
                   : theme.colors.gray[7],
               }}
@@ -513,10 +515,10 @@ export function TaskTypeWithVideoStep() {
                 setShowVideoChangeModal(false);
               }}
               style={{
-                backgroundColor: mantineTheme.colors.red[6],
                 "&:hover": {
-                  backgroundColor: mantineTheme.colors.red[7],
+                  backgroundColor: theme.colors.red[7],
                 },
+                backgroundColor: theme.colors.red[6],
               }}
             >
               {t("recipes:creation.changeVideo", "Change Video")}
@@ -550,10 +552,10 @@ export function TaskTypeWithVideoStep() {
                 setPendingTaskType(null);
               }}
               style={{
-                borderColor: colorScheme === "dark"
-                  ? mantineTheme.colors.dark[4]
+                borderColor: isDark
+                  ? theme.colors.dark[4]
                   : theme.colors.gray[4],
-                color: colorScheme === "dark"
+                color: isDark
                   ? theme.colors.gray[3]
                   : theme.colors.gray[7],
               }}
@@ -572,10 +574,10 @@ export function TaskTypeWithVideoStep() {
                 setPendingTaskType(null);
               }}
               style={{
-                backgroundColor: mantineTheme.colors.red[6],
                 "&:hover": {
-                  backgroundColor: mantineTheme.colors.red[7],
+                  backgroundColor: theme.colors.red[7],
                 },
+                backgroundColor: theme.colors.red[6],
               }}
             >
               {t("recipes:creation.changeTaskType", "Change Task Type")}

@@ -1,5 +1,6 @@
 import JSZip from 'jszip';
 import { v4 as uuidv4 } from 'uuid';
+
 import type { ModelConfig, ModelLabel, ModelParseResult } from '@/types/model';
 
 export class ModelParser {
@@ -14,8 +15,8 @@ export class ModelParser {
       
       if (!labelFile || !configFile) {
         return {
-          success: false,
-          error: 'Missing required files (model.label or model_info.json) in zip archive'
+          error: 'Missing required files (model.label or model_info.json) in zip archive',
+          success: false
         };
       }
       
@@ -32,27 +33,27 @@ export class ModelParser {
       
       // Create model config with defaults
       const modelConfig: ModelConfig = {
-        id: configJson.id,
-        name: configJson.name || 'Imported Model',
-        description: configJson.description || '',
-        created_time: configJson.created_time,
-        updated_time: configJson.updated_time,
-        task: configJson.task || 'object_detection',
         algorithm: configJson.algorithm,
+        created_time: configJson.created_time,
         deployment: configJson.deployment,
-        labels: this.mergeLabelsWithConfig(labels, configJson.labels)
+        description: configJson.description || '',
+        id: configJson.id,
+        labels: this.mergeLabelsWithConfig(labels, configJson.labels),
+        name: configJson.name || 'Imported Model',
+        task: configJson.task || 'object_detection',
+        updated_time: configJson.updated_time
       };
       
       return {
-        success: true,
         config: modelConfig,
-        labelFile: labels
+        labelFile: labels,
+        success: true
       };
       
     } catch (error) {
       return {
-        success: false,
-        error: `Failed to parse model zip: ${error instanceof Error ? error.message : 'Unknown error'}`
+        error: `Failed to parse model zip: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        success: false
       };
     }
   }
@@ -72,13 +73,13 @@ export class ModelParser {
       const configLabel = labelMap.get(name);
       
       return {
-        id: uuidv4(),
-        name,
         color: configLabel?.color || this.generateDefaultColor(index),
         confidence: configLabel?.confidence || 0.5,
-        width_threshold: configLabel?.width_threshold || 32,
+        enabled: configLabel?.enabled !== false,
         height_threshold: configLabel?.height_threshold || 32,
-        enabled: configLabel?.enabled !== false
+        id: uuidv4(),
+        name,
+        width_threshold: configLabel?.width_threshold || 32
       };
     });
   }
@@ -114,15 +115,15 @@ export class ModelParser {
     const configFile = JSON.stringify({
       ...config,
       labels: config.labels.map(label => ({
-        name: label.name,
         color: label.color,
         confidence: label.confidence,
-        width_threshold: label.width_threshold,
+        enabled: label.enabled,
         height_threshold: label.height_threshold,
-        enabled: label.enabled
+        name: label.name,
+        width_threshold: label.width_threshold
       }))
     }, null, 2);
     
-    return { labelFile, configFile };
+    return { configFile, labelFile };
   }
 }

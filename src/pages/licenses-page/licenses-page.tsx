@@ -1,28 +1,29 @@
-import { useState } from "react";
 import {
-  Button,
-  Stack,
-  Menu,
   ActionIcon,
   Badge,
+  Button,
+  Menu,
+  Stack,
   Text,
   Tooltip,
 } from "@mantine/core";
-import { Icons } from "@/components/icons";
-import { useTranslation } from "react-i18next";
 import { useDisclosure } from "@mantine/hooks";
+import { notifications } from "@mantine/notifications";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+
+import { Icons } from "@/components/icons";
+import { LicenseCreateDialog, LicenseEdit } from "@/components/license";
 import { PageLayout } from "@/components/page-layout/page-layout";
 import { DataTable } from "@/components/ui";
-import { LicenseCreateDialog, LicenseEdit } from "@/components/license";
+import { confirmDelete } from "@/lib/confirmation";
 import {
-  useLicenses,
   useDeleteLicense,
+  useLicenses,
   useUpdateLicense,
 } from "@/lib/queries/license";
-import { notifications } from "@mantine/notifications";
-import { confirmDelete } from "@/lib/confirmation";
-import type { License } from "@/lib/validator/license";
 import { highlightSearchTerm } from "@/lib/utils";
+import type { License } from "@/lib/validator/license";
 
 export function LicensesPage() {
   const { t } = useTranslation(["licenses", "common"]);
@@ -41,15 +42,15 @@ export function LicensesPage() {
       try {
         await deleteLicenseMutation.mutateAsync(license.id);
         notifications.show({
-          title: t("licenses:notifications.deleteSuccess"),
-          message: t("licenses:notifications.deleteSuccessMessage"),
           color: "green",
+          message: t("licenses:notifications.deleteSuccessMessage"),
+          title: t("licenses:notifications.deleteSuccess"),
         });
       } catch (error) {
         notifications.show({
-          title: t("common:error"),
-          message: t("licenses:notifications.deleteError"),
           color: "red",
+          message: t("licenses:notifications.deleteError"),
+          title: t("common:error"),
         });
       }
     });
@@ -59,8 +60,6 @@ export function LicensesPage() {
     {
       key: "is_default",
       label: "",
-      width: 50,
-      sortable: false,
       render: (license: License) => (
         <Tooltip
           label={
@@ -79,19 +78,19 @@ export function LicensesPage() {
               if (!license.is_default) {
                 try {
                   await updateLicenseMutation.mutateAsync({
-                    id: license.id,
                     data: { is_default: true },
+                    id: license.id,
                   });
                   notifications.show({
-                    title: t("licenses:notifications.defaultSet"),
-                    message: t("licenses:notifications.defaultSetMessage"),
                     color: "green",
+                    message: t("licenses:notifications.defaultSetMessage"),
+                    title: t("licenses:notifications.defaultSet"),
                   });
                 } catch (error) {
                   notifications.show({
-                    title: t("common:error"),
-                    message: t("licenses:notifications.updateError"),
                     color: "red",
+                    message: t("licenses:notifications.updateError"),
+                    title: t("common:error"),
                   });
                 }
               }
@@ -106,6 +105,8 @@ export function LicensesPage() {
           </ActionIcon>
         </Tooltip>
       ),
+      sortable: false,
+      width: 50,
     },
     {
       key: "name",
@@ -114,7 +115,7 @@ export function LicensesPage() {
         // Return highlighted content directly without Text wrapper to preserve highlight styles
         if (globalFilter) {
           return (
-            <div style={{ fontWeight: 500, fontSize: "14px" }}>
+            <div style={{ fontSize: "14px", fontWeight: 500 }}>
               {highlightSearchTerm(license.name, globalFilter)}
             </div>
           );
@@ -134,7 +135,7 @@ export function LicensesPage() {
         if (globalFilter) {
           return (
             <div
-              style={{ fontSize: "14px", color: "var(--mantine-color-dimmed)" }}
+              style={{ color: "var(--mantine-color-dimmed)", fontSize: "14px" }}
             >
               {highlightSearchTerm(license.file_name, globalFilter)}
             </div>
@@ -150,7 +151,6 @@ export function LicensesPage() {
     {
       key: "status",
       label: t("licenses:table.status"),
-      width: 100,
       render: (license: License) => (
         <Badge
           variant="light"
@@ -166,11 +166,11 @@ export function LicensesPage() {
           {t(`licenses:status.${license.status}`)}
         </Badge>
       ),
+      width: 100,
     },
     {
       key: "expires_at",
       label: t("licenses:table.expiresAt"),
-      width: 120,
       render: (license: License) => {
         if (!license.expires_at) return <Text size="sm">—</Text>;
         const date = new Date(license.expires_at);
@@ -181,6 +181,7 @@ export function LicensesPage() {
           </Text>
         );
       },
+      width: 120,
     },
     {
       key: "uploaded_by",
@@ -200,12 +201,12 @@ export function LicensesPage() {
     {
       key: "uploaded_at",
       label: t("licenses:table.uploadedAt"),
-      width: 120,
       render: (license: License) => (
         <Text size="sm">
           {new Date(license.uploaded_at).toLocaleDateString()}
         </Text>
       ),
+      width: 120,
     },
   ];
 
@@ -258,7 +259,7 @@ export function LicensesPage() {
             actions={actions}
             height={700}
             emptyMessage={t("licenses:noLicenses")}
-            defaultSort={{ key: "is_default", direction: "desc" }}
+            defaultSort={{ direction: "desc", key: "is_default" }}
             showPagination={true}
             pageSize={10}
             enableGlobalFilter={true}

@@ -1,8 +1,8 @@
 import { useForm } from '@mantine/form';
-import { useState } from 'react';
-import { z } from 'zod';
-import { useTranslation } from 'react-i18next';
 import { notifications } from '@mantine/notifications';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
 
 export interface Region {
   id: string;
@@ -34,16 +34,9 @@ export interface RecipeFormValues {
 }
 
 const initialValues: RecipeFormValues = {
-  name: '',
   description: '',
-  taskType: '',
-  sceneType: '',
-  videoFile: null,
-  videoUrl: '',
-  videoName: '',
   extractedFrame: null,
   extractedFrameTime: null,
-  regions: [],
   modelId: '',
   modelName: '',
   modelParams: {
@@ -51,22 +44,29 @@ const initialValues: RecipeFormValues = {
     detectionClasses: ['car', 'bus', 'truck'],
     inferenceStep: 3,
   },
+  name: '',
+  regions: [],
+  sceneType: '',
+  taskType: '',
+  videoFile: null,
+  videoName: '',
+  videoUrl: '',
 };
 
 // Step validation schema
 const stepValidationSchema = [
   // Step 1: Task Type
   z.object({
+    sceneType: z.string().min(1, 'Please select a scene type'),
     taskType: z.enum(['traffic_count', 'train_detection'], {
       required_error: 'Please select a task type',
     }),
-    sceneType: z.string().min(1, 'Please select a scene type'),
   }),
   
   // Step 2: Import Video
   z.object({
-    videoFile: z.any().refine(val => val !== null, 'Please upload a video'),
     extractedFrame: z.string().min(1, 'Please extract a frame from the video'),
+    videoFile: z.any().refine(val => val !== null, 'Please upload a video'),
   }),
   
   // Step 3: Region Setup
@@ -86,8 +86,8 @@ const stepValidationSchema = [
   
   // Step 5: Review & Submit
   z.object({
-    name: z.string(),
     description: z.string(),
+    name: z.string(),
   }),
 ];
 
@@ -133,9 +133,9 @@ export function useRecipeForm() {
     for (let i = 0; i < stepValidationSchema.length; i++) {
       if (!isStepValid(i)) {
         notifications.show({
-          title: t('common:notification.validation_error'),
-          message: t('recipe:validation.step_invalid', { step: i + 1 }),
           color: 'red',
+          message: t('recipe:validation.step_invalid', { step: i + 1 }),
+          title: t('common:notification.validation_error'),
         });
         return;
       }
@@ -148,9 +148,9 @@ export function useRecipeForm() {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       notifications.show({
-        title: t('recipe:notification.success.title'),
-        message: t('recipe:notification.success.message'),
         color: 'green',
+        message: t('recipe:notification.success.message'),
+        title: t('recipe:notification.success.title'),
       });
       
       // Reset form or redirect
@@ -158,9 +158,9 @@ export function useRecipeForm() {
     } catch (error) {
       console.error('Error submitting recipe:', error);
       notifications.show({
-        title: t('recipe:notification.error.title'),
-        message: t('recipe:notification.error.message'),
         color: 'red',
+        message: t('recipe:notification.error.message'),
+        title: t('recipe:notification.error.title'),
       });
     } finally {
       setIsSubmitting(false);
@@ -170,7 +170,7 @@ export function useRecipeForm() {
   return {
     form,
     isStepValid,
-    submitRecipe,
     isSubmitting,
+    submitRecipe,
   };
 }

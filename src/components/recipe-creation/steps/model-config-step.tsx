@@ -1,70 +1,72 @@
-import { useState, useEffect, useMemo, Fragment } from "react";
+import type { MantineTheme } from "@mantine/core";
 import {
-  Stack,
-  Text,
-  Group,
-  Paper,
-  Badge,
-  Button,
-  Table,
-  ScrollArea,
-  TextInput,
   ActionIcon,
   Alert,
-  Loader,
-  Center,
-  Tabs,
-  Checkbox,
+  Badge,
   Box,
+  Button,
+  Center,
+  Checkbox,
+  Group,
+  Loader,
   Pagination,
+  Paper,
+  ScrollArea,
   Select,
+  Stack,
+  Table,
+  Tabs,
+  Text,
+  TextInput,
+  useMantineTheme,
 } from "@mantine/core";
-import { Icons } from "../../icons";
 import { useDisclosure } from "@mantine/hooks";
-import { useRecipeStore } from "../../../lib/store/recipe-store";
-import { useTheme } from "@/providers/theme-provider";
+import { Fragment,useEffect, useMemo, useState } from "react";
+
 import { getRegionColor } from "@/lib/theme-utils";
+
 import { useModels } from "../../../lib/queries/model";
-import { ModelUploadDialog } from "../../model-config-editor/model-upload-dialog";
+import { useRecipeStore } from "../../../lib/store/recipe-store";
+import type { ModelConfig,ModelLabel } from "../../../types/model";
+import { Icons } from "../../icons";
 import { LabelEditor } from "../../model-config-editor/label-editor";
-import type { ModelLabel, ModelConfig } from "../../../types/model";
-import type { MantineTheme } from "@mantine/core";
+import { ModelUploadDialog } from "../../model-config-editor/model-upload-dialog";
 
 // Generate mock data for model labels - in a real app this would come from the selected model's config
 const generateMockLabels = (theme: MantineTheme): ModelLabel[] => [
-  { id: "1", name: "Person", color: getRegionColor(theme, 0), confidence: 0.7, width_threshold: 32, height_threshold: 32, enabled: true },
+  { color: getRegionColor(theme, 0), confidence: 0.7, enabled: true, height_threshold: 32, id: "1", name: "Person", width_threshold: 32 },
   {
-    id: "2",
-    name: "Vehicle",
     color: getRegionColor(theme, 1),
     confidence: 0.75,
-    width_threshold: 32,
-    height_threshold: 32,
     enabled: true,
+    height_threshold: 32,
+    id: "2",
+    name: "Vehicle",
+    width_threshold: 32,
   },
-  { id: "3", name: "Truck", color: getRegionColor(theme, 2), confidence: 0.8, width_threshold: 32, height_threshold: 32, enabled: true },
+  { color: getRegionColor(theme, 2), confidence: 0.8, enabled: true, height_threshold: 32, id: "3", name: "Truck", width_threshold: 32 },
   {
-    id: "4",
-    name: "Motorcycle",
     color: getRegionColor(theme, 3),
     confidence: 0.65,
-    width_threshold: 32,
-    height_threshold: 32,
     enabled: false,
+    height_threshold: 32,
+    id: "4",
+    name: "Motorcycle",
+    width_threshold: 32,
   },
   {
-    id: "5",
-    name: "Bicycle",
     color: getRegionColor(theme, 4),
     confidence: 0.6,
-    width_threshold: 32,
-    height_threshold: 32,
     enabled: true,
+    height_threshold: 32,
+    id: "5",
+    name: "Bicycle",
+    width_threshold: 32,
   },
 ];
 
 export function ModelConfigStep() {
-  const { theme } = useTheme();
+  const theme = useMantineTheme();
   const { formValues, setModel, setModelConfig } = useRecipeStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [labels, setLabels] = useState<ModelLabel[]>(
@@ -97,9 +99,9 @@ export function ModelConfigStep() {
   useEffect(() => {
     if (formValues.modelId) {
       setModelConfig({
-        modelId: formValues.modelId,
         confidence: 0.7,
         labels: labels,
+        modelId: formValues.modelId,
       });
     }
   }, [formValues.modelId, labels, setModelConfig]);
@@ -200,7 +202,7 @@ export function ModelConfigStep() {
                   </Stack>
                 ) : (
                   <Stack gap="md">
-                    <Box style={{ position: "relative", height: 400 }}>
+                    <Box style={{ height: 400, position: "relative" }}>
                       <ScrollArea h={400} offsetScrollbars>
                         <Table 
                           verticalSpacing="sm" 
@@ -293,8 +295,8 @@ export function ModelConfigStep() {
                             setCurrentPage(1);
                           }}
                           data={["5", "10", "20", "30", "40", "50"].map((size) => ({
-                            value: size,
                             label: `${size} per page`,
+                            value: size,
                           }))}
                           w={110}
                           radius="xl"

@@ -1,53 +1,54 @@
-import { useTranslation } from "react-i18next";
-import React, { useState, useRef, useEffect } from "react";
 import {
-  Stack,
-  Text,
-  Group,
-  Button,
-  Paper,
-  TextInput,
   ActionIcon,
-  ScrollArea,
-  Box,
-  Card,
-  Title,
-  SimpleGrid,
-  UnstyledButton,
-  Center,
-  Select,
-  Tabs,
-  useMantineTheme,
   Badge,
-  Flex,
+  Box,
+  Button,
+  Card,
+  Center,
   Collapse,
-  Tooltip,
   Divider,
+  Flex,
+  Group,
   Modal,
+  Paper,
+  ScrollArea,
+  Select,
+  SimpleGrid,
+  Stack,
+  Tabs,
+  Text,
+  TextInput,
+  Title,
+  Tooltip,
+  UnstyledButton,
+  useComputedColorScheme,
+  useMantineTheme,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { useTheme } from "../../../providers/theme-provider";
-import { Icons } from "../../icons";
-import { v4 as uuidv4 } from "uuid";
-import {
-  Stage,
-  Layer,
-  Line,
-  Circle,
-  Rect,
-  Image as KonvaImage,
-} from "react-konva";
-import { useRecipeStore } from "../../../lib/store/recipe-store";
-import type {
-  Region,
-  RegionPoint,
-  FrameData,
-  RoadType,
-  RegionConnection,
-} from "../../../types/recipe";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage as KonvaStage } from "konva/lib/Stage";
+import React, { useEffect,useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  Circle,
+  Image as KonvaImage,
+  Layer,
+  Line,
+  Rect,
+  Stage,
+} from "react-konva";
 import useImage from "use-image";
+import { v4 as uuidv4 } from "uuid";
+
+import { useRecipeStore } from "../../../lib/store/recipe-store";
+import type {
+  FrameData,
+  Region,
+  RegionConnection,
+  RegionPoint,
+  RoadType,
+} from "../../../types/recipe";
+import { Icons } from "../../icons";
 import { RoadTypeIcon } from "../../road-type-icon";
 
 interface RoadTypeOption {
@@ -65,14 +66,15 @@ export function RegionSetupStep() {
     updateConnections,
     setROI,
   } = useRecipeStore();
-  const mantineTheme = useMantineTheme();
-  const { theme, colorScheme } = useTheme();
+  const theme = useMantineTheme();
+  const computedColorScheme = useComputedColorScheme();
+  const isDark = computedColorScheme === 'dark';
 
   // Use the same dimensions as task-type-with-video-step
   const STAGE_WIDTH = 600;
   const STAGE_HEIGHT = 400;
 
-  const [videoSize] = useState({ width: STAGE_WIDTH, height: STAGE_HEIGHT });
+  const [videoSize] = useState({ height: STAGE_HEIGHT, width: STAGE_WIDTH });
 
   // Check if we're in rectangle-only mode (for train detection)
   const isRectangleMode = formValues.taskType === "trainDetection";
@@ -192,14 +194,14 @@ export function RegionSetupStep() {
 
   // Road type options
   const roadTypeOptions: RoadTypeOption[] = [
-    { value: "straight", label: t("recipes:roadType.straight", "Straight") },
+    { label: t("recipes:roadType.straight", "Straight"), value: "straight" },
     {
-      value: "tJunction",
       label: t("recipes:roadType.tJunction", "T-Junction"),
+      value: "tJunction",
     },
     {
-      value: "crossroads",
       label: t("recipes:roadType.crossroads", "Crossroads"),
+      value: "crossroads",
     },
   ];
 
@@ -320,16 +322,16 @@ export function RegionSetupStep() {
       const y2 = Math.max(currentPoints[0].y, currentPoints[2].y);
 
       // Set ROI
-      setROI({ x1, y1, x2, y2 });
+      setROI({ x1, x2, y1, y2 });
 
       if (editingRegion) {
         // Update existing region
         const updatedRegion: Region = {
           id: editingRegion,
           name: trimmedName,
-          type: "countLine",
           points: currentPoints,
           roadType: roadType,
+          type: "countLine",
         };
         updateRegion(updatedRegion);
       } else {
@@ -342,9 +344,9 @@ export function RegionSetupStep() {
         const newRegion: Region = {
           id: uuidv4(),
           name: trimmedName,
-          type: "countLine",
           points: currentPoints,
           roadType: roadType,
+          type: "countLine",
         };
         addRegion(newRegion);
       }
@@ -385,18 +387,18 @@ export function RegionSetupStep() {
       const updatedRegion: Region = {
         id: editingRegion,
         name: trimmedName,
-        type: "countLine",
         points: currentPoints,
         roadType: roadType,
+        type: "countLine",
       };
       updateRegion(updatedRegion);
     } else {
       const newRegion: Region = {
         id: uuidv4(),
         name: trimmedName,
-        type: "countLine",
         points: currentPoints,
         roadType: roadType,
+        type: "countLine",
       };
       addRegion(newRegion);
     }
@@ -446,9 +448,9 @@ export function RegionSetupStep() {
       const updatedRegion: Region = {
         id: editingRegion,
         name: trimmedName,
-        type: "countLine",
         points: editablePoints,
         roadType: roadType,
+        type: "countLine",
       };
       updateRegion(updatedRegion);
 
@@ -490,9 +492,9 @@ export function RegionSetupStep() {
       const regionName =
         regions.find((r) => r.id === regionId)?.name || "Unknown Region";
       setRegionToDelete({
+        connections: regionConnections,
         id: regionId,
         name: regionName,
-        connections: regionConnections,
       });
       setShowDeleteModal(true);
     } else {
@@ -596,9 +598,9 @@ export function RegionSetupStep() {
       const newConnections = [
         ...connections,
         {
+          destinationId: destinationRegionId,
           id: uuidv4(),
           sourceId: sourceRegionId,
-          destinationId: destinationRegionId,
         },
       ];
       setConnections(newConnections);
@@ -614,7 +616,7 @@ export function RegionSetupStep() {
       withBorder
       p="md"
       radius="md"
-      style={{ height: "100%", display: "flex", flexDirection: "column" }}
+      style={{ display: "flex", flexDirection: "column", height: "100%" }}
     >
       {/* Compact Header */}
       <Box pb="sm" style={{ flexShrink: 0 }}>
@@ -622,12 +624,12 @@ export function RegionSetupStep() {
           <Group gap="sm">
             <Icons.Polygon
               size={20}
-              color={theme.colors[mantineTheme.primaryColor][6]}
+              color={theme.colors[theme.primaryColor][6]}
             />
             <Title order={4}>{t("recipes:creation.regionSetup.title")}</Title>
             <Badge
               size="sm"
-              variant={colorScheme === "dark" ? "filled" : "light"}
+              variant={isDark ? "filled" : "light"}
             >
               {isRectangleMode
                 ? regions.length > 0
@@ -676,7 +678,9 @@ export function RegionSetupStep() {
               radius="md"
               style={{
                 backgroundColor:
-                  colorScheme === "dark" ? theme.colors.gray[8] : "white",
+                  isDark 
+                    ? theme.colors.dark?.[7] || theme.colors.gray[8] 
+                    : theme.white,
               }}
             >
               <SimpleGrid cols={{ base: 3 }}>
@@ -685,23 +689,23 @@ export function RegionSetupStep() {
                     key={option.value}
                     p="sm"
                     style={{
-                      border: `2px solid ${roadType === option.value ? theme.colors[mantineTheme.primaryColor][5] : theme.colors.gray[colorScheme === "dark" ? 7 : 2]}`,
-                      borderRadius: mantineTheme.radius.md,
                       backgroundColor:
                         roadType === option.value
-                          ? colorScheme === "dark"
-                            ? `${theme.colors[mantineTheme.primaryColor][8]}40`
-                            : `${theme.colors[mantineTheme.primaryColor][0]}50`
-                          : colorScheme === "dark"
+                          ? isDark
+                            ? `${theme.colors[theme.primaryColor][8]}40`
+                            : `${theme.colors[theme.primaryColor][0]}50`
+                          : isDark
                             ? theme.colors.gray[8]
                             : theme.colors.gray[0],
+                      border: `2px solid ${roadType === option.value ? theme.colors[theme.primaryColor][5] : theme.colors.gray[isDark ? 7 : 2]}`,
+                      borderRadius: theme.radius.md,
                       transition: "all 0.2s ease",
                     }}
                     onClick={() => handleRoadTypeChange(option.value)}
                     onMouseEnter={(e) => {
                       if (roadType !== option.value) {
                         e.currentTarget.style.backgroundColor =
-                          colorScheme === "dark"
+                          isDark
                             ? theme.colors.gray[7]
                             : theme.colors.gray[1];
                       }
@@ -709,7 +713,7 @@ export function RegionSetupStep() {
                     onMouseLeave={(e) => {
                       if (roadType !== option.value) {
                         e.currentTarget.style.backgroundColor =
-                          colorScheme === "dark"
+                          isDark
                             ? theme.colors.gray[8]
                             : theme.colors.gray[0];
                       }
@@ -719,10 +723,10 @@ export function RegionSetupStep() {
                       <Stack gap="xs" align="center">
                         <Box
                           style={{
-                            display: "flex",
                             alignItems: "center",
-                            justifyContent: "center",
+                            display: "flex",
                             height: 60,
+                            justifyContent: "center",
                           }}
                         >
                           <RoadTypeIcon type={option.value} size={50} />
@@ -746,14 +750,16 @@ export function RegionSetupStep() {
       {/* Main Content - Side by side layout */}
       <Flex gap="md" style={{ flex: 1, overflow: "hidden" }}>
         {/* Left Panel - Canvas */}
-        <Box style={{ flex: 1, minWidth: 0, display: "flex" }}>
+        <Box style={{ display: "flex", flex: 1, minWidth: 0 }}>
           <Card
             withBorder
             p="sm"
             radius="md"
             style={{
               backgroundColor:
-                colorScheme === "dark" ? theme.colors.gray[8] : "white",
+                isDark 
+                  ? theme.colors.dark?.[7] || theme.colors.gray[8] 
+                  : theme.white,
               display: "flex",
               flexDirection: "column",
               height: 524,
@@ -768,12 +774,12 @@ export function RegionSetupStep() {
                   <Group gap="xs">
                     <Icons.InfoCircle
                       size={14}
-                      color={theme.colors[mantineTheme.primaryColor][6]}
+                      color={theme.colors[theme.primaryColor][6]}
                       style={{ opacity: 0.7 }}
                     />
                     <Text
                       size="xs"
-                      c={colorScheme === "dark" ? "gray.5" : "gray.6"}
+                      c={isDark ? "gray.5" : "gray.6"}
                       style={{ fontStyle: "italic" }}
                     >
                       {isRectangleMode
@@ -786,12 +792,12 @@ export function RegionSetupStep() {
                   <Group gap="xs">
                     <Icons.InfoCircle
                       size={14}
-                      color={theme.colors[mantineTheme.primaryColor][6]}
+                      color={theme.colors[theme.primaryColor][6]}
                       style={{ opacity: 0.7 }}
                     />
                     <Text
                       size="xs"
-                      c={colorScheme === "dark" ? "gray.5" : "gray.6"}
+                      c={isDark ? "gray.5" : "gray.6"}
                       style={{ fontStyle: "italic" }}
                     >
                       Drag region to move, drag points to adjust
@@ -880,17 +886,17 @@ export function RegionSetupStep() {
               {/* Canvas */}
               <Box
                 style={{
-                  display: "flex",
-                  justifyContent: "center",
                   alignItems: "center",
                   backgroundColor:
-                    colorScheme === "dark"
+                    isDark
                       ? theme.colors.gray[9]
                       : theme.colors.gray[1],
-                  borderRadius: mantineTheme.radius.md,
-                  position: "relative",
+                  borderRadius: theme.radius.md,
+                  display: "flex",
                   height: STAGE_HEIGHT,
+                  justifyContent: "center",
                   overflow: "hidden",
+                  position: "relative",
                 }}
               >
                 <Stage
@@ -902,8 +908,10 @@ export function RegionSetupStep() {
                   onMouseUp={handleStageMouseUp}
                   style={{
                     backgroundColor:
-                      colorScheme === "dark" ? theme.colors.gray[9] : "white",
-                    borderRadius: mantineTheme.radius.md,
+                      isDark 
+                        ? theme.colors.dark?.[8] || theme.colors.gray[9] 
+                        : theme.white,
+                    borderRadius: theme.radius.md,
                   }}
                 >
                   <Layer>
@@ -920,9 +928,9 @@ export function RegionSetupStep() {
                         width={videoSize.width}
                         height={videoSize.height}
                         fill={
-                          colorScheme === "dark"
-                            ? theme.colors.gray[8]
-                            : "white"
+                          isDark
+                            ? theme.colors.dark?.[7] || theme.colors.gray[8]
+                            : theme.white
                         }
                       />
                     )}
@@ -1045,7 +1053,7 @@ export function RegionSetupStep() {
                                 y={point.y}
                                 radius={POINT_RADIUS}
                                 fill={
-                                  colorScheme === "dark"
+                                  isDark
                                     ? theme.colors.gray[4]
                                     : "white"
                                 }
@@ -1090,7 +1098,7 @@ export function RegionSetupStep() {
                             y={point.y}
                             radius={POINT_HOVER_RADIUS}
                             fill={
-                              colorScheme === "dark"
+                              isDark
                                 ? theme.colors.gray[4]
                                 : "white"
                             }
@@ -1140,7 +1148,7 @@ export function RegionSetupStep() {
                               y={point.y}
                               radius={POINT_RADIUS}
                               fill={
-                                colorScheme === "dark"
+                                isDark
                                   ? theme.colors.gray[4]
                                   : "white"
                               }
@@ -1174,21 +1182,21 @@ export function RegionSetupStep() {
                 {showHoverLabel && (
                   <Box
                     style={{
-                      position: "absolute",
-                      left: mousePos.x + 10,
-                      top: mousePos.y - 10,
                       backgroundColor:
-                        colorScheme === "dark"
+                        isDark
                           ? theme.colors.gray[9] + "cc"
                           : theme.colors.gray[7] + "cc",
+                      borderRadius: theme.radius.md,
                       color: "white",
-                      padding: "4px 8px",
-                      borderRadius: mantineTheme.radius.md,
                       fontSize: "12px",
                       fontWeight: 500,
+                      left: mousePos.x + 10,
+                      padding: "4px 8px",
                       pointerEvents: "none",
-                      zIndex: 1000,
+                      position: "absolute",
+                      top: mousePos.y - 10,
                       whiteSpace: "nowrap",
+                      zIndex: 1000,
                     }}
                   >
                     {hoverLabelText}
@@ -1202,12 +1210,12 @@ export function RegionSetupStep() {
         {/* Right Panel */}
         <Box
           style={{
-            width: "350px",
-            flexShrink: 0,
             display: "flex",
             flexDirection: "column",
+            flexShrink: 0,
             height: 524,
             overflow: "hidden",
+            width: "350px",
           }}
         >
           {/* Region Name Input - Shows when drawing/editing (not for rectangle mode) */}
@@ -1219,7 +1227,9 @@ export function RegionSetupStep() {
               mb="sm"
               style={{
                 backgroundColor:
-                  colorScheme === "dark" ? theme.colors.gray[8] : "white",
+                  isDark 
+                    ? theme.colors.dark?.[7] || theme.colors.gray[8] 
+                    : theme.white,
                 flexShrink: 0,
               }}
             >
@@ -1277,7 +1287,9 @@ export function RegionSetupStep() {
               mb="sm"
               style={{
                 backgroundColor:
-                  colorScheme === "dark" ? theme.colors.gray[8] : "white",
+                  isDark 
+                    ? theme.colors.dark?.[7] || theme.colors.gray[8] 
+                    : theme.white,
                 flexShrink: 0,
               }}
             >
@@ -1360,10 +1372,12 @@ export function RegionSetupStep() {
               radius="md"
               style={{
                 backgroundColor:
-                  colorScheme === "dark" ? theme.colors.gray[8] : "white",
+                  isDark 
+                    ? theme.colors.dark?.[7] || theme.colors.gray[8] 
+                    : theme.white,
                 display: "flex",
-                flexDirection: "column",
                 flex: 1,
+                flexDirection: "column",
                 minHeight: 200,
                 overflow: "hidden",
               }}
@@ -1372,9 +1386,9 @@ export function RegionSetupStep() {
                 value={activeTab}
                 onChange={(value) => setActiveTab(value || "regions")}
                 style={{
-                  height: "100%",
                   display: "flex",
                   flexDirection: "column",
+                  height: "100%",
                 }}
               >
                 <Tabs.List>
@@ -1442,12 +1456,12 @@ export function RegionSetupStep() {
                                 <Group gap="xs">
                                   <Box
                                     style={{
-                                      width: 12,
-                                      height: 12,
-                                      borderRadius: "50%",
                                       backgroundColor: getRegionColor(
                                         region.id
                                       ),
+                                      borderRadius: "50%",
+                                      height: 12,
+                                      width: 12,
                                     }}
                                   />
                                   <Text size="sm" fw={500}>
@@ -1514,7 +1528,7 @@ export function RegionSetupStep() {
                         radius="sm"
                         style={{
                           backgroundColor:
-                            colorScheme === "dark"
+                            isDark
                               ? theme.colors.gray[9]
                               : theme.colors.gray[0],
                           flexShrink: 0,
@@ -1524,7 +1538,7 @@ export function RegionSetupStep() {
                           <Text
                             size="xs"
                             fw={600}
-                            c={colorScheme === "dark" ? "gray.4" : "gray.7"}
+                            c={isDark ? "gray.4" : "gray.7"}
                           >
                             Create Connection
                           </Text>
@@ -1538,8 +1552,8 @@ export function RegionSetupStep() {
                                 setConnectionError(null);
                               }}
                               data={regions.map((r) => ({
-                                value: r.id,
                                 label: r.name,
+                                value: r.id,
                               }))}
                               style={{ flex: 1 }}
                               searchable
@@ -1559,7 +1573,7 @@ export function RegionSetupStep() {
                               }}
                               data={regions
                                 .filter((r) => r.id !== sourceRegionId)
-                                .map((r) => ({ value: r.id, label: r.name }))}
+                                .map((r) => ({ label: r.name, value: r.id }))}
                               disabled={!sourceRegionId}
                               style={{ flex: 1 }}
                               searchable
@@ -1620,15 +1634,15 @@ export function RegionSetupStep() {
                                 }
                                 onMouseLeave={() => setHoveredConnection(null)}
                                 style={{
+                                  backgroundColor:
+                                    hoveredConnection === conn.id
+                                      ? isDark
+                                        ? theme.colors.green[9] + "20"
+                                        : theme.colors.green[0]
+                                      : undefined,
                                   borderColor:
                                     hoveredConnection === conn.id
                                       ? theme.colors.green[5]
-                                      : undefined,
-                                  backgroundColor:
-                                    hoveredConnection === conn.id
-                                      ? colorScheme === "dark"
-                                        ? theme.colors.green[9] + "20"
-                                        : theme.colors.green[0]
                                       : undefined,
                                   transition: "all 0.2s ease",
                                 }}
@@ -1637,12 +1651,12 @@ export function RegionSetupStep() {
                                   <Group gap="xs">
                                     <Box
                                       style={{
-                                        width: 10,
-                                        height: 10,
-                                        borderRadius: "50%",
                                         backgroundColor: getRegionColor(
                                           conn.sourceId
                                         ),
+                                        borderRadius: "50%",
+                                        height: 10,
+                                        width: 10,
                                       }}
                                     />
                                     <Text size="xs" fw={500}>
@@ -1654,12 +1668,12 @@ export function RegionSetupStep() {
                                     />
                                     <Box
                                       style={{
-                                        width: 10,
-                                        height: 10,
-                                        borderRadius: "50%",
                                         backgroundColor: getRegionColor(
                                           conn.destinationId
                                         ),
+                                        borderRadius: "50%",
+                                        height: 10,
+                                        width: 10,
                                       }}
                                     />
                                     <Text size="xs" fw={500}>
@@ -1705,6 +1719,18 @@ export function RegionSetupStep() {
         title={t("recipes:region.deleteTitle", "Delete Region?")}
         centered
         size="sm"
+        styles={{
+          content: {
+            backgroundColor: isDark 
+              ? theme.colors.dark?.[7] || theme.colors.gray[9] 
+              : theme.white,
+          },
+          header: {
+            backgroundColor: isDark 
+              ? theme.colors.dark?.[7] || theme.colors.gray[9] 
+              : theme.white,
+          },
+        }}
       >
         <Stack gap="md">
           <Text size="sm">
@@ -1717,7 +1743,7 @@ export function RegionSetupStep() {
                 <Text
                   component="span"
                   fw={600}
-                  c={colorScheme === "dark" ? "white" : "dark"}
+                  c={isDark ? "white" : "dark"}
                 >
                   "{regionToDelete.name}"
                 </Text>
@@ -1744,11 +1770,11 @@ export function RegionSetupStep() {
               onClick={() => setShowDeleteModal(false)}
               style={{
                 borderColor:
-                  colorScheme === "dark"
-                    ? mantineTheme.colors.dark[4]
+                  isDark
+                    ? theme.colors.dark[4]
                     : theme.colors.gray[4],
                 color:
-                  colorScheme === "dark"
+                  isDark
                     ? theme.colors.gray[3]
                     : theme.colors.gray[7],
               }}
@@ -1761,10 +1787,10 @@ export function RegionSetupStep() {
                 setShowDeleteModal(false);
               }}
               style={{
-                backgroundColor: mantineTheme.colors.red[6],
                 "&:hover": {
-                  backgroundColor: mantineTheme.colors.red[7],
+                  backgroundColor: theme.colors.red[7],
                 },
+                backgroundColor: theme.colors.red[6],
               }}
             >
               {t("recipes:region.deleteConfirm", "Delete Region")}
@@ -1780,6 +1806,18 @@ export function RegionSetupStep() {
         title={t("recipes:region.changeRoadTypeTitle", "Change Road Type?")}
         centered
         size="sm"
+        styles={{
+          content: {
+            backgroundColor: isDark 
+              ? theme.colors.dark?.[7] || theme.colors.gray[9] 
+              : theme.white,
+          },
+          header: {
+            backgroundColor: isDark 
+              ? theme.colors.dark?.[7] || theme.colors.gray[9] 
+              : theme.white,
+          },
+        }}
       >
         <Stack gap="md">
           <Text size="sm">
@@ -1807,11 +1845,11 @@ export function RegionSetupStep() {
               onClick={() => setShowRoadTypeModal(false)}
               style={{
                 borderColor:
-                  colorScheme === "dark"
-                    ? mantineTheme.colors.dark[4]
+                  isDark
+                    ? theme.colors.dark[4]
                     : theme.colors.gray[4],
                 color:
-                  colorScheme === "dark"
+                  isDark
                     ? theme.colors.gray[3]
                     : theme.colors.gray[7],
               }}
@@ -1821,10 +1859,10 @@ export function RegionSetupStep() {
             <Button
               onClick={confirmRoadTypeChange}
               style={{
-                backgroundColor: mantineTheme.colors.red[6],
                 "&:hover": {
-                  backgroundColor: mantineTheme.colors.red[7],
+                  backgroundColor: theme.colors.red[7],
                 },
+                backgroundColor: theme.colors.red[6],
               }}
             >
               {t("recipes:region.changeRoadTypeConfirm", "Change Road Type")}

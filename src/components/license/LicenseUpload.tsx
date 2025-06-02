@@ -1,24 +1,25 @@
-import { useState } from 'react';
+import {
+  Button,
+  Grid,
+  Group,
+  Paper,
+  Select,
+  Stack,
+  Switch,
+  Text,
+  TextInput,
+  Title,
+} from '@mantine/core';
 import { useForm, zodResolver } from '@mantine/form';
 import {
-  Stack,
-  TextInput,
-  Switch,
-  Button,
-  Group,
-  Text,
-  Paper,
-  Title,
-  Select,
-  Grid,
-} from '@mantine/core';
-import {
-  IconUpload,
+  IconFolder,
   IconLicense,
   IconSettings,
-  IconFolder,
+  IconUpload,
 } from '@tabler/icons-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
 import type { CreateLicenseRequest } from '../../lib/validator/license';
 import { createLicenseSchema } from '../../lib/validator/license';
 
@@ -37,8 +38,8 @@ export function LicenseUpload({ onSubmit, isLoading, onCancel }: LicenseUploadPr
 
   const form = useForm<CreateLicenseRequest>({
     initialValues: {
-      name: '',
       is_default: false,
+      name: '',
     },
     validate: zodResolver(createLicenseSchema),
   });
@@ -71,9 +72,9 @@ export function LicenseUpload({ onSubmit, isLoading, onCancel }: LicenseUploadPr
   const isComplete = hasName && hasTaskType && hasFile;
 
   const taskTypeOptions = [
-    { value: 'license_validation', label: 'License Validation' },
-    { value: 'license_installation', label: 'License Installation' },
-    { value: 'license_verification', label: 'License Verification' },
+    { label: 'License Validation', value: 'license_validation' },
+    { label: 'License Installation', value: 'license_installation' },
+    { label: 'License Verification', value: 'license_verification' },
   ];
 
   return (

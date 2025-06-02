@@ -1,29 +1,30 @@
-import { useState } from "react";
 import {
-  Card,
-  Stack,
-  Group,
-  Button,
-  Text,
-  Badge,
-  Progress,
-  Paper,
-  Grid,
-  RingProgress,
   ActionIcon,
-  Divider,
+  Badge,
   Box,
-  Title,
+  Button,
+  Card,
   Collapse,
-  Timeline,
-  Tabs,
+  Divider,
+  Grid,
+  Group,
+  Paper,
+  Progress,
+  RingProgress,
   ScrollArea,
   SimpleGrid,
+  Stack,
+  Tabs,
+  Text,
+  Timeline,
+  Title,
+  useMantineTheme,
 } from "@mantine/core";
+import { useState } from "react";
+
 import { Icons } from "@/components/icons";
-import { useTheme } from "@/providers/theme-provider";
-import { formatDistanceToNow, getTaskTypeColor } from "@/lib/utils";
 import { useTaskWebSocket } from "@/hooks/use-task-websocket";
+import { formatDistanceToNow, getTaskTypeColor } from "@/lib/utils";
 import type { Task } from "@/types/task";
 import type { TaskLog } from "@/types/task-websocket";
 
@@ -46,7 +47,7 @@ export function CompactTaskControl({
   isStopping = false,
   isRestarting = false,
 }: CompactTaskControlProps) {
-  const { theme } = useTheme();
+  const theme = useMantineTheme();
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<string | null>("metrics");
 
@@ -57,8 +58,8 @@ export function CompactTaskControl({
     logs,
     clearLogs,
   } = useTaskWebSocket({
-    url: `ws://localhost:8080/tasks/${task.id}/stream`,
     taskId: task.id,
+    url: `ws://localhost:8080/tasks/${task.id}/stream`,
   });
 
   const getStatusColor = () => {
@@ -116,11 +117,11 @@ export function CompactTaskControl({
               task.status === "running" && wsState === "connected" ? (
                 <Box
                   style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    backgroundColor: theme.colors.green[6],
                     animation: "pulse 2s infinite",
+                    backgroundColor: theme.colors.green[6],
+                    borderRadius: "50%",
+                    height: 8,
+                    width: 8,
                   }}
                 />
               ) : null
@@ -303,7 +304,7 @@ export function CompactTaskControl({
                     <RingProgress
                       size={50}
                       thickness={6}
-                      sections={[{ value: progress.cpuUsage, color: "blue" }]}
+                      sections={[{ color: "blue", value: progress.cpuUsage }]}
                       label={
                         <Text size="xs" fw={700} ta="center">
                           {Math.round(progress.cpuUsage)}%
@@ -319,7 +320,7 @@ export function CompactTaskControl({
                     <RingProgress
                       size={50}
                       thickness={6}
-                      sections={[{ value: progress.memoryUsage, color: "green" }]}
+                      sections={[{ color: "green", value: progress.memoryUsage }]}
                       label={
                         <Text size="xs" fw={700} ta="center">
                           {Math.round(progress.memoryUsage)}%
@@ -335,7 +336,7 @@ export function CompactTaskControl({
                     <RingProgress
                       size={50}
                       thickness={6}
-                      sections={[{ value: progress.gpuUsage, color: "orange" }]}
+                      sections={[{ color: "orange", value: progress.gpuUsage }]}
                       label={
                         <Text size="xs" fw={700} ta="center">
                           {Math.round(progress.gpuUsage)}%
