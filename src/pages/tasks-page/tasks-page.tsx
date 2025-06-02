@@ -7,7 +7,7 @@ import { PageLayout } from "@/components/page-layout/page-layout";
 import { DataTable } from "@/components/ui";
 import { useTasks, useDeleteTask } from "@/lib/queries/task";
 import { notifications } from "@mantine/notifications";
-import { modals } from "@mantine/modals";
+import { confirmDelete } from "@/lib/confirmation";
 import { getTaskTypeColor } from "@/lib/utils";
 import type { Task } from "@/types/task";
 
@@ -30,31 +30,21 @@ export function TasksPage() {
   };
 
   const handleDeleteTask = (task: Task) => {
-    modals.openConfirmModal({
-      title: t("tasks:confirmDelete.title"),
-      children: (
-        <Text size="sm">
-          {t("tasks:confirmDelete.message", { name: task.name })}
-        </Text>
-      ),
-      labels: { confirm: t("common:action.delete"), cancel: t("common:action.cancel") },
-      confirmProps: { color: "red" },
-      onConfirm: async () => {
-        try {
-          await deleteTaskMutation.mutateAsync(task.id);
-          notifications.show({
-            title: t("tasks:notifications.deleteSuccess"),
-            message: t("tasks:notifications.deleteSuccessMessage"),
-            color: "green",
-          });
-        } catch (error) {
-          notifications.show({
-            title: t("common:error"),
-            message: t("tasks:notifications.deleteError"),
-            color: "red",
-          });
-        }
-      },
+    confirmDelete(task.name, t("tasks:common.task"), async () => {
+      try {
+        await deleteTaskMutation.mutateAsync(task.id);
+        notifications.show({
+          title: t("tasks:notifications.deleteSuccess"),
+          message: t("tasks:notifications.deleteSuccessMessage"),
+          color: "green",
+        });
+      } catch (error) {
+        notifications.show({
+          title: t("common:error"),
+          message: t("tasks:notifications.deleteError"),
+          color: "red",
+        });
+      }
     });
   };
 
@@ -82,7 +72,7 @@ export function TasksPage() {
       label: t("tasks:table.name"),
       render: (task: Task) => (
         <Box>
-          <Text fw={500}>{task.name}</Text>
+          <Text fw={500} size="sm">{task.name}</Text>
           <Text size="xs" c="dimmed" lineClamp={1}>
             {task.description || t("tasks:noDescription")}
           </Text>
@@ -92,8 +82,9 @@ export function TasksPage() {
     {
       key: "status",
       label: t("tasks:table.status"),
+      width: 120,
       render: (task: Task) => (
-        <Badge color={getStatusColor(task.status)} variant="light">
+        <Badge color={getStatusColor(task.status)} variant="light" size="md">
           {t(`tasks:status.${task.status}`)}
         </Badge>
       ),
@@ -121,8 +112,9 @@ export function TasksPage() {
     {
       key: "resultType",
       label: t("tasks:table.type"),
+      width: 140,
       render: (task: Task) => (
-        <Badge color={getTaskTypeColor(task.resultType)} variant="light">
+        <Badge color={getTaskTypeColor(task.resultType)} variant="light" size="md">
           {t(`tasks:taskType.${task.resultType}`)}
         </Badge>
       ),
@@ -139,10 +131,11 @@ export function TasksPage() {
     {
       key: "createdAt",
       label: t("tasks:table.createdAt"),
+      width: 120,
       render: (task: Task) => {
-        if (!task.createdAt) return "—";
+        if (!task.createdAt) return <Text size="sm">—</Text>;
         const date = new Date(task.createdAt);
-        return date.toLocaleDateString();
+        return <Text size="sm">{date.toLocaleDateString()}</Text>;
       },
     },
   ];
@@ -185,7 +178,11 @@ export function TasksPage() {
       title={t("tasks:title")}
       description={t("tasks:description")}
       actions={
-        <Button leftSection={<Icons.Plus size={16} />} onClick={handleCreateTask}>
+        <Button 
+          leftSection={<Icons.Plus size={16} />} 
+          onClick={handleCreateTask}
+          color="blue"
+        >
           {t("tasks:creation.createTask")}
         </Button>
       }
@@ -197,9 +194,12 @@ export function TasksPage() {
           loading={isLoading}
           actions={actions}
           onRowClick={handleViewDetails}
-          height={600}
+          height={700}
           emptyMessage={t("tasks:noTasks")}
           defaultSort={{ key: 'createdAt', direction: 'desc' }}
+          showPagination={true}
+          pageSize={10}
+          enableGlobalFilter={true}
         />
       </Stack>
     </PageLayout>

@@ -9,8 +9,10 @@ export interface RegionPoint {
 export interface Region {
   id: string;
   name: string;
+  type: "countLine" | "areaOfInterest" | "exclusionZone";
   points: RegionPoint[];
   roadType?: RoadType;
+  color?: string;
 }
 
 export interface RegionConnection {
@@ -26,13 +28,28 @@ export type RecipeStatus = "active" | "inactive" | "error";
 export type TaskType = "trafficStatistics" | "trainDetection";
 
 // Recipe form values interface
+export interface Recipe {
+  id: string;
+  name: string;
+  description?: string;
+  taskType: TaskType;
+  status: RecipeStatus;
+  createdAt: string;
+  updatedAt?: string;
+  modelId: string;
+  regions: Region[];
+  confidenceThreshold: number;
+  classFilter?: string[];
+  inferenceStep?: number;
+}
+
 export interface RecipeFormValues {
   // Basic info
   name: string;
   description: string;
 
   // Task type
-  taskType: TaskType;
+  taskType: TaskType | "";
   sceneType?: string;
 
   // Video

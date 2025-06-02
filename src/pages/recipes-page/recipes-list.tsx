@@ -2,7 +2,6 @@ import { useState, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
-  createColumnHelper,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
@@ -10,7 +9,7 @@ import {
   getPaginationRowModel,
   getFilteredRowModel,
 } from "@tanstack/react-table";
-import type { SortingState } from "@tanstack/react-table";
+import type { SortingState, ColumnDef } from "@tanstack/react-table";
 import {
   Table,
   ScrollArea,
@@ -101,49 +100,67 @@ export function RecipesList() {
     [t]
   );
 
-  const columnHelper = createColumnHelper<RecipeResponse>();
-
-  const columns = useMemo(
+  const columns = useMemo<ColumnDef<RecipeResponse>[]>(
     () => [
-      columnHelper.accessor("name", {
+      {
+        accessorKey: "name",
         header: t("recipes:table.name"),
-        cell: (info) => (
-          <Text fw={500} size="sm">
-            {info.getValue()}
-          </Text>
-        ),
-      }),
-      columnHelper.accessor("taskType", {
+        cell: (info) => {
+          const name = info.getValue() as string;
+          return (
+            <Text fw={500} size="sm">
+              {name}
+            </Text>
+          );
+        },
+      },
+      {
+        accessorKey: "taskType",
         header: t("recipes:table.taskType"),
-        cell: (info) => (
-          <Badge color={getTaskTypeColor(info.getValue())}>
-            {getTaskTypeLabel(info.getValue())}
-          </Badge>
-        ),
-      }),
-      columnHelper.accessor("status", {
+        cell: (info) => {
+          const taskType = info.getValue() as string;
+          return (
+            <Badge color={getTaskTypeColor(taskType)}>
+              {getTaskTypeLabel(taskType)}
+            </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: "status",
         header: t("recipes:table.status"),
-        cell: (info) => (
-          <Badge color={getStatusColor(info.getValue())}>
-            {t(`recipes:status.${info.getValue()}`)}
-          </Badge>
-        ),
-      }),
-      columnHelper.accessor("regions", {
+        cell: (info) => {
+          const status = info.getValue() as string;
+          return (
+            <Badge color={getStatusColor(status)}>
+              {t(`recipes:status.${status}`)}
+            </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: "regions",
         header: t("recipes:table.regions"),
-        cell: (info) => (
-          <Text size="sm">{getRegionCount(info.getValue())}</Text>
-        ),
-      }),
-      columnHelper.accessor("createdAt", {
+        cell: (info) => {
+          const regions = info.getValue() as Region[];
+          return (
+            <Text size="sm">{getRegionCount(regions)}</Text>
+          );
+        },
+      },
+      {
+        accessorKey: "createdAt",
         header: t("recipes:table.createdAt"),
-        cell: (info) => (
-          <Text size="sm" c="dimmed">
-            {formatDate(info.getValue())}
-          </Text>
-        ),
-      }),
-      columnHelper.display({
+        cell: (info) => {
+          const createdAt = info.getValue() as string;
+          return (
+            <Text size="sm" c="dimmed">
+              {formatDate(createdAt)}
+            </Text>
+          );
+        },
+      },
+      {
         id: "actions",
         header: "",
         cell: (info) => (
@@ -175,9 +192,9 @@ export function RecipesList() {
             </Menu.Dropdown>
           </Menu>
         ),
-      }),
+      },
     ],
-    [columnHelper, t, getTaskTypeLabel, navigate]
+    [t, getTaskTypeLabel, navigate]
   );
 
   const table = useReactTable({

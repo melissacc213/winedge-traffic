@@ -1,13 +1,13 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Button, Stack, Menu, ActionIcon, Badge, Text, Group } from "@mantine/core";
+import { Button, Stack, Menu, ActionIcon, Badge, Text } from "@mantine/core";
 import { Icons } from "@/components/icons";
 import { PageLayout } from "@/components/page-layout/page-layout";
 import { DataTable } from "@/components/ui";
 import { useRecipes, useDeleteRecipe } from "@/lib/queries/recipe";
 import { useRecipeStore } from "@/lib/store/recipe-store";
 import { notifications } from "@mantine/notifications";
-import { modals } from "@mantine/modals";
+import { confirmDelete } from "@/lib/confirmation";
 import { getTaskTypeColor } from "@/lib/utils";
 import type { Recipe } from "@/types/recipe";
 
@@ -31,48 +31,39 @@ export function RecipesPage() {
   };
 
   const handleDeleteRecipe = (recipe: Recipe) => {
-    modals.openConfirmModal({
-      title: t("recipes:confirmDelete.title"),
-      children: (
-        <Text size="sm">
-          {t("recipes:confirmDelete.message", { name: recipe.name })}
-        </Text>
-      ),
-      labels: { confirm: t("common:action.delete"), cancel: t("common:action.cancel") },
-      confirmProps: { color: "red" },
-      onConfirm: async () => {
-        try {
-          await deleteRecipeMutation.mutateAsync(recipe.id);
-          notifications.show({
-            title: t("recipes:notifications.deleteSuccess"),
-            message: t("recipes:notifications.deleteSuccessMessage"),
-            color: "green",
-          });
-        } catch (error) {
-          notifications.show({
-            title: t("common:error"),
-            message: t("recipes:notifications.deleteError"),
-            color: "red",
-          });
-        }
-      },
+    confirmDelete(recipe.name, t("recipes:common.recipe"), async () => {
+      try {
+        await deleteRecipeMutation.mutateAsync(recipe.id);
+        notifications.show({
+          title: t("recipes:notifications.deleteSuccess"),
+          message: t("recipes:notifications.deleteSuccessMessage"),
+          color: "green",
+        });
+      } catch (error) {
+        notifications.show({
+          title: t("common:error"),
+          message: t("recipes:notifications.deleteError"),
+          color: "red",
+        });
+      }
     });
   };
-
 
   const columns = [
     {
       key: "name",
       label: t("recipes:table.name"),
       render: (recipe: Recipe) => (
-        <Text fw={500}>{recipe.name}</Text>
+        <Text fw={500} size="sm">
+          {recipe.name}
+        </Text>
       ),
     },
     {
       key: "description",
       label: t("recipes:table.description"),
       render: (recipe: Recipe) => (
-        <Text size="sm" lineClamp={1}>
+        <Text size="sm" c="dimmed" lineClamp={1}>
           {recipe.description || "—"}
         </Text>
       ),
@@ -80,8 +71,13 @@ export function RecipesPage() {
     {
       key: "taskType",
       label: t("recipes:table.taskType"),
+      width: 140,
       render: (recipe: Recipe) => (
-        <Badge color={getTaskTypeColor(recipe.taskType)} variant="light">
+        <Badge
+          color={getTaskTypeColor(recipe.taskType)}
+          variant="light"
+          size="md"
+        >
           {t(`recipes:taskType.${recipe.taskType}`)}
         </Badge>
       ),
@@ -89,10 +85,12 @@ export function RecipesPage() {
     {
       key: "status",
       label: t("recipes:table.status"),
+      width: 100,
       render: (recipe: Recipe) => (
-        <Badge 
-          variant="light" 
-          color={recipe.status === 'active' ? 'green' : 'gray'}
+        <Badge
+          variant="light"
+          color={recipe.status === "active" ? "green" : "gray"}
+          size="md"
         >
           {t(`recipes:status.${recipe.status}`)}
         </Badge>
@@ -101,6 +99,7 @@ export function RecipesPage() {
     {
       key: "regions",
       label: t("recipes:table.regions"),
+      width: 100,
       render: (recipe: Recipe) => (
         <Text size="sm">{recipe.regions?.length || 0} regions</Text>
       ),
@@ -115,10 +114,11 @@ export function RecipesPage() {
     {
       key: "createdAt",
       label: t("recipes:table.createdAt"),
+      width: 120,
       render: (recipe: Recipe) => {
-        if (!recipe.createdAt) return "—";
+        if (!recipe.createdAt) return <Text size="sm">—</Text>;
         const date = new Date(recipe.createdAt);
-        return date.toLocaleDateString();
+        return <Text size="sm">{date.toLocaleDateString()}</Text>;
       },
     },
   ];
@@ -135,7 +135,7 @@ export function RecipesPage() {
           leftSection={<Icons.Eye size={16} />}
           onClick={() => handleViewDetails(recipe)}
         >
-          {t("recipes:action.viewDetails")}
+          {t("recipes:actions.viewDetails")}
         </Menu.Item>
         <Menu.Item
           leftSection={<Icons.Edit size={16} />}
@@ -160,7 +160,11 @@ export function RecipesPage() {
       title={t("recipes:title")}
       description={t("recipes:description")}
       actions={
-        <Button leftSection={<Icons.Plus size={16} />} onClick={handleCreateRecipe}>
+        <Button
+          leftSection={<Icons.Plus size={16} />}
+          onClick={handleCreateRecipe}
+          color="blue"
+        >
           {t("recipes:create")}
         </Button>
       }
@@ -172,9 +176,12 @@ export function RecipesPage() {
           loading={isLoading}
           actions={actions}
           onRowClick={handleViewDetails}
-          height={600}
+          height={700}
           emptyMessage={t("recipes:noRecipes")}
-          defaultSort={{ key: 'createdAt', direction: 'desc' }}
+          defaultSort={{ key: "createdAt", direction: "desc" }}
+          showPagination={true}
+          pageSize={10}
+          enableGlobalFilter={true}
         />
       </Stack>
     </PageLayout>

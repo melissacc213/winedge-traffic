@@ -1,13 +1,11 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import {
   Box,
-  Card,
   Text,
   Button,
   Group,
   Stack,
   Badge,
-  Center,
   ActionIcon,
   Tooltip,
   Progress,
@@ -15,7 +13,6 @@ import {
   Alert,
   Flex,
   Paper,
-  Divider,
   Transition
 } from '@mantine/core';
 import {
@@ -29,13 +26,14 @@ import {
   IconVideo,
   IconClock,
   IconEye,
-  IconSettings,
   IconRefresh
 } from '@tabler/icons-react';
 import { useTheme } from '@/providers/theme-provider';
 import { VideoPlayer } from '@/components/video-player';
+import type { Task } from '@/types/task';
 
 interface TaskVideoStreamProps {
+  task?: Task;
   taskId?: string;
   title?: string;
   streamUrl?: string;
@@ -51,6 +49,7 @@ interface TaskVideoStreamProps {
 }
 
 export function TaskVideoStream({
+  task,
   taskId,
   title = "Task Video Stream",
   streamUrl,
@@ -197,11 +196,11 @@ export function TaskVideoStream({
                 c={textColor}
                 mb={4}
               >
-                {title}
+                {task?.name || title}
               </Text>
-              {taskId && (
+              {(task?.id || taskId) && (
                 <Text size="sm" c={mutedTextColor} fw={500}>
-                  Task ID: {taskId}
+                  Task ID: {task?.id || taskId}
                 </Text>
               )}
             </Box>
@@ -327,7 +326,7 @@ export function TaskVideoStream({
                 backdropFilter: 'blur(4px)'
               }}
             >
-              <Stack spacing="xs">
+              <Stack gap="xs">
                 {/* Progress bar */}
                 <Progress
                   value={progress}

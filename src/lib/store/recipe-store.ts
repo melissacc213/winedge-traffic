@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Region, TaskType, RecipeStatus, RegionConnection } from "../../types/recipe";
+import type { Region, TaskType, RegionConnection } from "../../types/recipe";
 import type { RecipeResponse } from "../validator/recipe";
 import type { ModelLabel } from "../../types/model";
 import { getMockModelConfig } from "@/lib/config/mock-model-config";
@@ -63,7 +63,7 @@ export interface RecipeFormValues {
   // Regions
   regions: Region[];
   connections?: RegionConnection[];
-  
+
   // ROI for train detection (bounding box)
   roi?: {
     x1: number;
@@ -78,7 +78,7 @@ export interface RecipeFormValues {
   confidenceThreshold: number;
   classFilter?: string[];
   inferenceStep?: number;
-  
+
   // Model configuration with labels
   modelConfig?: {
     modelId: string;
@@ -109,7 +109,7 @@ const initialFormState: RecipeFormValues = {
   // Regions
   regions: [] as Region[],
   connections: [] as RegionConnection[],
-  
+
   // ROI for train detection
   roi: undefined,
 
@@ -161,14 +161,18 @@ interface RecipeState {
   resetForm: () => void;
   setIsSaving: (saving: boolean) => void;
   markStepCompleted: (step: number, completed: boolean) => void;
-  
+
   // Task type
   setTaskType: (taskType: TaskType | "") => void;
   setRoadType: (roadType: string) => void;
-  
+
   // Video
   setVideo: (videoId: string, file?: File | null) => void;
-  setExtractedFrame: (frame: string | null, time: number | null, filename?: string) => void;
+  setExtractedFrame: (
+    frame: string | null,
+    time: number | null,
+    filename?: string
+  ) => void;
   clearVideoData: () => void;
 
   // Regions
@@ -176,19 +180,19 @@ interface RecipeState {
   updateRegion: (region: Region) => void;
   deleteRegion: (regionId: string) => void;
   updateConnections: (connections: RegionConnection[]) => void;
-  setROI: (roi: RecipeFormValues['roi']) => void;
+  setROI: (roi: RecipeFormValues["roi"]) => void;
   clearRegionsData: () => void;
-  
+
   // Model configuration
   setModel: (modelId: string, modelName?: string) => void;
-  
+
   // Edit mode
   loadRecipeForEdit: (recipeId: string) => void;
   setConfidenceThreshold: (threshold: number) => void;
   setClassFilter: (classes: string[]) => void;
-  setModelConfig: (config: RecipeFormValues['modelConfig']) => void;
+  setModelConfig: (config: RecipeFormValues["modelConfig"]) => void;
   clearModelData: () => void;
-  
+
   // API payload generation
   generateAPIPayload: () => TrainTypePayload | IntersectionTypePayload | null;
 }
@@ -214,17 +218,20 @@ export const useRecipeStore = create<RecipeState>((set) => ({
 
   // List actions
   setRecipes: (recipes) => set({ recipes }),
-  addRecipe: (recipe) => set((state) => ({ 
-    recipes: [...state.recipes, recipe] 
-  })),
-  removeRecipe: (id) => set((state) => ({
-    recipes: state.recipes.filter(recipe => recipe.id !== id)
-  })),
-  updateRecipe: (id, data) => set((state) => ({
-    recipes: state.recipes.map(recipe => 
-      recipe.id === id ? { ...recipe, ...data } : recipe
-    )
-  })),
+  addRecipe: (recipe) =>
+    set((state) => ({
+      recipes: [...state.recipes, recipe],
+    })),
+  removeRecipe: (id) =>
+    set((state) => ({
+      recipes: state.recipes.filter((recipe) => recipe.id !== id),
+    })),
+  updateRecipe: (id, data) =>
+    set((state) => ({
+      recipes: state.recipes.map((recipe) =>
+        recipe.id === id ? { ...recipe, ...data } : recipe
+      ),
+    })),
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
 
@@ -260,7 +267,7 @@ export const useRecipeStore = create<RecipeState>((set) => ({
     }),
 
   setIsSaving: (isSaving) => set({ isSaving }),
-  
+
   markStepCompleted: (step, completed) =>
     set((state) => ({
       stepCompleted: {
@@ -268,20 +275,20 @@ export const useRecipeStore = create<RecipeState>((set) => ({
         [`step${step}`]: completed,
       },
     })),
-  
+
   // Task type
   setTaskType: (taskType) =>
     set((state) => ({
       formValues: { ...state.formValues, taskType },
       isDirty: true,
     })),
-    
+
   setRoadType: (roadType) =>
     set((state) => ({
       formValues: { ...state.formValues, roadType },
       isDirty: true,
     })),
-    
+
   // Video
   setVideo: (videoId, file = null) =>
     set((state) => ({
@@ -293,7 +300,7 @@ export const useRecipeStore = create<RecipeState>((set) => ({
       },
       isDirty: true,
     })),
-    
+
   setExtractedFrame: (frame, time, filename = "") =>
     set((state) => ({
       formValues: {
@@ -304,7 +311,7 @@ export const useRecipeStore = create<RecipeState>((set) => ({
       },
       isDirty: true,
     })),
-    
+
   // Model configuration
   setModel: (modelId, modelName = "") =>
     set((state) => ({
@@ -315,7 +322,7 @@ export const useRecipeStore = create<RecipeState>((set) => ({
       },
       isDirty: true,
     })),
-    
+
   setConfidenceThreshold: (threshold) =>
     set((state) => ({
       formValues: {
@@ -324,7 +331,7 @@ export const useRecipeStore = create<RecipeState>((set) => ({
       },
       isDirty: true,
     })),
-    
+
   setClassFilter: (classes) =>
     set((state) => ({
       formValues: {
@@ -333,7 +340,7 @@ export const useRecipeStore = create<RecipeState>((set) => ({
       },
       isDirty: true,
     })),
-    
+
   setModelConfig: (config) =>
     set((state) => ({
       formValues: {
@@ -370,9 +377,11 @@ export const useRecipeStore = create<RecipeState>((set) => ({
         ...state.formValues,
         regions: state.formValues.regions.filter((r) => r.id !== regionId),
         // Also remove connections related to this region
-        connections: state.formValues.connections?.filter(
-          (conn) => conn.sourceId !== regionId && conn.destinationId !== regionId
-        ) || [],
+        connections:
+          state.formValues.connections?.filter(
+            (conn) =>
+              conn.sourceId !== regionId && conn.destinationId !== regionId
+          ) || [],
       },
       isDirty: true,
     })),
@@ -385,7 +394,7 @@ export const useRecipeStore = create<RecipeState>((set) => ({
       },
       isDirty: true,
     })),
-    
+
   setROI: (roi) =>
     set((state) => ({
       formValues: {
@@ -394,7 +403,7 @@ export const useRecipeStore = create<RecipeState>((set) => ({
       },
       isDirty: true,
     })),
-    
+
   // Clear functions for going back
   clearVideoData: () =>
     set((state) => ({
@@ -412,7 +421,7 @@ export const useRecipeStore = create<RecipeState>((set) => ({
         step0: false,
       },
     })),
-    
+
   clearRegionsData: () =>
     set((state) => ({
       formValues: {
@@ -426,7 +435,7 @@ export const useRecipeStore = create<RecipeState>((set) => ({
         step1: false,
       },
     })),
-    
+
   clearModelData: () =>
     set((state) => ({
       formValues: {
@@ -443,31 +452,31 @@ export const useRecipeStore = create<RecipeState>((set) => ({
         step2: false,
       },
     })),
-    
+
   // Generate API payload based on task type
   generateAPIPayload: () => {
     const state = useRecipeStore.getState();
     const { formValues } = state;
-    
+
     if (!formValues.modelConfig || !formValues.extractedFrameFilename) {
       return null;
     }
-    
+
     // Prepare models array from modelConfig labels
-    const models = formValues.modelConfig.labels.map(label => ({
+    const models = formValues.modelConfig.labels.map((label) => ({
       confidence: label.confidence || formValues.modelConfig!.confidence,
       width_threshold: label.widthThreshold || 100,
       height_threshold: label.heightThreshold || 200,
       color: label.color || "#FF0000",
-      label: label.name
+      label: label.name,
     }));
-    
+
     if (formValues.taskType === "trainDetection") {
       // Train detection requires ROI
       if (!formValues.roi) {
         return null;
       }
-      
+
       const payload: TrainTypePayload = {
         models,
         kind: "train",
@@ -476,37 +485,38 @@ export const useRecipeStore = create<RecipeState>((set) => ({
           formValues.roi.x1,
           formValues.roi.y1,
           formValues.roi.x2,
-          formValues.roi.y2
+          formValues.roi.y2,
         ],
-        model_id: parseInt(formValues.modelId, 10)
+        model_id: parseInt(formValues.modelId, 10),
       };
-      
+
       return payload;
     } else if (formValues.taskType === "trafficStatistics") {
       // Traffic statistics requires polygons and routes
       if (!formValues.regions || formValues.regions.length === 0) {
         return null;
       }
-      
+
       const payload: IntersectionTypePayload = {
         models,
         kind: "intersection",
         subtype: formValues.roadType || "Cross",
         frame: formValues.extractedFrameFilename,
-        polygons: formValues.regions.map(region => ({
+        polygons: formValues.regions.map((region) => ({
           id: region.id,
-          points: region.points
+          points: region.points,
         })),
-        routes: formValues.connections?.map(conn => ({
-          from: conn.sourceId,
-          to: conn.destinationId
-        })) || [],
-        model_id: parseInt(formValues.modelId, 10)
+        routes:
+          formValues.connections?.map((conn) => ({
+            from: conn.sourceId,
+            to: conn.destinationId,
+          })) || [],
+        model_id: parseInt(formValues.modelId, 10),
       };
-      
+
       return payload;
     }
-    
+
     return null;
   },
 
@@ -515,55 +525,62 @@ export const useRecipeStore = create<RecipeState>((set) => ({
     // In production, this would fetch from API
     // For now, we'll use mock data or find from existing recipes
     const state = useRecipeStore.getState();
-    const existingRecipe = state.recipes.find(r => r.id === recipeId);
-    
+    const existingRecipe = state.recipes.find((r) => r.id === recipeId);
+
     if (existingRecipe) {
       // Convert API response back to form values
       set({
         formValues: {
           name: existingRecipe.name,
           description: existingRecipe.description || "",
-          taskType: existingRecipe.task_type as TaskType,
+          taskType: existingRecipe.taskType as TaskType,
           sceneType: "",
-          roadType: existingRecipe.task_type === "trafficStatistics" ? "Cross" : "",
+          roadType:
+            existingRecipe.taskType === "trafficStatistics" ? "Cross" : "",
           videoId: "video_123",
           videoName: "traffic_sample.mp4",
           extractedFrame: JSON.stringify({
             imageDataUrl: "/api/placeholder/800/600",
             timestamp: 45.5,
-            filename: "frame_capture.jpg"
+            filename: "frame_capture.jpg",
           }),
           extractedFrameTime: 45.5,
           extractedFrameFilename: "frame_capture.jpg",
-          regions: existingRecipe.task_type === "trafficStatistics" ? [
-            {
-              id: "region-1",
-              name: "北向車道",
-              points: [
-                { x: 100, y: 300 },
-                { x: 700, y: 300 },
-              ],
-              type: "counting_line",
-              color: "#FF6B6B",
-            },
-            {
-              id: "region-2",
-              name: "南向車道",
-              points: [
-                { x: 100, y: 400 },
-                { x: 700, y: 400 },
-              ],
-              type: "counting_line",
-              color: "#4ECDC4",
-            },
-          ] : [],
+          regions:
+            existingRecipe.taskType === "trafficStatistics"
+              ? [
+                  {
+                    id: "region-1",
+                    name: "北向車道",
+                    points: [
+                      { x: 100, y: 300 },
+                      { x: 700, y: 300 },
+                    ],
+                    type: "counting_line",
+                    color: "#FF6B6B",
+                  },
+                  {
+                    id: "region-2",
+                    name: "南向車道",
+                    points: [
+                      { x: 100, y: 400 },
+                      { x: 700, y: 400 },
+                    ],
+                    type: "counting_line",
+                    color: "#4ECDC4",
+                  },
+                ]
+              : [],
           connections: [],
-          roi: existingRecipe.task_type === "trainDetection" ? {
-            x1: 50,
-            y1: 50,
-            x2: 750,
-            y2: 550,
-          } : undefined,
+          roi:
+            existingRecipe.taskType === "trainDetection"
+              ? {
+                  x1: 50,
+                  y1: 50,
+                  x2: 750,
+                  y2: 550,
+                }
+              : undefined,
           modelId: "1",
           modelName: "YOLOv8 Traffic Model",
           confidenceThreshold: 0.7,
@@ -574,7 +591,7 @@ export const useRecipeStore = create<RecipeState>((set) => ({
             confidence: 0.7,
             labels: getMockModelConfig(
               { name: "YOLOv8 Traffic Model", type: "object_detection" },
-              existingRecipe.task_type
+              existingRecipe.taskType
             ).labels,
           },
         },

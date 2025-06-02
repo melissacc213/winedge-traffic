@@ -1,6 +1,6 @@
 import { Modal, Title, Text } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
-import { UserForm } from './UserForm';
+import { UserForm } from './user-form';
 import { useCreateUser } from '../../lib/queries/user';
 import type { CreateUserRequest } from '../../lib/validator/user';
 

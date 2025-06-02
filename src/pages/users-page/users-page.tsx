@@ -10,25 +10,24 @@ import {
   Modal,
   Tabs,
   Card,
-  Title,
   Progress,
-  List,
-  Paper,
   Box,
 } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { Icons } from "@/components/icons";
 import { PageLayout } from "@/components/page-layout/page-layout";
-import { UserCreateDialog, UserEdit } from "@/components/user";
+import { UserCreateDialog } from "./user-create-dialog";
+import { UserEdit } from "./user-edit";
 import { DataTable } from "@/components/ui";
 import { useDisclosure } from "@mantine/hooks";
+import { highlightSearchTerm } from "@/lib/utils";
 import {
   useUsers,
   useToggleUserStatus,
   useDeleteUser,
 } from "@/lib/queries/user";
 import { notifications } from "@mantine/notifications";
-import { modals } from "@mantine/modals";
+import { confirmDelete } from "@/lib/confirmation";
 import type { User } from "@/lib/validator/user";
 
 export function UsersPage() {
@@ -37,9 +36,9 @@ export function UsersPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [
     relationshipModalOpened,
-    { open: openRelationshipModal, close: closeRelationshipModal },
+    { close: closeRelationshipModal },
   ] = useDisclosure(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState<string | null>("tasks");
   const { data, isLoading } = useUsers();
   const toggleStatusMutation = useToggleUserStatus();
@@ -49,11 +48,6 @@ export function UsersPage() {
     setEditingUser(user);
   };
 
-  const handleViewRelationships = (user: User) => {
-    setSelectedUser(user);
-    setActiveTab("tasks");
-    openRelationshipModal();
-  };
 
   // Mock data for user relationships - in a real app this would come from API
   const getUserRelationships = (user: User) => {
@@ -141,34 +135,21 @@ export function UsersPage() {
   };
 
   const handleDeleteUser = (user: User) => {
-    modals.openConfirmModal({
-      title: t("users:confirmDelete.title"),
-      children: (
-        <Text size="sm">
-          {t("users:confirmDelete.message", { username: user.username })}
-        </Text>
-      ),
-      labels: {
-        confirm: t("common:action.delete"),
-        cancel: t("common:action.cancel"),
-      },
-      confirmProps: { color: "red" },
-      onConfirm: async () => {
-        try {
-          await deleteUserMutation.mutateAsync(user.id);
-          notifications.show({
-            title: t("users:notifications.deleteSuccess"),
-            message: t("users:notifications.deleteSuccessMessage"),
-            color: "green",
-          });
-        } catch (error) {
-          notifications.show({
-            title: t("common:error"),
-            message: t("users:notifications.deleteError"),
-            color: "red",
-          });
-        }
-      },
+    confirmDelete(user.username, t("users:common.user"), async () => {
+      try {
+        await deleteUserMutation.mutateAsync(user.id);
+        notifications.show({
+          title: t("users:notifications.deleteSuccess"),
+          message: t("users:notifications.deleteSuccessMessage"),
+          color: "green",
+        });
+      } catch (error) {
+        notifications.show({
+          title: t("common:error"),
+          message: t("users:notifications.deleteError"),
+          color: "red",
+        });
+      }
     });
   };
 
@@ -199,18 +180,37 @@ export function UsersPage() {
     {
       key: "username",
       label: t("users:table.username"),
-      render: (user: User) => <Text fw={500}>{user.username}</Text>,
+      render: (user: User, globalFilter?: string) => {
+        if (globalFilter) {
+          return (
+            <div style={{ fontWeight: 500, fontSize: '14px' }}>
+              {highlightSearchTerm(user.username, globalFilter)}
+            </div>
+          );
+        }
+        return <Text fw={500} size="sm">{user.username}</Text>;
+      },
     },
     {
       key: "email",
       label: t("users:table.email"),
-      render: (user: User) => <Text size="sm">{user.email}</Text>,
+      render: (user: User, globalFilter?: string) => {
+        if (globalFilter) {
+          return (
+            <div style={{ fontSize: '14px', color: 'var(--mantine-color-dimmed)' }}>
+              {highlightSearchTerm(user.email, globalFilter)}
+            </div>
+          );
+        }
+        return <Text size="sm" c="dimmed">{user.email}</Text>;
+      },
     },
     {
       key: "role",
       label: t("users:table.role"),
+      width: 120,
       render: (user: User) => (
-        <Badge variant="light" color={user.role === "admin" ? "blue" : "gray"}>
+        <Badge variant="light" color={user.role === "admin" ? "blue" : "gray"} size="md">
           {t(`users:role.${user.role}`)}
         </Badge>
       ),
@@ -218,10 +218,11 @@ export function UsersPage() {
     {
       key: "status",
       label: t("users:table.status"),
+      width: 100,
       render: (user: User) => {
         const isActive = user.is_active ?? user.active ?? true;
         return (
-          <Badge variant="light" color={isActive ? "green" : "red"}>
+          <Badge variant="light" color={isActive ? "green" : "red"} size="md">
             {isActive ? t("users:status.active") : t("users:status.disabled")}
           </Badge>
         );
@@ -230,6 +231,7 @@ export function UsersPage() {
     {
       key: "date_joined",
       label: t("users:table.created"),
+      width: 120,
       render: (user: User) => {
         const date = user.date_joined || user.created_at;
         return <Text size="sm">{date ? new Date(date).toLocaleDateString() : "—"}</Text>;
@@ -238,8 +240,9 @@ export function UsersPage() {
     {
       key: "last_login",
       label: t("users:table.lastLogin"),
+      width: 120,
       render: (user: User) => {
-        if (!user.last_login) return <Text size="sm">—</Text>;
+        if (!user.last_login) return <Text size="sm" c="dimmed">—</Text>;
         return <Text size="sm">{new Date(user.last_login).toLocaleDateString()}</Text>;
       },
     },
@@ -297,7 +300,11 @@ export function UsersPage() {
         title={t("users:title")}
         description={t("users:description")}
         actions={
-          <Button leftSection={<Icons.Plus size={16} />} onClick={open}>
+          <Button 
+            leftSection={<Icons.Plus size={16} />} 
+            onClick={open}
+            color="blue"
+          >
             {t("users:form.createUser")}
           </Button>
         }
@@ -308,8 +315,11 @@ export function UsersPage() {
             columns={columns}
             loading={isLoading}
             actions={actions}
-            height={600}
+            height={700}
             emptyMessage={t("users:noUsers")}
+            showPagination={true}
+            pageSize={10}
+            enableGlobalFilter={true}
           />
         </Stack>
       </PageLayout>

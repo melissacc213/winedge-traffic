@@ -43,6 +43,7 @@
   },
   "actions": {
     "create": "Create Recipe",
+    "createTask": "Create Task",
     "view": "View Recipe",
     "viewDetails": "View Details",
     "edit": "Edit Recipe",
@@ -140,6 +141,16 @@
       "source": "Source",
       "destination": "Destination"
     },
+    "region": {
+      "deleteTitle": "Delete Region?",
+      "deleteMessage": "Are you sure you want to delete the region",
+      "deleteConnectionsWarning": "This will also remove",
+      "deleteConfirm": "Delete Region",
+      "changeRoadTypeTitle": "Change Road Type?",
+      "changeRoadTypeMessage": "Changing the road type will remove all existing regions and connections. Are you sure you want to continue?",
+      "changeRoadTypeWarning": "This will delete",
+      "changeRoadTypeConfirm": "Change Road Type"
+    },
     "modelConfig": {
       "title": "Configure Model",
       "description": "Select and configure the AI model to use",
@@ -154,7 +165,6 @@
       "description": "Review your recipe configuration",
       "summary": "Recipe Summary",
       "name": "Recipe Name",
-      "description": "Description",
       "taskType": "Task Type",
       "video": "Sample Video",
       "regions": "Analysis Regions",
@@ -191,7 +201,7 @@
     "createdOn": "Created on {{date}}",
     "tabs": {
       "overview": "Overview",
-      "configuration": "Configuration", 
+      "configuration": "Configuration",
       "regions": "Regions",
       "model": "Model",
       "usage": "Usage"
@@ -236,9 +246,6 @@
     "recommendationBicycle": "Consider lowering confidence threshold for better bicycle detection",
     "recommendationExcellent": "This recipe has {{rate}}% success rate - excellent performance!"
   },
-  "actions": {
-    "createTask": "Create Task"
-  },
   "confirmDelete": {
     "title": "Delete Recipe",
     "message": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
@@ -265,7 +272,7 @@
     },
     "regionConfiguration": "Region Configuration",
     "regionDescription": "Modify the detection regions for this recipe using the saved capture image.",
-    "modelConfiguration": "Model Configuration", 
+    "modelConfiguration": "Model Configuration",
     "modelDescription": "Configure the AI model settings and detection parameters.",
     "configureModel": "Configure Model",
     "editModelConfiguration": "Edit Model Configuration",

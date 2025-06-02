@@ -24,7 +24,6 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   getFilteredRowModel,
-  createColumnHelper,
   flexRender,
 } from "@tanstack/react-table";
 import type {
@@ -36,7 +35,7 @@ import { useTheme } from "@/providers/theme-provider";
 import { Icons } from "@/components/icons";
 import { taskTypeSchema } from "@/lib/validator/recipe";
 import type { TaskType } from "@/types/recipe";
-import type { Recipe } from "@/types/task-creation";
+import type { Recipe } from "@/types/recipe";
 import { mockRecipes } from "@/lib/config/mock-recipes";
 import { taskService } from "@/lib/api/task-service";
 
@@ -50,7 +49,6 @@ const createTaskFormSchema = z.object({
 
 type TaskFormValues = z.infer<typeof createTaskFormSchema>;
 
-const columnHelper = createColumnHelper<Recipe>();
 
 export function TaskCreationForm() {
   const { t } = useTranslation(["tasks", "common", "recipes"]);
@@ -101,9 +99,9 @@ export function TaskCreationForm() {
   );
 
   // Define table columns
-  const columns = useMemo<ColumnDef<Recipe>[]>(
+  const columns = useMemo<ColumnDef<Recipe, any>[]>(
     () => [
-      columnHelper.display({
+      {
         id: "select",
         header: "",
         cell: ({ row }) => {
@@ -120,50 +118,70 @@ export function TaskCreationForm() {
         },
         size: 50,
         enableSorting: false,
-      }),
-      columnHelper.accessor("name", {
+      },
+      {
+        accessorKey: "name",
         header: t("recipes:table.name"),
-        cell: ({ getValue }) => (
-          <Text fw={500} size="xs" lineClamp={1}>
-            {getValue()}
-          </Text>
-        ),
-      }),
-      columnHelper.accessor("description", {
+        cell: ({ getValue }) => {
+          const name = getValue() as string;
+          return (
+            <Text fw={500} size="xs" lineClamp={1}>
+              {name}
+            </Text>
+          );
+        },
+      },
+      {
+        accessorKey: "description",
         header: t("recipes:table.description"),
-        cell: ({ getValue }) => (
-          <Text size="xs" c="dimmed" lineClamp={1}>
-            {getValue() || t("recipes:noDescription")}
-          </Text>
-        ),
-      }),
-      columnHelper.accessor("regions", {
+        cell: ({ getValue }) => {
+          const description = getValue() as string;
+          return (
+            <Text size="xs" c="dimmed" lineClamp={1}>
+              {description || t("recipes:noDescription")}
+            </Text>
+          );
+        },
+      },
+      {
+        accessorKey: "regions",
         header: t("recipes:table.regions"),
-        cell: ({ getValue }) => (
-          <Text size="xs" ta="center">
-            {getValue().length}
-          </Text>
-        ),
+        cell: ({ getValue }) => {
+          const regions = getValue() as Recipe["regions"];
+          return (
+            <Text size="xs" ta="center">
+              {regions.length}
+            </Text>
+          );
+        },
         sortingFn: (rowA, rowB) => {
           return rowA.original.regions.length - rowB.original.regions.length;
         },
-      }),
-      columnHelper.accessor("status", {
+      },
+      {
+        accessorKey: "status",
         header: t("recipes:table.status"),
-        cell: ({ getValue }) => (
-          <Text size="xs" c={getValue() === "active" ? "teal" : "gray"}>
-            {t(`recipes:status.${getValue()}`)}
-          </Text>
-        ),
-      }),
-      columnHelper.accessor("createdAt", {
+        cell: ({ getValue }) => {
+          const status = getValue() as string;
+          return (
+            <Text size="xs" c={status === "active" ? "teal" : "gray"}>
+              {t(`recipes:status.${status}`)}
+            </Text>
+          );
+        },
+      },
+      {
+        accessorKey: "createdAt",
         header: t("recipes:table.createdAt"),
-        cell: ({ getValue }) => (
-          <Text size="xs" c="dimmed">
-            {new Date(getValue()).toLocaleDateString()}
-          </Text>
-        ),
-      }),
+        cell: ({ getValue }) => {
+          const createdAt = getValue() as string;
+          return (
+            <Text size="xs" c="dimmed">
+              {new Date(createdAt).toLocaleDateString()}
+            </Text>
+          );
+        },
+      },
     ],
     [t, form.values.recipeId, handleRecipeSelect]
   );
@@ -242,8 +260,8 @@ export function TaskCreationForm() {
           radius="md"
           withBorder
           style={{
-            backgroundColor: isDark ? theme.colors.dark[8] : theme.white,
-            borderColor: isDark ? theme.colors.dark[5] : theme.colors.gray[2],
+            backgroundColor: isDark ? theme.colors.dark?.[8] || theme.colors.gray[9] : theme.white,
+            borderColor: isDark ? theme.colors.dark?.[5] || theme.colors.gray[6] : theme.colors.gray[2],
           }}
         >
           <Stack gap="md">
@@ -295,8 +313,8 @@ export function TaskCreationForm() {
           radius="md"
           withBorder
           style={{
-            backgroundColor: isDark ? theme.colors.dark[8] : theme.white,
-            borderColor: isDark ? theme.colors.dark[5] : theme.colors.gray[2],
+            backgroundColor: isDark ? theme.colors.dark?.[8] || theme.colors.gray[9] : theme.white,
+            borderColor: isDark ? theme.colors.dark?.[5] || theme.colors.gray[6] : theme.colors.gray[2],
           }}
         >
           <Stack gap="md">
@@ -341,7 +359,7 @@ export function TaskCreationForm() {
                     height: '400px',
                     display: 'flex',
                     flexDirection: 'column',
-                    border: `1px solid ${isDark ? theme.colors.dark[5] : theme.colors.gray[2]}`,
+                    border: `1px solid ${isDark ? theme.colors.dark?.[5] || theme.colors.gray[6] : theme.colors.gray[2]}`,
                     borderRadius: "0.5rem",
                     overflow: "hidden",
                   }}
@@ -357,7 +375,7 @@ export function TaskCreationForm() {
                     <Table.Thead
                       style={{
                         backgroundColor: isDark
-                          ? theme.colors.dark[6]
+                          ? theme.colors.dark?.[6] || theme.colors.gray[7]
                           : theme.colors.gray[1],
                       }}
                     >
@@ -383,7 +401,7 @@ export function TaskCreationForm() {
                               ...(header.column.getCanSort() && {
                                 "&:hover": {
                                   backgroundColor: isDark
-                                    ? theme.colors.dark[5]
+                                    ? theme.colors.dark?.[5] || theme.colors.gray[6]
                                     : theme.colors.gray[0],
                                 },
                               }),
@@ -392,7 +410,7 @@ export function TaskCreationForm() {
                             onMouseEnter={(e) => {
                               if (header.column.getCanSort()) {
                                 e.currentTarget.style.backgroundColor = isDark
-                                  ? theme.colors.dark[5]
+                                  ? theme.colors.dark?.[5] || theme.colors.gray[6]
                                   : theme.colors.gray[0];
                               }
                             }}
@@ -499,7 +517,7 @@ export function TaskCreationForm() {
                                 key={cell.id}
                                 style={{
                                   padding: cell.column.id === 'select' ? "0.75rem 0.25rem 0.75rem 0.75rem" : "0.75rem 0.5rem",
-                                  borderBottom: `1px solid ${isDark ? theme.colors.dark[5] : theme.colors.gray[2]}`,
+                                  borderBottom: `1px solid ${isDark ? theme.colors.dark?.[5] || theme.colors.gray[6] : theme.colors.gray[2]}`,
                                   verticalAlign: "middle",
                                 }}
                               >
@@ -520,9 +538,9 @@ export function TaskCreationForm() {
                   {/* Pagination at bottom of table container */}
                   <div
                     style={{
-                      borderTop: `1px solid ${isDark ? theme.colors.dark[5] : theme.colors.gray[2]}`,
+                      borderTop: `1px solid ${isDark ? theme.colors.dark?.[5] || theme.colors.gray[6] : theme.colors.gray[2]}`,
                       padding: '0.75rem',
-                      backgroundColor: isDark ? theme.colors.dark[7] : theme.colors.gray[0],
+                      backgroundColor: isDark ? theme.colors.dark?.[7] || theme.colors.gray[8] : theme.colors.gray[0],
                     }}
                   >
                     <Group justify="space-between" align="center">
@@ -610,8 +628,8 @@ export function TaskCreationForm() {
           radius="md"
           withBorder
           style={{
-            backgroundColor: isDark ? theme.colors.dark[8] : theme.white,
-            borderColor: isDark ? theme.colors.dark[5] : theme.colors.gray[2],
+            backgroundColor: isDark ? theme.colors.dark?.[8] || theme.colors.gray[9] : theme.white,
+            borderColor: isDark ? theme.colors.dark?.[5] || theme.colors.gray[6] : theme.colors.gray[2],
           }}
         >
           <Group justify="space-between" align="center">

@@ -28,6 +28,7 @@ import type { ModelConfig } from "../../types/model";
 import { useState } from "react";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
+import { getRegionColor } from "@/lib/theme-utils";
 
 export function ModelDetailsPage() {
   const { t } = useTranslation(["models", "common"]);
@@ -122,7 +123,7 @@ export function ModelDetailsPage() {
   // Guard against invalid modelId
   if (!modelId) {
     return (
-      <PageLayout>
+      <PageLayout title={t("models:details.error.title")}>
         <Alert
           icon={<Icons.AlertCircle size={16} />}
           title={t("models:details.error.title")}
@@ -140,7 +141,7 @@ export function ModelDetailsPage() {
 
   if (error || !model) {
     return (
-      <PageLayout>
+      <PageLayout title={t("models:details.error.title")}>
         <Stack gap="lg">
           <Paper p="lg" radius="md" withBorder>
             <Group>
@@ -172,10 +173,10 @@ export function ModelDetailsPage() {
     name: model.name,
     task: "object_detection",
     labels: [
-      { id: "1", name: "car", color: "#FF6B6B", confidence: 0.75, enabled: true },
-      { id: "2", name: "truck", color: "#4ECDC4", confidence: 0.8, enabled: true },
-      { id: "3", name: "bus", color: "#45B7D1", confidence: 0.7, enabled: true },
-      { id: "4", name: "motorcycle", color: "#FFA07A", confidence: 0.65, enabled: false },
+      { id: "1", name: "car", color: getRegionColor(theme, 0), confidence: 0.75, enabled: true },
+      { id: "2", name: "truck", color: getRegionColor(theme, 1), confidence: 0.8, enabled: true },
+      { id: "3", name: "bus", color: getRegionColor(theme, 2), confidence: 0.7, enabled: true },
+      { id: "4", name: "motorcycle", color: getRegionColor(theme, 3), confidence: 0.65, enabled: false },
       { id: "5", name: "bicycle", color: "#98D8C8", confidence: 0.6, enabled: true },
     ],
   };
@@ -183,7 +184,7 @@ export function ModelDetailsPage() {
   const activeLabels = mockConfig.labels.filter((label) => label.enabled);
 
   return (
-    <PageLayout>
+    <PageLayout title={t("models:details.title")}>
       <Stack gap="lg">
         {/* Header */}
         <Paper p="lg" radius="md" withBorder style={{ backgroundColor: cardBg }}>

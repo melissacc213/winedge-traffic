@@ -19,7 +19,7 @@ export interface TaskLog {
   type: "info" | "warning" | "error" | "success";
   message: string;
   timestamp: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 export interface TaskStreamFrame {
@@ -41,7 +41,7 @@ export interface Detection {
     width: number;
     height: number;
   };
-  attributes?: Record<string, any>;
+  attributes?: Record<string, unknown>;
 }
 
 export interface RegionData {

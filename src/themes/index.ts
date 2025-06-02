@@ -1,5 +1,5 @@
 import { createTheme, mergeMantineTheme } from "@mantine/core";
-import type { MantineThemeOverride, MantineTheme } from "@mantine/core";
+import type { MantineThemeOverride } from "@mantine/core";
 
 /**
  * IMPORTANT: Theme Property Access in Mantine v8
@@ -25,6 +25,7 @@ import type { MantineThemeOverride, MantineTheme } from "@mantine/core";
 // Base theme with shared settings
 const baseTheme: MantineThemeOverride = {
   primaryColor: "blue",
+  focusRing: "auto",
   colors: {
     // Main blue palette
     blue: [
@@ -374,7 +375,7 @@ const baseTheme: MantineThemeOverride = {
 
 // Light theme specific overrides
 const lightThemeOverrides: MantineThemeOverride = {
-  colorScheme: 'light',
+  focusRing: "auto",
   other: {
     // Background colors for light mode
     backgrounds: {
@@ -426,7 +427,7 @@ const lightThemeOverrides: MantineThemeOverride = {
 
 // Dark theme specific overrides
 const darkThemeOverrides: MantineThemeOverride = {
-  colorScheme: 'dark',
+  focusRing: "auto",
   other: {
     // Background colors for dark mode
     backgrounds: {

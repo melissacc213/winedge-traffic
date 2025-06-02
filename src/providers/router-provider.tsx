@@ -106,26 +106,6 @@ const router = createBrowserRouter([
         },
       },
       {
-        path: 'tasks/create-demo',
-        async lazy() {
-          const { TaskCreationDemoPage } = await import('../pages/task-creation-demo-page');
-          return {
-            Component: TaskCreationDemoPage,
-            HydrateFallback: LoadingFallback,
-          };
-        },
-      },
-      {
-        path: 'tasks/websocket-demo',
-        async lazy() {
-          const { TaskWebSocketDemoPage } = await import('../pages/tasks-page/task-websocket-demo');
-          return {
-            Component: TaskWebSocketDemoPage,
-            HydrateFallback: LoadingFallback,
-          };
-        },
-      },
-      {
         path: 'recipes',
         async lazy() {
           return {
@@ -195,8 +175,9 @@ const router = createBrowserRouter([
       {
         path: 'profile',
         async lazy() {
+          const { ProfilePage } = await import('../pages/profile-page');
           return {
-            Component: () => <div className="p-4">Profile Page</div>,
+            Component: ProfilePage,
             HydrateFallback: LoadingFallback,
           };
         },

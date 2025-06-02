@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  createColumnHelper,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
@@ -9,7 +8,7 @@ import {
   getPaginationRowModel,
   getFilteredRowModel,
 } from "@tanstack/react-table";
-import type { PaginationState, SortingState } from "@tanstack/react-table";
+import type { PaginationState, SortingState, ColumnDef } from "@tanstack/react-table";
 import {
   Table,
   Badge,
@@ -22,7 +21,6 @@ import {
   Pagination,
   Box,
   Paper,
-  Title,
 } from "@mantine/core";
 import { Icons } from "../../components/icons";
 import type { RecipeResponse } from "../../lib/validator/recipe";
@@ -106,66 +104,70 @@ export function RecipesTable({
     }
   };
 
-  const columnHelper = createColumnHelper<RecipeResponse>();
-
-  const columns = useMemo(
+  const columns = useMemo<ColumnDef<RecipeResponse>[]>(
     () => [
-      columnHelper.accessor("name", {
+      {
+        accessorKey: "name",
         header: t("recipes:table.name"),
         cell: (info) => (
           <Box>
-            <Text fw={500}>{info.getValue()}</Text>
+            <Text fw={500}>{info.getValue() as string}</Text>
             <Text size="xs" c="dimmed">
               {info.row.original.id}
             </Text>
           </Box>
         ),
-      }),
-      columnHelper.accessor("taskType", {
+      },
+      {
+        accessorKey: "taskType",
         header: t("recipes:table.taskType"),
         cell: (info) => (
-          <Badge color={getTaskTypeColor(info.getValue())} variant="light">
-            {getTaskTypeLabel(info.getValue())}
+          <Badge color={getTaskTypeColor(info.getValue() as string)} variant="light">
+            {getTaskTypeLabel(info.getValue() as string)}
           </Badge>
         ),
-      }),
-      columnHelper.accessor("status", {
+      },
+      {
+        accessorKey: "status",
         header: t("recipes:table.status"),
         cell: (info) => (
-          <Badge color={getStatusColor(info.getValue())} variant="light">
+          <Badge color={getStatusColor(info.getValue() as string)} variant="light">
             {t(`recipes:status.${info.getValue()}`)}
           </Badge>
         ),
-      }),
-      columnHelper.accessor("regions", {
+      },
+      {
+        accessorKey: "regions",
         header: t("recipes:table.regions"),
         cell: (info) => (
-          <Text size="sm">{getRegionCount(info.getValue())}</Text>
+          <Text size="sm">{getRegionCount(info.getValue() as any[])}</Text>
         ),
-      }),
-      columnHelper.accessor("createdAt", {
+      },
+      {
+        accessorKey: "createdAt",
         header: t("recipes:table.createdAt"),
-        cell: (info) => <Text size="sm">{formatDate(info.getValue())}</Text>,
-      }),
-      columnHelper.accessor("id", {
+        cell: (info) => <Text size="sm">{formatDate(info.getValue() as string)}</Text>,
+      },
+      {
+        accessorKey: "id",
         header: t("recipes:list.columns.actions"),
         cell: (info) => (
-          <Group spacing={4} justify="flex-end" style={{ flexWrap: "nowrap" }}>
+          <Group gap={4} justify="flex-end" style={{ flexWrap: "nowrap" }}>
             <Menu position="bottom-end" withArrow withinPortal>
               <Menu.Target>
                 <ActionIcon>
-                  <Icons.Dots size="sm" />
+                  <Icons.Dots size={16} />
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
                 <Menu.Item
-                  leftSection={<Icons.Eye size="xs" />}
+                  leftSection={<Icons.Eye size={14} />}
                   onClick={() => navigate(`/recipes/${info.getValue()}`)}
                 >
                   {t("common:button.view")}
                 </Menu.Item>
                 <Menu.Item
-                  leftSection={<Icons.CopyCheck size="xs" />}
+                  leftSection={<Icons.CopyCheck size={14} />}
                   onClick={() =>
                     navigate(`/tasks/create?recipeId=${info.getValue()}`)
                   }
@@ -174,9 +176,9 @@ export function RecipesTable({
                 </Menu.Item>
                 <Menu.Divider />
                 <Menu.Item
-                  leftSection={<Icons.Trash size="xs" />}
+                  leftSection={<Icons.Trash size={14} />}
                   color="red"
-                  onClick={() => onDelete?.(info.getValue())}
+                  onClick={() => onDelete?.(info.getValue() as string)}
                 >
                   {t("common:button.delete")}
                 </Menu.Item>
@@ -184,9 +186,9 @@ export function RecipesTable({
             </Menu>
           </Group>
         ),
-      }),
+      },
     ],
-    [columnHelper, t, getTaskTypeLabel, navigate, onDelete]
+    [t, getTaskTypeLabel, navigate, onDelete]
   );
 
   const table = useReactTable({
@@ -274,11 +276,11 @@ export function RecipesTable({
                     {header.column.getCanSort() && (
                       <Box style={{ display: "inline-block", width: 16 }}>
                         {header.column.getIsSorted() === "asc" ? (
-                          <Icons.ArrowUp size="xs" />
+                          <Icons.ArrowUp size={12} />
                         ) : header.column.getIsSorted() === "desc" ? (
-                          <Icons.ArrowDown size="xs" />
+                          <Icons.ArrowDown size={12} />
                         ) : (
-                          <Icons.Sort size="xs" style={{ opacity: 0.5 }} />
+                          <Icons.Sort size={12} style={{ opacity: 0.5 }} />
                         )}
                       </Box>
                     )}

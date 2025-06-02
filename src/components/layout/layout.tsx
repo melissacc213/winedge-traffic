@@ -16,7 +16,6 @@ import {
   rem,
   Box,
   Divider,
-  useMantineTheme,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
@@ -27,7 +26,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Icons } from "../icons";
 import LanguageMenu from "./language-menu";
 import { ThemeToggle } from "./theme-toggle";
-import type { User } from "@/pages/users-page/users-page";
+import type { User } from "@/lib/validator/user";
 
 type LayoutProps = PropsWithChildren;
 

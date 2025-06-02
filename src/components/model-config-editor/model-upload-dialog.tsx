@@ -15,7 +15,6 @@ import {
 } from "@mantine/core";
 import { IconUpload, IconCheck, IconX, IconFileZip } from "@tabler/icons-react";
 import { useTheme } from "@/providers/theme-provider";
-import { useTranslation } from "react-i18next";
 import { ModelParser } from "@/lib/model-parser";
 import { ModelConfigEditor } from "./model-config-editor";
 import type { ModelConfig } from "@/types/model";
@@ -39,7 +38,6 @@ export function ModelUploadDialog({
 }: ModelUploadDialogProps) {
   const { colorScheme, theme } = useTheme();
   const mantineTheme = useMantineTheme();
-  const { t } = useTranslation(["models", "common"]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [modelConfig, setModelConfig] = useState<ModelConfig | null>(
@@ -48,7 +46,7 @@ export function ModelUploadDialog({
   const [error, setError] = useState<string | null>(null);
 
   const isDark = colorScheme === "dark";
-  const surfaceBg = isDark ? theme.colors.dark[6] : theme.colors.gray[0];
+  const surfaceBg = isDark ? theme.colors.dark?.[6] || theme.colors.gray[7] : theme.colors.gray[0];
   
   // If in edit mode with initial config, we should show the editor directly
   const shouldShowUploadScreen = !isEditMode || !initialConfig;
@@ -137,13 +135,13 @@ export function ModelUploadDialog({
       zIndex={9999}
       styles={{
         content: {
-          backgroundColor: isDark ? theme.colors.dark[7] : theme.white,
-          border: `1px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[3]}`,
+          backgroundColor: isDark ? theme.colors.dark?.[7] || theme.colors.gray[8] : theme.white,
+          border: `1px solid ${isDark ? theme.colors.dark?.[4] || theme.colors.gray[6] : theme.colors.gray[3]}`,
           zIndex: 9999,
         },
         header: {
-          backgroundColor: isDark ? theme.colors.dark[7] : theme.white,
-          borderBottom: `1px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[3]}`,
+          backgroundColor: isDark ? theme.colors.dark?.[7] || theme.colors.gray[8] : theme.white,
+          borderBottom: `1px solid ${isDark ? theme.colors.dark?.[4] || theme.colors.gray[6] : theme.colors.gray[3]}`,
         },
         root: {
           zIndex: 9999,
@@ -160,7 +158,7 @@ export function ModelUploadDialog({
               radius="md"
               style={{
                 backgroundColor: surfaceBg,
-                border: `2px dashed ${isDark ? theme.colors.dark[4] : theme.colors.gray[4]}`,
+                border: `2px dashed ${isDark ? theme.colors.dark?.[4] || theme.colors.gray[6] : theme.colors.gray[4]}`,
                 textAlign: "center",
               }}
             >

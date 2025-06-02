@@ -1,12 +1,9 @@
-import { useTranslation } from "react-i18next";
-import { useEffect, useState } from "react";
-import { Box } from "@mantine/core";
+import { useEffect } from "react";
 import { RecipeStepper } from "../../components/recipe-creation";
 import { RecipeNavigationGuard } from "../../components/recipe-creation/navigation-guard";
 import { useRecipeStore } from "../../lib/store/recipe-store";
 
 export function RecipeCreationPage() {
-  const { t } = useTranslation(["recipes"]);
   const { resetForm, isDirty } = useRecipeStore();
 
   // Handle browser navigation (back/forward buttons)

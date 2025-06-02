@@ -111,7 +111,7 @@ export function TableLoading({
                   ) : (
                     <Skeleton
                       height={20}
-                      width={["75%", "60%", "80%", "50%", "70%"][cellIndex % 5]}
+                      width={["75%", "60%", "80%", "50%", "70%"][cellIndex % 5] as string}
                     />
                   )}
                 </Table.Td>

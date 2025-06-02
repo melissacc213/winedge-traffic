@@ -1,4 +1,4 @@
-import type { TaskType } from "./recipe";
+import type { TaskType, Region } from "./recipe";
 
 export interface Recipe {
   id: string;
@@ -6,11 +6,7 @@ export interface Recipe {
   description?: string;
   taskType: TaskType;
   status: "active" | "inactive" | "error";
-  regions: Array<{
-    id: string;
-    name: string;
-    points: Array<{ x: number; y: number }>;
-  }>;
+  regions: Region[];
   modelId: string;
   confidenceThreshold: number;
   createdAt: string;

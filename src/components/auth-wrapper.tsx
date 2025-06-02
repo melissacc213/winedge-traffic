@@ -3,7 +3,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { AppLoader } from './ui/app-loader';
 
 export function AuthOutlet() {
-  const { data: self, isSuccess: isSelfSuccess, isError: isSelfError, isLoading: isSelfLoading } = useSelf();
+  const { data: self, isError: isSelfError, isLoading: isSelfLoading } = useSelf();
 
   if (isSelfLoading) {
     return <AppLoader />;

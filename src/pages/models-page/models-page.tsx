@@ -8,12 +8,11 @@ import {
   Text,
   Progress,
   rem,
-  useMantineTheme,
 } from "@mantine/core";
 import { useTheme } from "@/providers/theme-provider";
 import { Dropzone } from "@mantine/dropzone";
 import { useTranslation } from "react-i18next";
-import { IconCloudUpload, IconUpload, IconPlus, IconCheck } from "@tabler/icons-react";
+import { IconCloudUpload, IconPlus, IconCheck } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import { useModelUpload } from "../../hooks/use-model-upload";
 import { ModelsTable } from "../../pages/models-page/models-table";
@@ -85,25 +84,6 @@ export function ModelsPage() {
   const [editingModel, setEditingModel] = useState<Model | null>(null);
   const { t } = useTranslation(["models", "common"]);
   const { theme, colorScheme } = useTheme();
-  const mantineTheme = useMantineTheme();
-  
-  // Theme color utility function
-  const getThemeColor = (colorPath: string): string => {
-    // Parse the color path (e.g., "blue.5" -> theme.colors.blue[5])
-    const [colorName, index] = colorPath.split('.');
-    
-    // Special handling for theme's other properties
-    if (colorName === 'ui') {
-      return theme.other?.ui?.[index] || colorPath;
-    }
-    
-    if (colorName === 'backgrounds') {
-      return theme.other?.backgrounds?.[index] || colorPath;
-    }
-    
-    // Standard color from theme colors
-    return theme.colors?.[colorName]?.[Number(index)] || colorPath;
-  };
   
   const styles = useStyles();
   const openRef = useRef<() => void>(null);
@@ -116,7 +96,6 @@ export function ModelsPage() {
     isUploading,
     handleDrop,
     handleDelete,
-    handleDownload,
     resetUpload,
   } = useModelUpload();
 
@@ -186,6 +165,7 @@ export function ModelsPage() {
           leftSection={<IconPlus size={16} />}
           onClick={handleManualUpload}
           disabled={isUploading}
+          color="blue"
         >
           {t("models:actions.create")}
         </Button>
@@ -309,7 +289,6 @@ export function ModelsPage() {
             models={models}
             isLoading={isLoading}
             onDelete={handleDelete}
-            onDownload={handleDownload}
             onEdit={handleEdit}
           />
         </Stack>

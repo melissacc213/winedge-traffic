@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { Button, Tooltip, useMantineTheme } from '@mantine/core';
+import { Button, Tooltip } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import { useTheme } from '@/providers/theme-provider';
 
@@ -14,7 +14,6 @@ type NavItemProps = {
 
 export function NavItem({ path, label, icon, isActive, onClick, iconOnly = false }: NavItemProps) {
   const { theme, colorScheme } = useTheme();
-  const mantineTheme = useMantineTheme();
   const isDark = colorScheme === 'dark';
   
   // Theme color utility function

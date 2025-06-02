@@ -13,7 +13,6 @@ import {
   ActionIcon,
   Tooltip,
   Badge,
-  Center,
   ThemeIcon,
   useMantineTheme
 } from '@mantine/core';
@@ -274,7 +273,7 @@ export function FFmpegVideoPlayer({
       setTranscodeProgress(100);
       setIsProcessingFile(false); // Mark processing as complete
       // Clean up listeners
-      ffmpeg.off('progress');
+      ffmpeg.off('log');
       
       setLoadingMessage('');
       setIsProcessingFile(false);
@@ -291,7 +290,7 @@ export function FFmpegVideoPlayer({
       }
     } finally {
       // Clean up listeners
-      ffmpegRef.current.off('progress');
+      ffmpegRef.current?.off('log');
       
       setTimeout(() => {
         setTranscoding(false);
@@ -399,12 +398,11 @@ export function FFmpegVideoPlayer({
             {/* Progress bar */}
             <Box w="100%" maw={300}>
               <Progress 
-                value={isIndeterminate ? undefined : (loading ? 30 : transcodeProgress)} 
+                value={isIndeterminate ? 0 : (loading ? 30 : transcodeProgress)} 
                 size="lg" 
                 radius="xl"
                 animated={!isIndeterminate}
                 striped={!isIndeterminate}
-                indeterminate={isIndeterminate ? true : undefined}
                 color="blue"
               />
               <Text size="xs" ta="center" mt="xs" c="dimmed">

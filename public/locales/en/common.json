@@ -34,7 +34,8 @@
     "close": "Close",
     "refresh": "Refresh",
     "export": "Export",
-    "import": "Import"
+    "import": "Import",
+    "logout": "Logout"
   },
   "action": {
     "search": "Search...",
@@ -50,7 +51,8 @@
     "discard": "Discard",
     "create": "Create",
     "update": "Update",
-    "submit": "Submit"
+    "submit": "Submit",
+    "logout": "Logout"
   },
   "of": "of",
   "stepsCompleted": "steps completed",

@@ -2,7 +2,6 @@ import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
-  createColumnHelper,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
@@ -10,7 +9,7 @@ import {
   getPaginationRowModel,
   getFilteredRowModel,
 } from "@tanstack/react-table";
-import type { PaginationState, SortingState } from "@tanstack/react-table";
+import type { PaginationState, SortingState, ColumnDef } from "@tanstack/react-table";
 import {
   Table,
   Badge,
@@ -115,85 +114,109 @@ export function TaskTable({
     }
   };
 
-  const columnHelper = createColumnHelper<Task>();
-
-  const columns = useMemo(
+  const columns = useMemo<ColumnDef<Task>[]>(
     () => [
-      columnHelper.accessor("name", {
+      {
+        accessorKey: "name",
         header: t("tasks:table.name"),
-        cell: (info) => (
-          <Box>
-            <Text fw={500}>{info.getValue()}</Text>
-            <Text size="xs" c="dimmed" lineClamp={1}>
-              {info.row.original.description || t("tasks:noDescription")}
-            </Text>
-          </Box>
-        ),
-      }),
-      columnHelper.accessor("status", {
+        cell: (info) => {
+          const name = info.getValue() as string;
+          return (
+            <Box>
+              <Text fw={500}>{name}</Text>
+              <Text size="xs" c="dimmed" lineClamp={1}>
+                {info.row.original.description || t("tasks:noDescription")}
+              </Text>
+            </Box>
+          );
+        },
+      },
+      {
+        accessorKey: "status",
         header: t("tasks:table.status"),
-        cell: (info) => (
-          <Badge color={getStatusColor(info.getValue())} variant="light">
-            {t(`tasks:status.${info.getValue()}`)}
-          </Badge>
-        ),
-      }),
-      columnHelper.accessor("progress", {
+        cell: (info) => {
+          const status = info.getValue() as string;
+          return (
+            <Badge color={getStatusColor(status)} variant="light">
+              {t(`tasks:status.${status}`)}
+            </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: "progress",
         header: t("tasks:table.progress"),
-        cell: (info) => (
-          <Box style={{ width: "100px" }}>
-            <Progress
-              value={info.getValue()}
-              color={getStatusColor(info.row.original.status)}
-              size="sm"
-              radius="sm"
-              animated={info.row.original.status === "running"}
-              striped={info.row.original.status === "running"}
-            />
-            <Text size="xs" ta="right" c="dimmed" mt={4}>
-              {info.getValue()}%
-            </Text>
-          </Box>
-        ),
-      }),
-      columnHelper.accessor("resultType", {
+        cell: (info) => {
+          const progress = info.getValue() as number;
+          return (
+            <Box style={{ width: "100px" }}>
+              <Progress
+                value={progress}
+                color={getStatusColor(info.row.original.status)}
+                size="sm"
+                radius="sm"
+                animated={info.row.original.status === "running"}
+                striped={info.row.original.status === "running"}
+              />
+              <Text size="xs" ta="right" c="dimmed" mt={4}>
+                {progress}%
+              </Text>
+            </Box>
+          );
+        },
+      },
+      {
+        accessorKey: "resultType",
         header: t("tasks:table.type"),
-        cell: (info) => (
-          <Badge color={getResultTypeColor(info.getValue())} variant="light">
-            {t(`tasks:taskType.${info.getValue()}`)}
-          </Badge>
-        ),
-      }),
-      columnHelper.accessor("recipeName", {
+        cell: (info) => {
+          const resultType = info.getValue() as string;
+          return (
+            <Badge color={getResultTypeColor(resultType)} variant="light">
+              {t(`tasks:taskType.${resultType}`)}
+            </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: "recipeName",
         header: t("tasks:table.recipe"),
-        cell: (info) => (
-          <Text size="sm" lineClamp={1}>
-            {info.getValue() || "—"}
-          </Text>
-        ),
-      }),
-      columnHelper.accessor("createdAt", {
+        cell: (info) => {
+          const recipeName = info.getValue() as string;
+          return (
+            <Text size="sm" lineClamp={1}>
+              {recipeName || "—"}
+            </Text>
+          );
+        },
+      },
+      {
+        accessorKey: "createdAt",
         header: t("tasks:table.createdAt"),
-        cell: (info) => <Text size="sm">{formatDate(info.getValue())}</Text>,
-      }),
-      columnHelper.accessor("id", {
+        cell: (info) => {
+          const createdAt = info.getValue() as string;
+          return <Text size="sm">{formatDate(createdAt)}</Text>;
+        },
+      },
+      {
+        accessorKey: "id",
         header: t("tasks:table.actions"),
         cell: (info) => {
           const task = info.row.original;
+          const id = info.getValue() as string;
           return (
             <Group gap={4} justify="flex-end" style={{ flexWrap: "nowrap" }}>
               <Menu position="bottom-end" withArrow withinPortal>
                 <Menu.Target>
                   <ActionIcon>
-                    <Icons.Dots size="sm" />
+                    <Icons.Dots size={16} />
                   </ActionIcon>
                 </Menu.Target>
                 <Menu.Dropdown>
                   {task.status === "running" && (
                     <Menu.Item
-                      leftSection={<Icons.PlayerStop size="xs" />}
+                      leftSection={<Icons.PlayerStop size={14} />}
                       color="yellow"
-                      onClick={() => onCancel?.(info.getValue())}
+                      onClick={() => onCancel?.(id)}
                     >
                       {t("tasks:action.cancel")}
                     </Menu.Item>
@@ -201,9 +224,9 @@ export function TaskTable({
 
                   {task.status === "completed" && (
                     <Menu.Item
-                      leftSection={<Icons.FileAnalytics size="xs" />}
+                      leftSection={<Icons.FileAnalytics size={14} />}
                       onClick={() =>
-                        navigate(`/tasks/${info.getValue()}/metrics`)
+                        navigate(`/tasks/${id}/metrics`)
                       }
                     >
                       {t("tasks:action.viewMetrics")}
@@ -213,9 +236,9 @@ export function TaskTable({
                   <Menu.Divider />
 
                   <Menu.Item
-                    leftSection={<Icons.Trash size="xs" />}
+                    leftSection={<Icons.Trash size={14} />}
                     color="red"
-                    onClick={() => onDelete?.(info.getValue())}
+                    onClick={() => onDelete?.(id)}
                     disabled={task.status === "running"}
                   >
                     {t("tasks:action.delete")}
@@ -225,7 +248,7 @@ export function TaskTable({
             </Group>
           );
         },
-      }),
+      },
     ],
     [t, navigate, onCancel, onDelete]
   );
@@ -284,7 +307,7 @@ export function TaskTable({
           placeholder={t("common:action.search")}
           value={globalFilter ?? ""}
           onChange={(e) => setGlobalFilter(e.target.value)}
-          leftSection={<Icons.Search size="xs" />}
+          leftSection={<Icons.Search size={16} />}
         />
       </Group>
 
@@ -315,11 +338,11 @@ export function TaskTable({
                     {header.column.getCanSort() && (
                       <Box style={{ display: "inline-block", width: 16 }}>
                         {header.column.getIsSorted() === "asc" ? (
-                          <Icons.ArrowUp size="xs" />
+                          <Icons.ArrowUp size={12} />
                         ) : header.column.getIsSorted() === "desc" ? (
-                          <Icons.ArrowDown size="xs" />
+                          <Icons.ArrowDown size={12} />
                         ) : (
-                          <Icons.Sort size="xs" style={{ opacity: 0.5 }} />
+                          <Icons.Sort size={12} style={{ opacity: 0.5 }} />
                         )}
                       </Box>
                     )}

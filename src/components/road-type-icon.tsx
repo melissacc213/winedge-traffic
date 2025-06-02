@@ -21,8 +21,8 @@ export function RoadTypeIcon({ type, size = 32, showLabel = false }: RoadTypeIco
       fill: "none",
       stroke: "currentColor",
       strokeWidth: 2,
-      strokeLinecap: "round",
-      strokeLinejoin: "round"
+      strokeLinecap: "round" as const,
+      strokeLinejoin: "round" as const
     };
 
     switch (type) {
@@ -66,7 +66,7 @@ export function RoadTypeIcon({ type, size = 32, showLabel = false }: RoadTypeIco
 
   if (showLabel) {
     return (
-      <Box display="flex" alignItems="center" gap="xs">
+      <Box style={{ display: 'flex', alignItems: 'center', gap: 'var(--mantine-spacing-xs)' }}>
         {svgContent}
         <span>{label}</span>
       </Box>
@@ -94,20 +94,27 @@ export function RoadTypeSelector({
   const roadTypes: RoadType[] = ['straight', 'tJunction', 'crossroads'];
 
   return (
-    <Box display="flex" gap="md">
+    <Box style={{ display: 'flex', gap: 'var(--mantine-spacing-md)' }}>
       {roadTypes.map(type => (
         <Box 
           key={type}
           onClick={() => onChange(type)}
-          sx={{
+          style={{
             cursor: 'pointer',
             padding: '8px',
             borderRadius: '4px',
             border: `2px solid ${value === type ? 'var(--mantine-color-blue-6)' : 'transparent'}`,
             backgroundColor: value === type ? 'var(--mantine-color-blue-0)' : 'transparent',
-            transition: 'all 0.2s ease',
-            '&:hover': {
-              backgroundColor: 'var(--mantine-color-gray-0)'
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            if (value !== type) {
+              e.currentTarget.style.backgroundColor = 'var(--mantine-color-gray-0)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (value !== type) {
+              e.currentTarget.style.backgroundColor = 'transparent';
             }
           }}
         >

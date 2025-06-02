@@ -1,4 +1,3 @@
-import { MantineProvider } from '@mantine/core';
 import { useEffect } from 'react';
 import '@mantine/core/styles.css'; // Import Mantine styles
 import { Notifications } from '@mantine/notifications';
@@ -23,7 +22,7 @@ const queryClient = new QueryClient({
 
 // MantineWrapper component to apply the theme and render app content
 function MantineWrapper() {
-  const { colorScheme, theme } = useTheme();
+  const { colorScheme } = useTheme();
   
   // Apply theme classes
   useEffect(() => {

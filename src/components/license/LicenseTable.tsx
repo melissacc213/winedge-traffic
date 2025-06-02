@@ -30,7 +30,6 @@ import { TableLoading } from '../ui';
 import { modals } from '@mantine/modals';
 import type { License } from '../../lib/validator/license';
 import {
-  createColumnHelper,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
@@ -38,7 +37,7 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
 } from '@tanstack/react-table';
-import type { PaginationState, SortingState } from '@tanstack/react-table';
+import type { PaginationState, SortingState, ColumnDef } from '@tanstack/react-table';
 import { Icons } from '../icons';
 
 interface LicenseTableProps {
@@ -49,7 +48,7 @@ interface LicenseTableProps {
 export function LicenseTable({ onEditLicense, isLoading: externalIsLoading }: LicenseTableProps) {
   const { t } = useTranslation(['licenses', 'common']);
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
+  const [page] = useState(1);
   const [size] = useState(10);
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'uploaded_at', desc: true },
@@ -124,79 +123,107 @@ export function LicenseTable({ onEditLicense, isLoading: externalIsLoading }: Li
       } else {
         return date.toLocaleDateString();
       }
-    } catch (e) {
+    } catch {
       return dateString;
     }
   };
 
-  const columnHelper = createColumnHelper<License>();
-
-  const columns = useMemo(
+  const columns = useMemo<ColumnDef<License>[]>(
     () => [
-      columnHelper.accessor('name', {
+      {
+        accessorKey: 'name',
         header: t('licenses:table.name'),
-        cell: (info) => (
-          <Box>
-            <Text fw={500}>{info.getValue()}</Text>
-            <Text size="xs" c="dimmed">
-              {info.row.original.file_name}
-            </Text>
-          </Box>
-        ),
-      }),
-      columnHelper.accessor('file_size', {
+        cell: (info) => {
+          const name = info.getValue() as string;
+          return (
+            <Box>
+              <Text fw={500}>{name}</Text>
+              <Text size="xs" c="dimmed">
+                {info.row.original.file_name}
+              </Text>
+            </Box>
+          );
+        },
+      },
+      {
+        accessorKey: 'file_size',
         header: t('licenses:table.fileSize'),
-        cell: (info) => <Text size="sm">{formatFileSize(info.getValue())}</Text>,
-      }),
-      columnHelper.accessor('status', {
+        cell: (info) => {
+          const fileSize = info.getValue() as number;
+          return <Text size="sm">{formatFileSize(fileSize)}</Text>;
+        },
+      },
+      {
+        accessorKey: 'status',
         header: t('licenses:table.status'),
-        cell: (info) => (
-          <Badge color={getStatusBadgeColor(info.getValue())} variant="filled">
-            {t(`licenses:status.${info.getValue()}`)}
-          </Badge>
-        ),
-      }),
-      columnHelper.accessor('uploaded_by', {
+        cell: (info) => {
+          const status = info.getValue() as string;
+          return (
+            <Badge color={getStatusBadgeColor(status)} variant="filled">
+              {t(`licenses:status.${status}`)}
+            </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: 'uploaded_by',
         header: t('licenses:table.uploadedBy'),
-        cell: (info) => <Text size="sm">{info.getValue()}</Text>,
-      }),
-      columnHelper.accessor('uploaded_at', {
+        cell: (info) => {
+          const uploadedBy = info.getValue() as string;
+          return <Text size="sm">{uploadedBy}</Text>;
+        },
+      },
+      {
+        accessorKey: 'uploaded_at',
         header: t('licenses:table.uploadedAt'),
-        cell: (info) => <Text size="sm" c="dimmed">{formatDate(info.getValue())}</Text>,
-      }),
-      columnHelper.accessor('expires_at', {
+        cell: (info) => {
+          const uploadedAt = info.getValue() as string;
+          return <Text size="sm" c="dimmed">{formatDate(uploadedAt)}</Text>;
+        },
+      },
+      {
+        accessorKey: 'expires_at',
         header: t('licenses:table.expiresAt'),
-        cell: (info) => (
-          <Text size="sm" c="dimmed">
-            {info.getValue() ? formatDate(info.getValue()!) : t('licenses:table.noExpiry')}
-          </Text>
-        ),
-      }),
-      columnHelper.accessor('is_default', {
+        cell: (info) => {
+          const expiresAt = info.getValue() as string | undefined;
+          return (
+            <Text size="sm" c="dimmed">
+              {expiresAt ? formatDate(expiresAt) : t('licenses:table.noExpiry')}
+            </Text>
+          );
+        },
+      },
+      {
+        accessorKey: 'is_default',
         header: t('licenses:table.default'),
-        cell: (info) => (
-          <Tooltip label={info.getValue() ? t('licenses:table.defaultLicense') : t('licenses:table.setAsDefault')}>
-            <ActionIcon
-              variant={info.getValue() ? 'filled' : 'subtle'}
-              color="yellow"
-              onClick={() => !info.getValue() && setDefaultMutation.mutate(info.row.original.id)}
-              disabled={info.getValue()}
-            >
-              {info.getValue() ? <IconStarFilled size={16} /> : <IconStar size={16} />}
-            </ActionIcon>
-          </Tooltip>
-        ),
-      }),
-      columnHelper.accessor('id', {
+        cell: (info) => {
+          const isDefault = info.getValue() as boolean;
+          return (
+            <Tooltip label={isDefault ? t('licenses:table.defaultLicense') : t('licenses:table.setAsDefault')}>
+              <ActionIcon
+                variant={isDefault ? 'filled' : 'subtle'}
+                color="yellow"
+                onClick={() => !isDefault && setDefaultMutation.mutate(info.row.original.id)}
+                disabled={isDefault}
+              >
+                {isDefault ? <IconStarFilled size={16} /> : <IconStar size={16} />}
+              </ActionIcon>
+            </Tooltip>
+          );
+        },
+      },
+      {
+        accessorKey: 'id',
         header: t('licenses:table.actions'),
         cell: (info) => {
           const license = info.row.original;
+          const id = info.getValue() as string;
           return (
             <Group gap="xs" justify="flex-end">
               <Tooltip label={t('common:button.view')}>
                 <ActionIcon
                   variant="subtle"
-                  onClick={() => navigate(`/licenses/${info.getValue()}`)}
+                  onClick={() => navigate(`/licenses/${id}`)}
                 >
                   <IconEye size={16} />
                 </ActionIcon>
@@ -236,9 +263,9 @@ export function LicenseTable({ onEditLicense, isLoading: externalIsLoading }: Li
             </Group>
           );
         },
-      }),
+      },
     ],
-    [t, navigate, onEditLicense, setDefaultMutation, deleteMutation]
+    [t, navigate, onEditLicense, setDefaultMutation, deleteMutation, handleDelete]
   );
 
   const licenses = data?.results || [];

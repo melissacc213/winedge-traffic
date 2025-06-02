@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import { useState, useEffect, useMemo, Fragment } from "react";
 import {
   Stack,
@@ -14,42 +13,40 @@ import {
   Alert,
   Loader,
   Center,
-  Switch,
-  ColorSwatch,
-  NumberInput,
   Tabs,
-  rem,
   Checkbox,
   Box,
-  Title,
   Pagination,
   Select,
 } from "@mantine/core";
 import { Icons } from "../../icons";
 import { useDisclosure } from "@mantine/hooks";
 import { useRecipeStore } from "../../../lib/store/recipe-store";
+import { useTheme } from "@/providers/theme-provider";
+import { getRegionColor } from "@/lib/theme-utils";
 import { useModels } from "../../../lib/queries/model";
 import { ModelUploadDialog } from "../../model-config-editor/model-upload-dialog";
 import { LabelEditor } from "../../model-config-editor/label-editor";
 import type { ModelLabel, ModelConfig } from "../../../types/model";
+import type { MantineTheme } from "@mantine/core";
 
-// Mock data for model labels - in a real app this would come from the selected model's config
-const MOCK_LABELS: ModelLabel[] = [
-  { id: "1", name: "Person", color: "#ff6b6b", confidence: 0.7, width_threshold: 32, height_threshold: 32, enabled: true },
+// Generate mock data for model labels - in a real app this would come from the selected model's config
+const generateMockLabels = (theme: MantineTheme): ModelLabel[] => [
+  { id: "1", name: "Person", color: getRegionColor(theme, 0), confidence: 0.7, width_threshold: 32, height_threshold: 32, enabled: true },
   {
     id: "2",
     name: "Vehicle",
-    color: "#06b6d4",
+    color: getRegionColor(theme, 1),
     confidence: 0.75,
     width_threshold: 32,
     height_threshold: 32,
     enabled: true,
   },
-  { id: "3", name: "Truck", color: "#1890ff", confidence: 0.8, width_threshold: 32, height_threshold: 32, enabled: true },
+  { id: "3", name: "Truck", color: getRegionColor(theme, 2), confidence: 0.8, width_threshold: 32, height_threshold: 32, enabled: true },
   {
     id: "4",
     name: "Motorcycle",
-    color: "#fa9c46",
+    color: getRegionColor(theme, 3),
     confidence: 0.65,
     width_threshold: 32,
     height_threshold: 32,
@@ -58,7 +55,7 @@ const MOCK_LABELS: ModelLabel[] = [
   {
     id: "5",
     name: "Bicycle",
-    color: "#13c2c2",
+    color: getRegionColor(theme, 4),
     confidence: 0.6,
     width_threshold: 32,
     height_threshold: 32,
@@ -67,11 +64,11 @@ const MOCK_LABELS: ModelLabel[] = [
 ];
 
 export function ModelConfigStep() {
-  const { t } = useTranslation(["recipes"]);
-  const { formValues, setModel, setModelConfig, updateForm } = useRecipeStore();
+  const { theme } = useTheme();
+  const { formValues, setModel, setModelConfig } = useRecipeStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [labels, setLabels] = useState<ModelLabel[]>(
-    formValues.modelConfig?.labels || MOCK_LABELS
+    formValues.modelConfig?.labels || generateMockLabels(theme)
   );
   const [opened, { open, close }] = useDisclosure(false);
   const [activeTab, setActiveTab] = useState<string | null>("models");
@@ -261,7 +258,7 @@ export function ModelConfigStep() {
                                   <Badge
                                     size="sm"
                                     color={
-                                      model.status === "ready" ? "green" : "yellow"
+                                      model.status === "active" ? "green" : "yellow"
                                     }
                                     variant="dot"
                                   >

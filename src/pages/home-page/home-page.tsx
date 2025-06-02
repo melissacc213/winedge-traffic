@@ -1,10 +1,13 @@
-import { Center, Container, Title, Paper, Text, Grid, Card } from '@mantine/core';
+import { Center, Container, Title, Paper, Text, Grid, Card, useMantineTheme } from '@mantine/core';
+import { useTheme } from '@/providers/theme-provider';
 
 export function HomePage() {
+  const { theme } = useTheme();
+  
   return (
     <Container className="py-8 max-w-6xl">
       <Paper withBorder p="xl" radius="md" className="mb-8">
-        <Title order={1} mb="md" style={{ color: '#1890ff' }}>
+        <Title order={1} mb="md" c="blue.5">
           Traffic AI Dashboard
         </Title>
         <Text>

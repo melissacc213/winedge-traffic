@@ -45,7 +45,7 @@ export function LicenseCreateDialog({ opened, onClose, onSuccess }: LicenseCreat
         header: {
           flexShrink: 0,
           padding: '1rem',
-          borderBottom: `1px solid ${colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3]}`,
+          borderBottom: `1px solid ${colorScheme === 'dark' ? theme.colors.dark?.[4] || theme.colors.gray[6] : theme.colors.gray[3]}`,
         }
       }}
       scrollAreaComponent={undefined}

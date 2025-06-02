@@ -2,6 +2,7 @@ import { Box, Text, UnstyledButton, useMantineTheme } from '@mantine/core';
 import { useTheme } from '@/providers/theme-provider';
 import { Icons } from '@/components/icons';
 import { useRef } from 'react';
+import { getShadow } from '@/lib/theme-utils';
 
 interface ColorPickerProps {
   value: string;
@@ -51,13 +52,13 @@ export function ColorPicker({ value, onChange, label, disabled = false }: ColorP
             gap: mantineTheme.spacing.xs,
             padding: `${mantineTheme.spacing.xs} ${mantineTheme.spacing.sm}`,
             borderRadius: mantineTheme.radius.md,
-            border: `1px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[3]}`,
-            backgroundColor: isDark ? theme.colors.dark[6] : theme.white,
+            border: `1px solid ${isDark ? theme.colors.dark?.[4] || theme.colors.gray[6] : theme.colors.gray[3]}`,
+            backgroundColor: isDark ? theme.colors.dark?.[6] || theme.colors.gray[7] : theme.white,
             cursor: disabled ? 'not-allowed' : 'pointer',
             opacity: disabled ? 0.5 : 1,
             transition: 'all 0.2s ease',
             '&:hover': !disabled ? {
-              backgroundColor: isDark ? theme.colors.dark[5] : theme.colors.gray[0],
+              backgroundColor: isDark ? theme.colors.dark?.[5] || theme.colors.gray[6] : theme.colors.gray[0],
               transform: 'scale(1.05)',
             } : {},
           }}
@@ -68,10 +69,10 @@ export function ColorPicker({ value, onChange, label, disabled = false }: ColorP
               height: 32,
               borderRadius: mantineTheme.radius.sm,
               backgroundColor: value,
-              border: `2px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[3]}`,
+              border: `2px solid ${isDark ? theme.colors.dark?.[4] || theme.colors.gray[6] : theme.colors.gray[3]}`,
               position: 'relative',
               overflow: 'hidden',
-              boxShadow: theme.other?.shadows?.sm || '0 1px 3px rgba(0, 0, 0, 0.1)',
+              boxShadow: getShadow(theme, 'sm', isDark),
             }}
           >
             {/* Checkerboard pattern for transparency */}
@@ -80,10 +81,10 @@ export function ColorPicker({ value, onChange, label, disabled = false }: ColorP
                 position: 'absolute',
                 inset: 0,
                 backgroundImage: `
-                  linear-gradient(45deg, #e0e0e0 25%, transparent 25%),
-                  linear-gradient(-45deg, #e0e0e0 25%, transparent 25%),
-                  linear-gradient(45deg, transparent 75%, #e0e0e0 75%),
-                  linear-gradient(-45deg, transparent 75%, #e0e0e0 75%)
+                  linear-gradient(45deg, ${theme.colors.gray[3]} 25%, transparent 25%),
+                  linear-gradient(-45deg, ${theme.colors.gray[3]} 25%, transparent 25%),
+                  linear-gradient(45deg, transparent 75%, ${theme.colors.gray[3]} 75%),
+                  linear-gradient(-45deg, transparent 75%, ${theme.colors.gray[3]} 75%)
                 `,
                 backgroundSize: '8px 8px',
                 backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0px',

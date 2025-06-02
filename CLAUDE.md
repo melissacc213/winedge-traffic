@@ -349,6 +349,29 @@ color: isDark ? theme.colors.gray[5] : theme.colors.gray[6]
    - dark[5]: Borders and dividers
    - dark[4]: Subtle borders
 
+**CRITICAL: Dark Theme Color Access Pattern**
+
+Due to potential theme configuration variations, ALWAYS use optional chaining when accessing `theme.colors.dark` array:
+
+```typescript
+// ❌ WRONG - This will cause "Cannot read properties of undefined" errors:
+backgroundColor: isDark ? theme.colors.dark[7] : theme.white
+
+// ✅ CORRECT - Use optional chaining with fallback:
+backgroundColor: isDark ? theme.colors.dark?.[7] || theme.colors.gray[8] : theme.white
+
+// Recommended fallback mapping:
+// dark[9] → gray[9]
+// dark[8] → gray[9]
+// dark[7] → gray[8]
+// dark[6] → gray[7]
+// dark[5] → gray[6]
+// dark[4] → gray[6]
+// dark[3] → gray[6]
+```
+
+This pattern prevents runtime errors when the theme doesn't have the `dark` color array defined.
+
 ### 6. Canvas-Based Region Configuration
 
 For traffic region setup, use React-Konva with the theme system:
@@ -884,6 +907,73 @@ import type { TaskResponse } from "./types/task";
 ```
 
 This prevents "does not provide an export" runtime errors in Vite/ESM environments.
+
+### TypeScript and Mantine Version Validation Guidelines
+
+**CRITICAL DEVELOPMENT RULE**: Always verify TypeScript compilation and Mantine v8 compatibility when making changes:
+
+#### 1. TypeScript Validation Process
+```bash
+# Run TypeScript check before committing changes
+npm run build
+# OR
+npx tsc --noEmit
+```
+
+#### 2. Mantine v8 Compatibility Checklist
+When modifying components, verify these Mantine v8 requirements:
+
+**Deprecated Props to Avoid:**
+- ❌ `sx` prop → ✅ Use `style` prop
+- ❌ `spacing` prop → ✅ Use `gap` prop  
+- ❌ `weight` prop → ✅ Use `fw` prop
+- ❌ `position` prop on Group → ✅ Use `justify` prop
+- ❌ `transform` prop on Text → ✅ Use `style={{ textTransform }}`
+- ❌ `required` prop on form inputs → ✅ Use validation schemas
+
+**React Table Compatibility:**
+- ❌ `createColumnHelper()` → ✅ Direct `ColumnDef[]` with `accessorKey`
+- ❌ `columnHelper.accessor()` → ✅ `{ accessorKey: "field", ... }`
+- ✅ Always add type assertions: `info.getValue() as string`
+
+#### 3. Mandatory Checks After Every Change
+```bash
+# 1. TypeScript compilation
+npm run build
+
+# 2. Component prop validation
+# Check console for deprecated prop warnings
+
+# 3. Type safety verification  
+# Ensure no 'any' types or unsafe assertions
+```
+
+#### 4. Common Fix Patterns
+```typescript
+// ✅ Mantine v8 compatible styling
+<Box style={{ display: "flex", alignItems: "center" }}>
+  <Text fw={500} style={{ textTransform: "capitalize" }}>
+    {value as React.ReactNode}
+  </Text>
+</Box>
+
+// ✅ Proper table column definition
+const columns: ColumnDef<DataType>[] = [
+  {
+    accessorKey: "name",
+    header: "Name",
+    cell: (info) => info.getValue() as string,
+  }
+];
+```
+
+#### 5. Error Prevention Protocol
+- **Before committing**: Run `npm run build` and fix ALL TypeScript errors
+- **Before component changes**: Check Mantine v8 documentation for prop changes
+- **Type assertions**: Use specific types instead of `any` or `unknown`
+- **Import validation**: Ensure all imports resolve correctly
+
+**Failure to follow this protocol may break the build and prevent deployment.**
 
 ## International Support
 

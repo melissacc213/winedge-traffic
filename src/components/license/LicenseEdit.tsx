@@ -46,7 +46,6 @@ export function LicenseEdit({ license, opened, onClose, onSuccess }: LicenseEdit
             label={t("licenses:form.name")}
             placeholder={t("licenses:form.namePlaceholder")}
             leftSection={<Icons.FileText size={16} />}
-            required
             {...form.getInputProps("name")}
           />
 

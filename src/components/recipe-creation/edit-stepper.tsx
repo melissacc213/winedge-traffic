@@ -97,9 +97,19 @@ export function RecipeEditStepper({ recipeId }: { recipeId: string }) {
     setIsSubmitting(true);
     try {
       // In production, call the update API
+      const submitData = {
+        ...formValues,
+        taskType: formValues.taskType || "trafficStatistics" as const,
+        regions: formValues.regions.map(region => ({
+          ...region,
+          type: region.type || "countLine" as const
+        })),
+        videoFile: formValues.videoFile || undefined
+      };
+      
       await updateRecipe.mutateAsync({
         id: recipeId,
-        data: formValues,
+        data: submitData,
       });
 
       notifications.show({
@@ -194,7 +204,7 @@ export function RecipeEditStepper({ recipeId }: { recipeId: string }) {
                           }}
                         >
                           {isCompleted ? (
-                            <Icons.Check size={14} stroke={3} />
+                            <Icons.Check size={14} />
                           ) : (
                             <StepIcon size={14} />
                           )}

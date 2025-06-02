@@ -21,7 +21,7 @@ export interface ModelConfig {
   task: string;
   algorithm?: {
     id: number;
-    hyperparameter: Record<string, any>;
+    hyperparameter: Record<string, unknown>;
   };
   deployment?: {
     name: string;

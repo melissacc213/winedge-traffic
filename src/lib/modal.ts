@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { create } from 'zustand';
+import { useCallback } from "react";
+import { create } from "zustand";
 
 // Types for modals
 interface ConfirmModalProps {
@@ -11,7 +11,17 @@ interface ConfirmModalProps {
   };
   confirmProps?: {
     color?: string;
-    [key: string]: any;
+    variant?: string;
+    size?: string;
+    disabled?: boolean;
+    loading?: boolean;
+    fullWidth?: boolean;
+    leftSection?: React.ReactNode;
+    rightSection?: React.ReactNode;
+    autoContrast?: boolean;
+    gradient?: { from: string; to: string; deg?: number };
+    radius?: string | number;
+    [key: string]: unknown;
   };
   onConfirm: () => void;
   onCancel?: () => void;

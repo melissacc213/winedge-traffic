@@ -1,13 +1,24 @@
 import { useEffect, useState } from "react";
-import { useBlocker, useNavigate } from "react-router-dom";
+import { useBlocker } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import {
+  Modal,
+  Stack,
+  Text,
+  Group,
+  Button,
+  useMantineTheme,
+} from "@mantine/core";
 import { useRecipeStore } from "../../lib/store/recipe-store";
-import { ConfirmationModal } from "../ui/confirmation-modal";
+import { useTheme } from "../../providers/theme-provider";
 
 export function RecipeNavigationGuard() {
   const { isDirty, resetForm } = useRecipeStore();
-  const navigate = useNavigate();
+  const { t } = useTranslation(["recipes", "common"]);
+  const { theme, colorScheme } = useTheme();
+  const mantineTheme = useMantineTheme();
+  const isDark = colorScheme === "dark";
   const [showModal, setShowModal] = useState(false);
-  const [pendingLocation, setPendingLocation] = useState<string | null>(null);
 
   // Block navigation when there are unsaved changes
   const blocker = useBlocker(({ currentLocation, nextLocation }) => {
@@ -20,37 +31,30 @@ export function RecipeNavigationGuard() {
         sessionStorage.removeItem("recipe-navigation-confirmed");
         return false; // Don't block
       }
-      return true; // Block navigation
+      
+      // Show confirmation modal
+      setShowModal(true);
+      return true; // Block navigation initially
     }
     return false;
   });
 
-  // Handle blocked navigation
-  useEffect(() => {
-    if (blocker.state === "blocked") {
-      // Show confirmation modal
-      setPendingLocation(blocker.location.pathname);
-      setShowModal(true);
-    }
-  }, [blocker.state, blocker.location]);
-
-  const handleCancel = () => {
-    setShowModal(false);
-    setPendingLocation(null);
-    if (blocker.state === "blocked") {
-      blocker.reset();
-    }
-  };
-
-  const handleConfirm = () => {
+  // Handle modal confirmation
+  const confirmLeave = () => {
     setShowModal(false);
     // Mark navigation as confirmed
     sessionStorage.setItem("recipe-navigation-confirmed", "true");
     resetForm();
-
     // Proceed with navigation
-    if (blocker.state === "blocked" && pendingLocation) {
+    if (blocker.state === "blocked") {
       blocker.proceed();
+    }
+  };
+
+  const cancelLeave = () => {
+    setShowModal(false);
+    if (blocker.state === "blocked") {
+      blocker.reset();
     }
   };
 
@@ -70,17 +74,46 @@ export function RecipeNavigationGuard() {
   }, [resetForm]);
 
   return (
-    <ConfirmationModal
+    <Modal
       opened={showModal}
-      onClose={handleCancel}
-      onConfirm={handleConfirm}
-      title="Leave Recipe Creation?"
-      message="You have unsaved changes in your recipe. Are you sure you want to leave? All your progress will be lost."
-      confirmText="Leave Without Saving"
-      cancelText="Continue Editing"
-      confirmColor="red"
-      icon="warning"
-      size="md"
-    />
+      onClose={cancelLeave}
+      title={t("recipes:creation.exitTitle", "Leave Recipe Creation?")}
+      centered
+      size="sm"
+    >
+      <Stack gap="md">
+        <Text size="sm">
+          {t(
+            "recipes:creation.exitMessage",
+            "You have unsaved changes in your recipe. Are you sure you want to leave? All your progress will be lost."
+          )}
+        </Text>
+        <Group justify="space-between">
+          <Button
+            variant="outline"
+            onClick={cancelLeave}
+            style={{
+              borderColor: isDark
+                ? mantineTheme.colors.dark[4]
+                : theme.colors.gray[4],
+              color: isDark ? theme.colors.gray[3] : theme.colors.gray[7],
+            }}
+          >
+            {t("common:button.continueEditing", "Continue Editing")}
+          </Button>
+          <Button
+            onClick={confirmLeave}
+            style={{
+              backgroundColor: mantineTheme.colors.red[6],
+              "&:hover": {
+                backgroundColor: mantineTheme.colors.red[7],
+              },
+            }}
+          >
+            {t("common:button.exit", "Leave Without Saving")}
+          </Button>
+        </Group>
+      </Stack>
+    </Modal>
   );
 }

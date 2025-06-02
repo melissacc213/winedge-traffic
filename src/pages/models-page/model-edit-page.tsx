@@ -78,7 +78,7 @@ export function ModelEditPage() {
 
   if (error || !model) {
     return (
-      <PageLayout>
+      <PageLayout title={t("models:edit.error.title")}>
         <Alert
           icon={<IconAlertCircle size={16} />}
           title={t("models:edit.error.title")}
@@ -91,7 +91,7 @@ export function ModelEditPage() {
   }
 
   return (
-    <PageLayout>
+    <PageLayout title={t("models:edit.title")}>
       <Stack gap="lg">
         {/* Header */}
         <Paper p="lg" radius="md" withBorder style={{ backgroundColor: cardBg }}>

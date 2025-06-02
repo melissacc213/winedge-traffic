@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useRef, useState, useEffect } from "react";
+import { useState } from "react";
 import { Stage, Layer, Image as KonvaImage } from "react-konva";
 import {
   Stack,
@@ -9,9 +9,7 @@ import {
   Button,
   Box,
   ThemeIcon,
-  Card,
   Grid,
-  Radio,
   Title,
   useMantineTheme,
   Center,
@@ -24,7 +22,7 @@ import useImage from "use-image";
 import { useTheme } from "../../../providers/theme-provider";
 import type { TaskType, FrameData } from "../../../types/recipe";
 import { UnifiedVideoPlayer } from "../../video-player/unified-video-player";
-import { ConfirmationModal } from "../../ui";
+import { Modal } from "@mantine/core";
 
 const STAGE_WIDTH = 500;
 const STAGE_HEIGHT = 300;
@@ -35,7 +33,6 @@ export function TaskTypeWithVideoStep() {
     formValues,
     setTaskType,
     setVideo,
-    updateForm,
     setExtractedFrame,
     clearVideoData,
   } = useRecipeStore();
@@ -135,11 +132,12 @@ export function TaskTypeWithVideoStep() {
   };
 
   // Check if step is complete
-  const isStepComplete = !!(
-    formValues.taskType &&
-    formValues.videoId &&
-    formValues.extractedFrame
-  );
+  // Step completion check (currently unused but may be needed for validation)
+  // const isStepComplete = !!(
+  //   formValues.taskType &&
+  //   formValues.videoId &&
+  //   formValues.extractedFrame
+  // );
 
   return (
     <Box>
@@ -478,46 +476,113 @@ export function TaskTypeWithVideoStep() {
       </Grid>
 
       {/* Confirmation Modals */}
-      <ConfirmationModal
+      <Modal
         opened={showVideoChangeModal}
         onClose={() => setShowVideoChangeModal(false)}
-        onConfirm={() => {
-          setSelectedVideoFile(null);
-          setCapturedFrame(null);
-          clearVideoData();
-          setShowVideoChangeModal(false);
-        }}
-        title="Change Video?"
-        message="Changing the video will remove the captured frame. Are you sure you want to continue?"
-        confirmText="Change Video"
-        cancelText="Cancel"
-        confirmColor="red"
-        icon="warning"
-      />
+        title={t("recipes:creation.changeVideoTitle", "Change Video?")}
+        centered
+        size="sm"
+      >
+        <Stack gap="md">
+          <Text size="sm">
+            {t(
+              "recipes:creation.changeVideoMessage",
+              "Changing the video will remove the captured frame. Are you sure you want to continue?"
+            )}
+          </Text>
+          <Group justify="space-between">
+            <Button
+              variant="outline"
+              onClick={() => setShowVideoChangeModal(false)}
+              style={{
+                borderColor: colorScheme === "dark"
+                  ? mantineTheme.colors.dark[4]
+                  : theme.colors.gray[4],
+                color: colorScheme === "dark"
+                  ? theme.colors.gray[3]
+                  : theme.colors.gray[7],
+              }}
+            >
+              {t("common:action.cancel", "Cancel")}
+            </Button>
+            <Button
+              onClick={() => {
+                setSelectedVideoFile(null);
+                setCapturedFrame(null);
+                clearVideoData();
+                setShowVideoChangeModal(false);
+              }}
+              style={{
+                backgroundColor: mantineTheme.colors.red[6],
+                "&:hover": {
+                  backgroundColor: mantineTheme.colors.red[7],
+                },
+              }}
+            >
+              {t("recipes:creation.changeVideo", "Change Video")}
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
 
-      <ConfirmationModal
+      <Modal
         opened={showTaskChangeModal}
         onClose={() => {
           setShowTaskChangeModal(false);
           setPendingTaskType(null);
         }}
-        onConfirm={() => {
-          if (pendingTaskType) {
-            setTaskType(pendingTaskType);
-            setSelectedVideoFile(null);
-            setCapturedFrame(null);
-            clearVideoData();
-          }
-          setShowTaskChangeModal(false);
-          setPendingTaskType(null);
-        }}
-        title="Change Task Type?"
-        message="Changing the task type will remove the captured frame and video. Are you sure you want to continue?"
-        confirmText="Change Task Type"
-        cancelText="Cancel"
-        confirmColor="red"
-        icon="warning"
-      />
+        title={t("recipes:creation.changeTaskTypeTitle", "Change Task Type?")}
+        centered
+        size="sm"
+      >
+        <Stack gap="md">
+          <Text size="sm">
+            {t(
+              "recipes:creation.changeTaskTypeMessage",
+              "Changing the task type will remove the captured frame and video. Are you sure you want to continue?"
+            )}
+          </Text>
+          <Group justify="space-between">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowTaskChangeModal(false);
+                setPendingTaskType(null);
+              }}
+              style={{
+                borderColor: colorScheme === "dark"
+                  ? mantineTheme.colors.dark[4]
+                  : theme.colors.gray[4],
+                color: colorScheme === "dark"
+                  ? theme.colors.gray[3]
+                  : theme.colors.gray[7],
+              }}
+            >
+              {t("common:action.cancel", "Cancel")}
+            </Button>
+            <Button
+              onClick={() => {
+                if (pendingTaskType) {
+                  setTaskType(pendingTaskType);
+                  setSelectedVideoFile(null);
+                  setCapturedFrame(null);
+                  clearVideoData();
+                }
+                setShowTaskChangeModal(false);
+                setPendingTaskType(null);
+              }}
+              style={{
+                backgroundColor: mantineTheme.colors.red[6],
+                "&:hover": {
+                  backgroundColor: mantineTheme.colors.red[7],
+                },
+              }}
+            >
+              {t("recipes:creation.changeTaskType", "Change Task Type")}
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Box>
   );
 }

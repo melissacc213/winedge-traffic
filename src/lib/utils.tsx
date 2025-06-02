@@ -1,6 +1,9 @@
 import { clsx } from 'clsx';
 import type { ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import React from 'react';
+import type { ReactNode } from 'react';
+import type { MantineTheme } from '@mantine/core';
 
 // Combine clsx and tailwind classes safely
 export function cn(...inputs: ClassValue[]) {
@@ -104,4 +107,67 @@ export function getTaskTypeColor(taskType: string): string {
     default:
       return "gray";
   }
+}
+
+// Escape special regex characters
+function escapeRegex(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Highlight search term in text
+export function highlightSearchTerm(
+  text: string | null | undefined, 
+  searchTerm: string,
+  options?: {
+    backgroundColor?: string;
+    textColor?: string;
+    theme?: MantineTheme;
+    isDark?: boolean;
+  }
+): ReactNode {
+  if (!text || !searchTerm) {
+    return text || '';
+  }
+
+  // Convert to string to ensure we're working with text
+  const textStr = String(text);
+  
+  // Escape special regex characters in search term
+  const escapedSearchTerm = escapeRegex(searchTerm);
+  
+  // Split text by search term (case-insensitive)
+  const parts = textStr.split(new RegExp(`(${escapedSearchTerm})`, 'gi'));
+  
+  const highlighted = parts.map((part, index) => {
+    if (part.toLowerCase() === searchTerm.toLowerCase()) {
+      // Use theme colors if provided, otherwise fallback to hardcoded values
+      const backgroundColor = options?.backgroundColor || 
+        (options?.theme ? options.theme.colors.yellow[3] : '#ffeb3b');
+      const textColor = options?.textColor || 
+        (options?.theme && options?.isDark ? options.theme.colors.yellow[9] : '#000000');
+      const shadowColor = options?.theme ? options.theme.colors.yellow[4] : 'rgba(255, 235, 59, 0.5)';
+      
+      return (
+        <mark
+          key={index}
+          style={{
+            backgroundColor,
+            color: textColor,
+            fontWeight: 600,
+            padding: '2px 4px',
+            margin: '0 1px',
+            borderRadius: '3px',
+            display: 'inline-block',
+            lineHeight: 'inherit',
+            boxShadow: `0 0 0 1px ${shadowColor}`,
+          }}
+        >
+          {part}
+        </mark>
+      );
+    }
+    return <React.Fragment key={index}>{part}</React.Fragment>;
+  });
+
+  return <>{highlighted}</>;
 }

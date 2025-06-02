@@ -1,4 +1,4 @@
-import { Modal, Text, Button, Group, Stack, ThemeIcon, useMantineTheme } from "@mantine/core";
+import { Modal, Text, Button, Group, Stack, ThemeIcon, useMantineTheme, Box } from "@mantine/core";
 import { Icons } from "../icons";
 import { useTheme } from "../../providers/theme-provider";
 
@@ -11,9 +11,11 @@ export interface ConfirmationModalProps {
   confirmText: string;
   cancelText?: string;
   confirmColor?: "red" | "orange" | "yellow" | "blue" | "teal" | "green";
-  icon?: "warning" | "danger" | "info" | "question";
+  icon?: "warning" | "danger" | "info" | "question" | "none";
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   loading?: boolean;
+  variant?: "standard" | "warning";
+  subMessage?: string;
 }
 
 export function ConfirmationModal({
@@ -25,25 +27,29 @@ export function ConfirmationModal({
   confirmText,
   cancelText = "Cancel",
   confirmColor = "red",
-  icon = "warning",
+  icon = "none",
   size = "sm",
   loading = false,
+  variant = "standard",
+  subMessage,
 }: ConfirmationModalProps) {
-  const { colorScheme, theme } = useTheme();
+  const { colorScheme } = useTheme();
   const mantineTheme = useMantineTheme();
   const isDark = colorScheme === "dark";
 
   const getIcon = () => {
     switch (icon) {
       case "danger":
-        return <Icons.AlertCircle size={22} />;
+        return <Icons.AlertTriangle size={20} />;
       case "info":
-        return <Icons.InfoCircle size={22} />;
+        return <Icons.InfoCircle size={20} />;
       case "question":
-        return <Icons.InfoCircle size={22} />;
+        return <Icons.HelpCircle size={20} />;
       case "warning":
+        return <Icons.AlertCircle size={20} />;
+      case "none":
       default:
-        return <Icons.AlertCircle size={22} />;
+        return null;
     }
   };
 
@@ -67,94 +73,177 @@ export function ConfirmationModal({
       onClose={onClose}
       title={title}
       centered
-      size={size}
+      size={size === "sm" ? 440 : size}
       withinPortal
-      padding="xl"
       radius="lg"
       shadow="xl"
+      padding={0}
       styles={{
-        header: {
-          backgroundColor: isDark ? theme.colors.dark[7] : theme.white,
-          borderBottom: `1px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[2]}`,
-          paddingBottom: mantineTheme.spacing.md,
+        root: {
+          zIndex: 1000,
+        },
+        inner: {
+          padding: mantineTheme.spacing.md,
         },
         content: {
-          backgroundColor: isDark ? theme.colors.dark[7] : theme.white,
-          border: `1px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[2]}`,
+          backgroundColor: isDark ? mantineTheme.colors.dark?.[7] || mantineTheme.colors.gray[9] : mantineTheme.white,
+          border: 'none',
+          overflow: 'visible',
+        },
+        header: {
+          backgroundColor: 'transparent',
+          borderBottom: 'none',
+          padding: `${mantineTheme.spacing.xl} ${mantineTheme.spacing.xl} 0`,
         },
         title: {
           fontWeight: 600,
-          fontSize: 18,
-          color: isDark ? theme.colors.gray[1] : theme.colors.gray[9],
+          fontSize: 20,
+          color: isDark ? mantineTheme.colors.gray[1] : mantineTheme.colors.gray[9],
         },
         close: {
-          color: isDark ? theme.colors.gray[4] : theme.colors.gray[6],
+          color: isDark ? mantineTheme.colors.gray[4] : mantineTheme.colors.gray[6],
+          border: `2px solid ${isDark ? mantineTheme.colors.gray[7] : mantineTheme.colors.gray[3]}`,
+          borderRadius: mantineTheme.radius.xl,
+          width: 34,
+          height: 34,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           '&:hover': {
-            backgroundColor: isDark ? theme.colors.dark[5] : theme.colors.gray[1],
+            backgroundColor: isDark ? mantineTheme.colors.dark?.[6] || mantineTheme.colors.gray[8] : mantineTheme.colors.gray[1],
+            borderColor: isDark ? mantineTheme.colors.gray[6] : mantineTheme.colors.gray[4],
           },
         },
+        body: {
+          padding: `${mantineTheme.spacing.lg} ${mantineTheme.spacing.xl} ${mantineTheme.spacing.xl}`,
+        }
       }}
     >
-      <Stack gap="xl">
-        {/* Message with icon */}
-        <Group gap="md" align="flex-start" wrap="nowrap">
-          <ThemeIcon
-            size={48}
-            radius="xl"
-            variant="light"
-            color={getIconColor()}
-            style={{ 
-              flexShrink: 0,
-              marginTop: 2,
-            }}
-          >
-            {getIcon()}
-          </ThemeIcon>
+      <Stack gap={variant === "warning" ? "lg" : "xl"}>
+        {/* Message with optional icon */}
+        {icon !== "none" && variant === "warning" ? (
+          <Group gap="md" align="flex-start" wrap="nowrap">
+            <Box
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: '50%',
+                backgroundColor: mantineTheme.colors[getIconColor()][1],
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <ThemeIcon
+                size={28}
+                variant="transparent"
+                color={getIconColor()}
+              >
+                {getIcon()}
+              </ThemeIcon>
+            </Box>
+            <Stack gap="xs" style={{ flex: 1 }}>
+              <Text 
+                size="md" 
+                style={{ 
+                  lineHeight: 1.5,
+                  color: isDark ? mantineTheme.colors.gray[2] : mantineTheme.colors.gray[7],
+                }}
+              >
+                {message}
+              </Text>
+              {subMessage && (
+                <Text 
+                  size="sm" 
+                  style={{ 
+                    lineHeight: 1.5,
+                    color: isDark ? mantineTheme.colors.gray[4] : mantineTheme.colors.gray[6],
+                  }}
+                >
+                  {subMessage}
+                </Text>
+              )}
+            </Stack>
+          </Group>
+        ) : (
           <Text 
             size="md" 
             style={{ 
-              flex: 1, 
-              lineHeight: 1.6,
-              color: isDark ? theme.colors.gray[2] : theme.colors.gray[7],
+              lineHeight: 1.5,
+              color: isDark ? mantineTheme.colors.gray[2] : mantineTheme.colors.gray[7],
             }}
           >
             {message}
           </Text>
-        </Group>
+        )}
 
         {/* Action buttons */}
-        <Group justify="flex-end" gap="md" pt="md">
-          <Button
-            variant="subtle"
-            color="gray"
-            onClick={onClose}
-            disabled={loading}
-            size="md"
-            radius="md"
-            style={{
-              color: isDark ? theme.colors.gray[4] : theme.colors.gray[6],
-              fontWeight: 500,
-              minWidth: 100,
-            }}
-          >
-            {cancelText}
-          </Button>
-          <Button
-            color={confirmColor}
-            onClick={onConfirm}
-            loading={loading}
-            size="md"
-            radius="md"
-            variant="filled"
-            style={{
-              fontWeight: 600,
-              minWidth: 120,
-              boxShadow: `0 2px 8px ${mantineTheme.colors[confirmColor][3]}40`,
-            }}
-          >
-            {confirmText}
-          </Button>
-        </Group>
+        {variant === "warning" ? (
+          <Stack gap="sm" mt="sm">
+            <Button
+              fullWidth
+              color={confirmColor}
+              onClick={onConfirm}
+              loading={loading}
+              size="md"
+              radius="md"
+              variant="filled"
+              style={{
+                fontWeight: 500,
+              }}
+            >
+              {confirmText}
+            </Button>
+            <Button
+              fullWidth
+              variant="transparent"
+              color="gray"
+              onClick={onClose}
+              disabled={loading}
+              size="md"
+              radius="md"
+              style={{
+                color: isDark ? mantineTheme.colors.gray[4] : mantineTheme.colors.gray[7],
+                fontWeight: 500,
+              }}
+            >
+              {cancelText}
+            </Button>
+          </Stack>
+        ) : (
+          <Group justify="flex-end" gap="sm" mt="lg">
+            <Button
+              variant="outline"
+              color="gray"
+              onClick={onClose}
+              disabled={loading}
+              size="md"
+              radius="md"
+              style={{
+                borderWidth: 1.5,
+                fontWeight: 500,
+                minWidth: 90,
+              }}
+            >
+              {cancelText}
+            </Button>
+            <Button
+              color={confirmColor}
+              onClick={onConfirm}
+              loading={loading}
+              size="md"
+              radius="md"
+              variant="filled"
+              style={{
+                fontWeight: 500,
+                minWidth: 110,
+              }}
+            >
+              {confirmText}
+            </Button>
+          </Group>
+        )}
       </Stack>
     </Modal>
   );

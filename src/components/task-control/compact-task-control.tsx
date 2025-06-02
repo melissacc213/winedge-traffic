@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Card,
   Stack,
@@ -11,7 +11,6 @@ import {
   Grid,
   RingProgress,
   ActionIcon,
-  Tooltip,
   Divider,
   Box,
   Title,
@@ -23,11 +22,10 @@ import {
 } from "@mantine/core";
 import { Icons } from "@/components/icons";
 import { useTheme } from "@/providers/theme-provider";
-import { notifications } from "@mantine/notifications";
 import { formatDistanceToNow, getTaskTypeColor } from "@/lib/utils";
 import { useTaskWebSocket } from "@/hooks/use-task-websocket";
 import type { Task } from "@/types/task";
-import type { TaskProgress, TaskLog } from "@/types/task-websocket";
+import type { TaskLog } from "@/types/task-websocket";
 
 interface CompactTaskControlProps {
   task: Task;
@@ -48,8 +46,7 @@ export function CompactTaskControl({
   isStopping = false,
   isRestarting = false,
 }: CompactTaskControlProps) {
-  const { theme, colorScheme } = useTheme();
-  const isDark = colorScheme === "dark";
+  const { theme } = useTheme();
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<string | null>("metrics");
 
@@ -299,7 +296,7 @@ export function CompactTaskControl({
             </Tabs.List>
 
             <Tabs.Panel value="metrics" pt="md">
-              <SimpleGrid cols={3} spacing="sm">
+              <SimpleGrid cols={3}>
                 <Paper p="sm" radius="md" withBorder>
                   <Text size="xs" c="dimmed" mb={4}>CPU Usage</Text>
                   <Group>
@@ -351,7 +348,7 @@ export function CompactTaskControl({
             </Tabs.Panel>
 
             <Tabs.Panel value="detections" pt="md">
-              <SimpleGrid cols={2} spacing="xs">
+              <SimpleGrid cols={2}>
                 {Object.entries(progress.detections).map(([type, count]) => (
                   <Paper key={type} p="sm" radius="md" withBorder>
                     <Group justify="space-between">

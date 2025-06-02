@@ -1,18 +1,31 @@
-import { useState } from 'react';
-import { Button, Stack, Menu, ActionIcon, Badge, Group, Text } from '@mantine/core';
-import { Icons } from '@/components/icons';
-import { useTranslation } from 'react-i18next';
-import { useDisclosure } from '@mantine/hooks';
-import { PageLayout } from '@/components/page-layout/page-layout';
-import { DataTable } from '@/components/ui';
-import { LicenseCreateDialog, LicenseEdit } from '@/components/license';
-import { useLicenses, useDeleteLicense, useUpdateLicense } from '@/lib/queries/license';
-import { notifications } from '@mantine/notifications';
-import { modals } from '@mantine/modals';
-import type { License } from '@/lib/validator/license';
+import { useState } from "react";
+import {
+  Button,
+  Stack,
+  Menu,
+  ActionIcon,
+  Badge,
+  Text,
+  Tooltip,
+} from "@mantine/core";
+import { Icons } from "@/components/icons";
+import { useTranslation } from "react-i18next";
+import { useDisclosure } from "@mantine/hooks";
+import { PageLayout } from "@/components/page-layout/page-layout";
+import { DataTable } from "@/components/ui";
+import { LicenseCreateDialog, LicenseEdit } from "@/components/license";
+import {
+  useLicenses,
+  useDeleteLicense,
+  useUpdateLicense,
+} from "@/lib/queries/license";
+import { notifications } from "@mantine/notifications";
+import { confirmDelete } from "@/lib/confirmation";
+import type { License } from "@/lib/validator/license";
+import { highlightSearchTerm } from "@/lib/utils";
 
 export function LicensesPage() {
-  const { t } = useTranslation(['licenses', 'common']);
+  const { t } = useTranslation(["licenses", "common"]);
   const { data, isLoading } = useLicenses();
   const [opened, { open, close }] = useDisclosure(false);
   const [editingLicense, setEditingLicense] = useState<License | null>(null);
@@ -24,126 +37,174 @@ export function LicensesPage() {
   };
 
   const handleDeleteLicense = (license: License) => {
-    modals.openConfirmModal({
-      title: t('licenses:confirmDelete.title'),
-      children: (
-        <Text size="sm">
-          {t('licenses:confirmDelete.message', { name: license.name })}
-        </Text>
-      ),
-      labels: { confirm: t('common:action.delete'), cancel: t('common:action.cancel') },
-      confirmProps: { color: 'red' },
-      centered: true,
-      onConfirm: async () => {
-        try {
-          await deleteLicenseMutation.mutateAsync(license.id);
-          notifications.show({
-            title: t('licenses:notifications.deleteSuccess'),
-            message: t('licenses:notifications.deleteSuccessMessage'),
-            color: 'green',
-          });
-        } catch (error) {
-          notifications.show({
-            title: t('common:error'),
-            message: t('licenses:notifications.deleteError'),
-            color: 'red',
-          });
-        }
-      },
+    confirmDelete(license.name, t("licenses:common.license"), async () => {
+      try {
+        await deleteLicenseMutation.mutateAsync(license.id);
+        notifications.show({
+          title: t("licenses:notifications.deleteSuccess"),
+          message: t("licenses:notifications.deleteSuccessMessage"),
+          color: "green",
+        });
+      } catch (error) {
+        notifications.show({
+          title: t("common:error"),
+          message: t("licenses:notifications.deleteError"),
+          color: "red",
+        });
+      }
     });
   };
 
   const columns = [
     {
-      key: 'is_default',
-      label: '',
-      width: 40,
+      key: "is_default",
+      label: "",
+      width: 50,
       sortable: false,
       render: (license: License) => (
-        <ActionIcon
-          variant={license.is_default ? 'filled' : 'subtle'}
-          color="yellow"
-          size="sm"
-          onClick={async (e) => {
-            e.stopPropagation();
-            if (!license.is_default) {
-              try {
-                await updateLicenseMutation.mutateAsync({
-                  id: license.id,
-                  data: { is_default: true }
-                });
-                notifications.show({
-                  title: t('licenses:notifications.defaultSet'),
-                  message: t('licenses:notifications.defaultSetMessage'),
-                  color: 'green',
-                });
-              } catch (error) {
-                notifications.show({
-                  title: t('common:error'),
-                  message: t('licenses:notifications.updateError'),
-                  color: 'red',
-                });
-              }
-            }
-          }}
-          style={{ cursor: license.is_default ? 'default' : 'pointer' }}
+        <Tooltip
+          label={
+            license.is_default
+              ? t("licenses:defaultLicense")
+              : t("licenses:setAsDefault")
+          }
+          withArrow
         >
-          {license.is_default ? <Icons.StarFilled size={16} /> : <Icons.Star size={16} />}
-        </ActionIcon>
+          <ActionIcon
+            variant={license.is_default ? "filled" : "subtle"}
+            color="yellow"
+            size="sm"
+            onClick={async (e) => {
+              e.stopPropagation();
+              if (!license.is_default) {
+                try {
+                  await updateLicenseMutation.mutateAsync({
+                    id: license.id,
+                    data: { is_default: true },
+                  });
+                  notifications.show({
+                    title: t("licenses:notifications.defaultSet"),
+                    message: t("licenses:notifications.defaultSetMessage"),
+                    color: "green",
+                  });
+                } catch (error) {
+                  notifications.show({
+                    title: t("common:error"),
+                    message: t("licenses:notifications.updateError"),
+                    color: "red",
+                  });
+                }
+              }
+            }}
+            style={{ cursor: license.is_default ? "default" : "pointer" }}
+          >
+            {license.is_default ? (
+              <Icons.StarFilled size={16} />
+            ) : (
+              <Icons.Star size={16} />
+            )}
+          </ActionIcon>
+        </Tooltip>
       ),
     },
     {
-      key: 'name',
-      label: t('licenses:table.name'),
-      render: (license: License) => (
-        <Text fw={500}>{license.name}</Text>
-      ),
+      key: "name",
+      label: t("licenses:table.name"),
+      render: (license: License, globalFilter?: string) => {
+        // Return highlighted content directly without Text wrapper to preserve highlight styles
+        if (globalFilter) {
+          return (
+            <div style={{ fontWeight: 500, fontSize: "14px" }}>
+              {highlightSearchTerm(license.name, globalFilter)}
+            </div>
+          );
+        }
+        return (
+          <Text fw={500} size="sm">
+            {license.name}
+          </Text>
+        );
+      },
     },
     {
-      key: 'file_name',
-      label: t('licenses:table.fileName'),
-      render: (license: License) => (
-        <Text size="sm" c="dimmed">{license.file_name}</Text>
-      ),
+      key: "file_name",
+      label: t("licenses:table.fileName"),
+      render: (license: License, globalFilter?: string) => {
+        // Return highlighted content directly without Text wrapper to preserve highlight styles
+        if (globalFilter) {
+          return (
+            <div
+              style={{ fontSize: "14px", color: "var(--mantine-color-dimmed)" }}
+            >
+              {highlightSearchTerm(license.file_name, globalFilter)}
+            </div>
+          );
+        }
+        return (
+          <Text size="sm" c="dimmed">
+            {license.file_name}
+          </Text>
+        );
+      },
     },
     {
-      key: 'status',
-      label: t('licenses:table.status'),
+      key: "status",
+      label: t("licenses:table.status"),
+      width: 100,
       render: (license: License) => (
-        <Badge 
-          variant="light" 
-          color={license.status === 'active' ? 'green' : license.status === 'expired' ? 'red' : 'yellow'}
+        <Badge
+          variant="light"
+          color={
+            license.status === "active"
+              ? "green"
+              : license.status === "expired"
+                ? "red"
+                : "yellow"
+          }
+          size="md"
         >
           {t(`licenses:status.${license.status}`)}
         </Badge>
       ),
     },
     {
-      key: 'expires_at',
-      label: t('licenses:table.expiresAt'),
+      key: "expires_at",
+      label: t("licenses:table.expiresAt"),
+      width: 120,
       render: (license: License) => {
         if (!license.expires_at) return <Text size="sm">—</Text>;
         const date = new Date(license.expires_at);
         const isExpired = date < new Date();
         return (
-          <Text size="sm" c={isExpired ? 'red' : undefined}>
+          <Text size="sm" c={isExpired ? "red" : undefined}>
             {date.toLocaleDateString()}
           </Text>
         );
       },
     },
     {
-      key: 'uploaded_by',
-      label: t('licenses:table.uploadedBy'),
-      render: (license: License) => (
-        <Text size="sm">{license.uploaded_by}</Text>
-      ),
+      key: "uploaded_by",
+      label: t("licenses:table.uploadedBy"),
+      render: (license: License, globalFilter?: string) => {
+        // Return highlighted content directly without Text wrapper to preserve highlight styles
+        if (globalFilter) {
+          return (
+            <div style={{ fontSize: "14px" }}>
+              {highlightSearchTerm(license.uploaded_by, globalFilter)}
+            </div>
+          );
+        }
+        return <Text size="sm">{license.uploaded_by}</Text>;
+      },
     },
     {
-      key: 'uploaded_at',
-      label: t('licenses:table.uploadedAt'),
+      key: "uploaded_at",
+      label: t("licenses:table.uploadedAt"),
+      width: 120,
       render: (license: License) => (
-        <Text size="sm">{new Date(license.uploaded_at).toLocaleDateString()}</Text>
+        <Text size="sm">
+          {new Date(license.uploaded_at).toLocaleDateString()}
+        </Text>
       ),
     },
   ];
@@ -160,7 +221,7 @@ export function LicensesPage() {
           leftSection={<Icons.Edit size={16} />}
           onClick={() => handleEditLicense(license)}
         >
-          {t('common:action.edit')}
+          {t("common:action.edit")}
         </Menu.Item>
         <Menu.Divider />
         <Menu.Item
@@ -168,7 +229,7 @@ export function LicensesPage() {
           color="red"
           onClick={() => handleDeleteLicense(license)}
         >
-          {t('common:action.delete')}
+          {t("common:action.delete")}
         </Menu.Item>
       </Menu.Dropdown>
     </Menu>
@@ -177,14 +238,15 @@ export function LicensesPage() {
   return (
     <>
       <PageLayout
-        title={t('licenses:page.title')}
-        description={t('licenses:page.description')}
+        title={t("licenses:page.title")}
+        description={t("licenses:page.description")}
         actions={
           <Button
             leftSection={<Icons.Plus size={16} />}
             onClick={open}
+            color="blue"
           >
-            {t('licenses:actions.createLicense')}
+            {t("licenses:actions.uploadLicense")}
           </Button>
         }
       >
@@ -194,17 +256,17 @@ export function LicensesPage() {
             columns={columns}
             loading={isLoading}
             actions={actions}
-            height={600}
-            emptyMessage={t('licenses:noLicenses')}
-            defaultSort={{ key: 'is_default', direction: 'desc' }}
+            height={700}
+            emptyMessage={t("licenses:noLicenses")}
+            defaultSort={{ key: "is_default", direction: "desc" }}
+            showPagination={true}
+            pageSize={10}
+            enableGlobalFilter={true}
           />
         </Stack>
       </PageLayout>
 
-      <LicenseCreateDialog
-        opened={opened}
-        onClose={close}
-      />
+      <LicenseCreateDialog opened={opened} onClose={close} />
 
       {editingLicense && (
         <LicenseEdit

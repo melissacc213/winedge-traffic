@@ -1,6 +1,4 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import {
   Badge,
   Text,
@@ -8,19 +6,17 @@ import {
   ActionIcon,
   Menu,
   Box,
-  Input,
-  Stack,
 } from "@mantine/core";
 import { Icons } from "../../components/icons";
 import type { Model } from "../../lib/store/model-store";
 import { DataTable } from "../../components/ui/data-table";
 import type { DataTableColumn } from "../../components/ui/data-table";
+import { highlightSearchTerm } from "../../lib/utils";
 
 interface ModelTableProps {
   models: Model[];
   isLoading: boolean;
   onDelete?: (id: string) => void;
-  onDownload?: (id: string) => void;
   onEdit?: (model: Model) => void;
 }
 
@@ -28,12 +24,9 @@ export function ModelsTable({
   models,
   isLoading,
   onDelete,
-  onDownload,
   onEdit,
 }: ModelTableProps) {
   const { t } = useTranslation(["models", "common"]);
-  const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
 
   // Format file size to human readable
   const formatSize = (bytes: number) => {
@@ -103,18 +96,33 @@ export function ModelsTable({
       key: "name",
       label: t("models:list.columns.name"),
       sortable: true,
-      render: (model) => (
-        <Box>
-          <Text fw={500}>{model.name}</Text>
-          <Text size="xs" c="dimmed">
-            {model.id}
-          </Text>
-        </Box>
-      ),
+      render: (model, globalFilter) => {
+        if (globalFilter) {
+          return (
+            <Box>
+              <div style={{ fontWeight: 500, fontSize: '14px' }}>
+                {highlightSearchTerm(model.name, globalFilter)}
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--mantine-color-dimmed)' }}>
+                {highlightSearchTerm(model.id, globalFilter)}
+              </div>
+            </Box>
+          );
+        }
+        return (
+          <Box>
+            <Text fw={500} size="sm">{model.name}</Text>
+            <Text size="xs" c="dimmed">
+              {model.id}
+            </Text>
+          </Box>
+        );
+      },
     },
     {
       key: "type",
       label: t("models:list.columns.type"),
+      width: 180,
       sortable: true,
       render: (model) => {
         // Show task type if available, otherwise show model type
@@ -122,7 +130,7 @@ export function ModelsTable({
         const typeInfo = getTaskTypeInfo(taskType);
         return (
           <Group gap="xs">
-            <Badge color={typeInfo.color} variant="light">
+            <Badge color={typeInfo.color} variant="light" size="md">
               {typeInfo.label}
             </Badge>
             {(model as any).format && (
@@ -137,15 +145,17 @@ export function ModelsTable({
     {
       key: "size",
       label: t("models:list.columns.size"),
+      width: 120,
       sortable: true,
-      render: (model) => <Text>{formatSize(model.size)}</Text>,
+      render: (model) => <Text size="sm">{formatSize(model.size)}</Text>,
     },
     {
       key: "status",
       label: t("models:list.columns.status"),
+      width: 120,
       sortable: true,
       render: (model) => (
-        <Badge color={getStatusColor(model.status)} variant="light">
+        <Badge color={getStatusColor(model.status)} variant="light" size="md">
           {t(`models:status.${model.status}`)}
         </Badge>
       ),
@@ -153,28 +163,18 @@ export function ModelsTable({
     {
       key: "createdAt",
       label: t("models:list.columns.date"),
+      width: 180,
       sortable: true,
-      render: (model) => <Text size="sm">{formatDate(model.createdAt)}</Text>,
+      render: (model) => <Text size="sm" c="dimmed">{formatDate(model.createdAt)}</Text>,
     },
   ];
 
-  // Filter models based on search query
-  const filteredModels = models.filter(model => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      model.name.toLowerCase().includes(query) ||
-      model.id.toLowerCase().includes(query) ||
-      model.type.toLowerCase().includes(query) ||
-      model.status.toLowerCase().includes(query)
-    );
-  });
 
   // Actions for each row
   const renderActions = (model: Model) => (
     <Menu position="bottom-end" withArrow withinPortal>
       <Menu.Target>
-        <ActionIcon variant="subtle" size="sm">
+        <ActionIcon variant="subtle" color="gray">
           <Icons.Dots size={16} />
         </ActionIcon>
       </Menu.Target>
@@ -202,29 +202,18 @@ export function ModelsTable({
   );
 
   return (
-    <Stack gap="md">
-      <Group justify="flex-end">
-        <Input
-          placeholder={t("common:action.search")}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          leftSection={<Icons.Search size={16} />}
-          w={300}
-        />
-      </Group>
-
-      <DataTable
-        data={filteredModels}
-        columns={columns}
-        loading={isLoading}
-        pageSize={10}
-        showPagination={true}
-        actions={renderActions}
-        emptyMessage={t("models:list.empty")}
-        defaultSort={{ key: "createdAt", direction: "desc" }}
-        stickyHeader={true}
-        height={600}
-      />
-    </Stack>
+    <DataTable
+      data={models}
+      columns={columns}
+      loading={isLoading}
+      pageSize={10}
+      showPagination={true}
+      actions={renderActions}
+      emptyMessage={t("models:list.empty")}
+      defaultSort={{ key: "createdAt", direction: "desc" }}
+      stickyHeader={true}
+      height={700}
+      enableGlobalFilter={true}
+    />
   );
 }

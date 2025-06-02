@@ -16,7 +16,6 @@ import {
   UnstyledButton,
   Center,
   Select,
-  Modal,
   Tabs,
   useMantineTheme,
   Badge,
@@ -24,6 +23,7 @@ import {
   Collapse,
   Tooltip,
   Divider,
+  Modal,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useTheme } from "../../../providers/theme-provider";
@@ -48,8 +48,7 @@ import type {
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage as KonvaStage } from "konva/lib/Stage";
 import useImage from "use-image";
-import { RoadTypeIcon } from "../../road-config/road-type-icon";
-import { ConfirmationModal } from "../../ui/confirmation-modal";
+import { RoadTypeIcon } from "../../road-type-icon";
 
 interface RoadTypeOption {
   value: RoadType;
@@ -148,7 +147,7 @@ export function RegionSetupStep() {
     if (formValues.connections) {
       setConnections(formValues.connections);
     }
-  }, []); // Only run once on mount
+  }, [formValues.connections]); // Include formValues.connections in dependencies
   // Define 20 distinct colors for regions
   const REGION_PALETTE = [
     theme.colors.blue[5],
@@ -232,7 +231,7 @@ export function RegionSetupStep() {
     setPendingRoadType(null);
   };
 
-  const handleStageMouseMove = (e: KonvaEventObject<MouseEvent>) => {
+  const handleStageMouseMove = (_: KonvaEventObject<MouseEvent>) => {
     const stage = stageRef.current;
     if (!stage) return;
 
@@ -246,7 +245,7 @@ export function RegionSetupStep() {
     }
   };
 
-  const handleStageClick = (e: KonvaEventObject<MouseEvent>) => {
+  const handleStageClick = (_: KonvaEventObject<MouseEvent>) => {
     if (isDraggingRegion) return;
     if (isEditMode) return;
     if (!isDrawing) return;
@@ -328,6 +327,7 @@ export function RegionSetupStep() {
         const updatedRegion: Region = {
           id: editingRegion,
           name: trimmedName,
+          type: "countLine",
           points: currentPoints,
           roadType: roadType,
         };
@@ -342,6 +342,7 @@ export function RegionSetupStep() {
         const newRegion: Region = {
           id: uuidv4(),
           name: trimmedName,
+          type: "countLine",
           points: currentPoints,
           roadType: roadType,
         };
@@ -384,6 +385,7 @@ export function RegionSetupStep() {
       const updatedRegion: Region = {
         id: editingRegion,
         name: trimmedName,
+        type: "countLine",
         points: currentPoints,
         roadType: roadType,
       };
@@ -392,6 +394,7 @@ export function RegionSetupStep() {
       const newRegion: Region = {
         id: uuidv4(),
         name: trimmedName,
+        type: "countLine",
         points: currentPoints,
         roadType: roadType,
       };
@@ -443,6 +446,7 @@ export function RegionSetupStep() {
       const updatedRegion: Region = {
         id: editingRegion,
         name: trimmedName,
+        type: "countLine",
         points: editablePoints,
         roadType: roadType,
       };
@@ -675,7 +679,7 @@ export function RegionSetupStep() {
                   colorScheme === "dark" ? theme.colors.gray[8] : "white",
               }}
             >
-              <SimpleGrid cols={{ base: 3 }} spacing="sm">
+              <SimpleGrid cols={{ base: 3 }}>
                 {roadTypeOptions.map((option) => (
                   <UnstyledButton
                     key={option.value}
@@ -802,7 +806,7 @@ export function RegionSetupStep() {
                     </Text>
                   </Group>
                 )}
-                
+
                 {/* Buttons on the right */}
                 <Group gap="xs">
                   {!isDrawing && !isEditMode && (
@@ -1191,7 +1195,6 @@ export function RegionSetupStep() {
                   </Box>
                 )}
               </Box>
-
             </Stack>
           </Card>
         </Box>
@@ -1230,7 +1233,6 @@ export function RegionSetupStep() {
                   }}
                   placeholder="Enter region name"
                   size="sm"
-                  required
                   error={
                     showNameError
                       ? regionName.trim() === ""
@@ -1308,7 +1310,8 @@ export function RegionSetupStep() {
                           Position
                         </Text>
                         <Text size="sm" fw={500}>
-                          ({Math.round(formValues.roi.x1)}, {Math.round(formValues.roi.y1)})
+                          ({Math.round(formValues.roi.x1)},{" "}
+                          {Math.round(formValues.roi.y1)})
                         </Text>
                       </Box>
                       <Box>
@@ -1316,8 +1319,14 @@ export function RegionSetupStep() {
                           Size
                         </Text>
                         <Text size="sm" fw={500}>
-                          {Math.round(Math.abs(formValues.roi.x2 - formValues.roi.x1))} ×{" "}
-                          {Math.round(Math.abs(formValues.roi.y2 - formValues.roi.y1))} px
+                          {Math.round(
+                            Math.abs(formValues.roi.x2 - formValues.roi.x1)
+                          )}{" "}
+                          ×{" "}
+                          {Math.round(
+                            Math.abs(formValues.roi.y2 - formValues.roi.y1)
+                          )}{" "}
+                          px
                         </Text>
                       </Box>
                     </Group>
@@ -1689,35 +1698,140 @@ export function RegionSetupStep() {
         </Box>
       </Flex>
 
-      {/* Modals */}
-      <ConfirmationModal
+      {/* Delete Region Modal */}
+      <Modal
         opened={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
-        onConfirm={() => {
-          performRegionDeletion(regionToDelete!.id);
-          setShowDeleteModal(false);
-        }}
-        title="Delete Region"
-        message={`The region "${regionToDelete?.name}" has ${regionToDelete?.connections.length} connection(s). Deleting this region will also remove all its connections.`}
-        confirmText="Delete"
-        cancelText="Cancel"
-        confirmColor="red"
-        icon="danger"
+        title={t("recipes:region.deleteTitle", "Delete Region?")}
+        centered
         size="sm"
-      />
+      >
+        <Stack gap="md">
+          <Text size="sm">
+            {regionToDelete && (
+              <>
+                {t(
+                  "recipes:region.deleteMessage",
+                  "Are you sure you want to delete the region"
+                )}{" "}
+                <Text
+                  component="span"
+                  fw={600}
+                  c={colorScheme === "dark" ? "white" : "dark"}
+                >
+                  "{regionToDelete.name}"
+                </Text>
+                ?
+                {regionToDelete.connections.length > 0 && (
+                  <>
+                    {" "}
+                    {t(
+                      "recipes:region.deleteConnectionsWarning",
+                      "This will also remove"
+                    )}{" "}
+                    <Text component="span" fw={600} c="orange">
+                      {regionToDelete.connections.length} connection(s)
+                    </Text>
+                    .
+                  </>
+                )}
+              </>
+            )}
+          </Text>
+          <Group justify="space-between">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteModal(false)}
+              style={{
+                borderColor:
+                  colorScheme === "dark"
+                    ? mantineTheme.colors.dark[4]
+                    : theme.colors.gray[4],
+                color:
+                  colorScheme === "dark"
+                    ? theme.colors.gray[3]
+                    : theme.colors.gray[7],
+              }}
+            >
+              {t("common:button.cancel", "Cancel")}
+            </Button>
+            <Button
+              onClick={() => {
+                performRegionDeletion(regionToDelete!.id);
+                setShowDeleteModal(false);
+              }}
+              style={{
+                backgroundColor: mantineTheme.colors.red[6],
+                "&:hover": {
+                  backgroundColor: mantineTheme.colors.red[7],
+                },
+              }}
+            >
+              {t("recipes:region.deleteConfirm", "Delete Region")}
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
 
-      <ConfirmationModal
+      {/* Change Road Type Modal */}
+      <Modal
         opened={showRoadTypeModal}
         onClose={() => setShowRoadTypeModal(false)}
-        onConfirm={confirmRoadTypeChange}
-        title="Change Road Type"
-        message={`Changing the road type will remove all existing regions (${regions.length}) and connections (${connections.length}).`}
-        confirmText="Change"
-        cancelText="Cancel"
-        confirmColor="red"
-        icon="warning"
+        title={t("recipes:region.changeRoadTypeTitle", "Change Road Type?")}
+        centered
         size="sm"
-      />
+      >
+        <Stack gap="md">
+          <Text size="sm">
+            {t(
+              "recipes:region.changeRoadTypeMessage",
+              "Changing the road type will remove all existing regions and connections. Are you sure you want to continue?"
+            )}
+          </Text>
+          {(regions.length > 0 || connections.length > 0) && (
+            <Text size="sm" c="dimmed">
+              {t("recipes:region.changeRoadTypeWarning", "This will delete")}{" "}
+              <Text component="span" fw={600} c="orange">
+                {regions.length} region(s)
+              </Text>{" "}
+              and{" "}
+              <Text component="span" fw={600} c="orange">
+                {connections.length} connection(s)
+              </Text>
+              .
+            </Text>
+          )}
+          <Group justify="space-between">
+            <Button
+              variant="outline"
+              onClick={() => setShowRoadTypeModal(false)}
+              style={{
+                borderColor:
+                  colorScheme === "dark"
+                    ? mantineTheme.colors.dark[4]
+                    : theme.colors.gray[4],
+                color:
+                  colorScheme === "dark"
+                    ? theme.colors.gray[3]
+                    : theme.colors.gray[7],
+              }}
+            >
+              {t("common:button.cancel", "Cancel")}
+            </Button>
+            <Button
+              onClick={confirmRoadTypeChange}
+              style={{
+                backgroundColor: mantineTheme.colors.red[6],
+                "&:hover": {
+                  backgroundColor: mantineTheme.colors.red[7],
+                },
+              }}
+            >
+              {t("recipes:region.changeRoadTypeConfirm", "Change Road Type")}
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Paper>
   );
 }

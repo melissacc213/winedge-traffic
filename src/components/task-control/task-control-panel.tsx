@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   Stack,
@@ -448,7 +448,7 @@ export function TaskControlPanel({
                       <Text size="sm" fw={500}>{log.message}</Text>
                       {log.details && (
                         <Badge size="xs" variant="light">
-                          Frame {log.details.frame}
+                          Frame {log.details.frame as number}
                         </Badge>
                       )}
                     </Group>

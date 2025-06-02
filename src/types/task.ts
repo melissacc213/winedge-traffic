@@ -25,10 +25,13 @@ export interface Task {
   createdAt: string;
   startedAt?: string;
   completedAt?: string;
+  startTime?: string; // Alternative naming for startedAt
+  endTime?: string; // Alternative naming for completedAt
   duration?: number; // in seconds
   recipeId: string;
   recipeName?: string;
   resultType: TaskResultType;
+  taskType: TaskResultType; // Added for compatibility
   videoId?: string;
   videoName?: string;
   resultsCount?: number; // Number of objects detected/counted
@@ -36,6 +39,7 @@ export interface Task {
   error?: string;
   userId: string;
   userName?: string;
+  metrics?: Record<string, any>; // Added for task metrics
 }
 
 // Task statistics interface

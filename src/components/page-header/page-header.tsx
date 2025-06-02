@@ -1,5 +1,5 @@
 import { Group, Paper, Text, Title } from '@mantine/core';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { PageHeaderSkeleton } from '../ui';
 
 interface PageHeaderProps {

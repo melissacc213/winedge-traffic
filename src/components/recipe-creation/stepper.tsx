@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
@@ -7,7 +7,6 @@ import {
   Container,
   Group,
   Modal,
-  Paper,
   Stack,
   Text,
   Title,
@@ -39,7 +38,6 @@ export function RecipeStepper() {
     isDirty,
     stepCompleted,
     markStepCompleted,
-    clearVideoData,
     clearRegionsData,
     clearModelData,
   } = useRecipeStore();
@@ -47,9 +45,7 @@ export function RecipeStepper() {
   const createRecipe = useCreateRecipe();
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showBackModal, setShowBackModal] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<
-    Record<string, string>
-  >({});
+  const [, setValidationErrors] = useState<Record<string, string>>({});
 
   // Step validation functions
   const validateStep0 = () => {
@@ -193,20 +189,11 @@ export function RecipeStepper() {
   const handlePrevious = () => {
     // Check if we need to show confirmation based on what data would be lost
     let needsConfirmation = false;
-    let dataToLose = "";
 
     if (activeStep === 1 && formValues.regions.length > 0) {
       needsConfirmation = true;
-      dataToLose = t(
-        "recipes:navigation.loseRegions",
-        "All drawn regions and connections will be lost."
-      );
     } else if (activeStep === 2 && formValues.modelConfig) {
       needsConfirmation = true;
-      dataToLose = t(
-        "recipes:navigation.loseModelConfig",
-        "Model configuration and labels will be lost."
-      );
     }
 
     if (needsConfirmation) {
@@ -325,7 +312,6 @@ export function RecipeStepper() {
               <Group gap="lg" align="center">
                 {stepTitles.map((title, index) => {
                   const isActive = index === activeStep;
-                  const isCompleted = index < activeStep;
                   const stepNumber = index + 1;
 
                   return (
@@ -372,7 +358,7 @@ export function RecipeStepper() {
                           {stepCompleted[
                             `step${index}` as keyof typeof stepCompleted
                           ] ? (
-                            <Icons.Check size={14} stroke={3} />
+                            <Icons.Check size={14} />
                           ) : (
                             stepNumber
                           )}

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { notifications } from "@mantine/notifications";
 import { useModelStore } from "../lib/store/model-store";
 import { validateModelFile } from "../lib/validator/model";
+import { confirmDelete } from "../lib/confirmation";
 
 interface UploadProgressState {
   fileName: string;
@@ -134,36 +135,22 @@ export function useModelUpload() {
   // Handle delete model
   const handleDelete = useCallback(
     (id: string) => {
-      removeModel(id);
-
-      notifications.show({
-        title: t("models:notification.delete_success"),
-        message: t("models:notification.delete_success_message"),
-        color: "green",
-      });
-    },
-    [removeModel, t]
-  );
-
-  // Handle download model
-  const handleDownload = useCallback(
-    (id: string) => {
       const model = models.find((m) => m.id === id);
       if (!model) return;
 
-      notifications.show({
-        title: t("models:notification.download_started"),
-        message: t("models:notification.download_started_message", {
-          name: model.name,
-        }),
-        color: "blue",
-      });
+      confirmDelete(model.name, t("models:common.model"), () => {
+        removeModel(id);
 
-      // In real app, this would trigger actual download
-      console.log("Downloading model:", model);
+        notifications.show({
+          title: t("models:notification.delete_success"),
+          message: t("models:notification.delete_success_message"),
+          color: "green",
+        });
+      });
     },
-    [models, t]
+    [models, removeModel, t]
   );
+
 
   // Reset upload state
   const resetUpload = useCallback(() => {
@@ -182,7 +169,6 @@ export function useModelUpload() {
     isUploading,
     handleDrop,
     handleDelete,
-    handleDownload,
     resetUpload,
   };
 }

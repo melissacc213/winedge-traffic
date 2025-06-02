@@ -24,7 +24,6 @@ import {
   IconArrowLeft,
   IconEdit,
   IconLicense,
-  IconFile,
   IconCalendar,
   IconClock,
   IconUser,

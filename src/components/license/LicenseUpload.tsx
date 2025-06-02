@@ -11,7 +11,6 @@ import {
   Title,
   Select,
   Grid,
-  useMantineTheme,
 } from '@mantine/core';
 import {
   IconUpload,
@@ -22,7 +21,6 @@ import {
 import { useTranslation } from 'react-i18next';
 import type { CreateLicenseRequest } from '../../lib/validator/license';
 import { createLicenseSchema } from '../../lib/validator/license';
-import { useTheme } from '../../providers/theme-provider';
 
 interface LicenseUploadProps {
   onSubmit: (values: CreateLicenseRequest & { file: File }) => void;
@@ -35,8 +33,7 @@ export function LicenseUpload({ onSubmit, isLoading, onCancel }: LicenseUploadPr
   const [file, setFile] = useState<File | null>(null);
   const [filePath, setFilePath] = useState('');
   const [taskType, setTaskType] = useState<string | null>(null);
-  const mantineTheme = useMantineTheme();
-  const { colorScheme, theme } = useTheme();
+  // Theme variables removed as they were unused
 
   const form = useForm<CreateLicenseRequest>({
     initialValues: {
@@ -96,7 +93,6 @@ export function LicenseUpload({ onSubmit, isLoading, onCancel }: LicenseUploadPr
               label={t('licenses:form.name')}
               placeholder={t('licenses:form.namePlaceholder')}
               leftSection={<IconLicense size={16} />}
-              required
               size="md"
               {...form.getInputProps('name')}
             />
@@ -110,7 +106,6 @@ export function LicenseUpload({ onSubmit, isLoading, onCancel }: LicenseUploadPr
                   data={taskTypeOptions}
                   value={taskType}
                   onChange={setTaskType}
-                  required
                   size="md"
                 />
               </Grid.Col>
@@ -132,7 +127,6 @@ export function LicenseUpload({ onSubmit, isLoading, onCancel }: LicenseUploadPr
                     </Button>
                   }
                   rightSectionWidth={80}
-                  required
                   size="md"
                 />
               </Grid.Col>

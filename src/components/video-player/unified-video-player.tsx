@@ -10,12 +10,10 @@ import {
   Paper,
   Progress,
   Loader,
-  ActionIcon,
   Tooltip,
   Center,
   ThemeIcon,
   useMantineTheme,
-  Overlay,
 } from "@mantine/core";
 import { useTheme } from "../../providers/theme-provider";
 import { Icons } from "../icons";
@@ -68,10 +66,8 @@ export function UnifiedVideoPlayer({
 
   // Video state
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
 
-  const { colorScheme, theme } = useTheme();
+  const { colorScheme } = useTheme();
   const mantineTheme = useMantineTheme();
   const isDark = colorScheme === "dark";
 
@@ -93,7 +89,7 @@ export function UnifiedVideoPlayer({
         const baseURL = "https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm";
 
         // Set up event listeners
-        ffmpeg.on("log", ({ message }) => {});
+        ffmpeg.on("log", () => {});
 
         ffmpeg.on("progress", ({ progress }) => {
           setLoadingStatus((prev) => ({
@@ -445,7 +441,7 @@ export function UnifiedVideoPlayer({
 
             <Box w="100%">
               {isIndeterminate ? (
-                <Progress size="lg" radius="xl" animated striped color="blue" />
+                <Progress value={0} size="lg" radius="xl" animated striped color="blue" />
               ) : (
                 <Progress
                   value={loadingStatus.progress}
@@ -523,16 +519,14 @@ export function UnifiedVideoPlayer({
                   ? mantineTheme.colors.dark[9]
                   : mantineTheme.colors.gray[1],
               }}
-              onLoadedMetadata={(e) => {
-                const video = e.currentTarget;
-                setDuration(video.duration);
+              onLoadedMetadata={() => {
+                // Video loaded successfully
               }}
-              onTimeUpdate={(e) => {
-                setCurrentTime(e.currentTarget.currentTime);
+              onTimeUpdate={() => {
+                // Time update handled by browser
               }}
-              onSeeked={(e) => {
-                // Update time when seeking is complete
-                setCurrentTime(e.currentTarget.currentTime);
+              onSeeked={() => {
+                // Seeking completed
               }}
               crossOrigin="anonymous"
             />

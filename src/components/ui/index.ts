@@ -3,13 +3,10 @@ export * from "./table-skeleton";
 export * from "./table-loading";
 export * from "./page-loader";
 export * from "./page-header-skeleton";
-export * from "./card-skeleton";
-export * from "./icon-memo";
 export * from "./data-table";
 export * from "../task-video-stream";
 export * from "../video-player";
 export * from "./app-loader";
-export * from "./color-palette";
 export * from "./color-picker";
 export * from "./confirmation-modal";
 
