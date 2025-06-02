@@ -20,6 +20,7 @@ import {
   useMantineTheme,
   rem,
   Divider,
+  SimpleGrid,
 } from "@mantine/core";
 import { Icons } from "@/components/icons";
 import { useTranslation } from "react-i18next";
@@ -32,7 +33,7 @@ import { useRecipeStore } from "@/lib/store/recipe-store";
 import type { Region } from "@/types/recipe";
 
 // Generate mock data for the recipe details using theme colors
-const generateMockRecipeDetails = (theme: any) => ({
+const generateMockRecipeDetails = (theme: any, showOverflow: boolean = false) => ({
   id: "recipe-1",
   name: "市區主幹道交通流量監測",
   description:
@@ -57,84 +58,153 @@ const generateMockRecipeDetails = (theme: any) => ({
     version: "v1.2.0",
     type: "object_detection",
     size: "45.2 MB",
-    labels: [
-      {
-        id: "1",
-        name: "Person",
-        color: getRegionColor(theme, 0),
-        confidence: 0.7,
-        enabled: true,
-        width_threshold: 32,
-        height_threshold: 32,
-      },
-      {
-        id: "2",
-        name: "Vehicle",
-        color: getRegionColor(theme, 1),
-        confidence: 0.75,
-        enabled: true,
-        width_threshold: 32,
-        height_threshold: 32,
-      },
-      {
-        id: "3",
-        name: "Truck",
-        color: getRegionColor(theme, 2),
-        confidence: 0.8,
-        enabled: true,
-        width_threshold: 32,
-        height_threshold: 32,
-      },
-      {
-        id: "4",
-        name: "Motorcycle",
-        color: getRegionColor(theme, 3),
-        confidence: 0.65,
-        enabled: false,
-        width_threshold: 32,
-        height_threshold: 32,
-      },
-    ],
+    labels: showOverflow ?
+      // Generate comprehensive traffic-related labels
+      [
+        { id: "1", name: "Person", color: getRegionColor(theme, 0), confidence: 0.85, enabled: true, width_threshold: 32, height_threshold: 32 },
+        { id: "2", name: "Car", color: getRegionColor(theme, 1), confidence: 0.90, enabled: true, width_threshold: 48, height_threshold: 48 },
+        { id: "3", name: "Truck", color: getRegionColor(theme, 2), confidence: 0.85, enabled: true, width_threshold: 64, height_threshold: 64 },
+        { id: "4", name: "Bus", color: getRegionColor(theme, 3), confidence: 0.88, enabled: true, width_threshold: 80, height_threshold: 80 },
+        { id: "5", name: "Motorcycle", color: getRegionColor(theme, 4), confidence: 0.75, enabled: true, width_threshold: 32, height_threshold: 48 },
+        { id: "6", name: "Bicycle", color: getRegionColor(theme, 5), confidence: 0.70, enabled: true, width_threshold: 24, height_threshold: 32 },
+        { id: "7", name: "Van", color: getRegionColor(theme, 6), confidence: 0.82, enabled: true, width_threshold: 56, height_threshold: 56 },
+        { id: "8", name: "Trailer", color: getRegionColor(theme, 7), confidence: 0.78, enabled: false, width_threshold: 96, height_threshold: 64 },
+        { id: "9", name: "Police Car", color: getRegionColor(theme, 8), confidence: 0.92, enabled: true, width_threshold: 48, height_threshold: 48 },
+        { id: "10", name: "Ambulance", color: getRegionColor(theme, 9), confidence: 0.91, enabled: true, width_threshold: 64, height_threshold: 56 },
+        { id: "11", name: "Fire Truck", color: getRegionColor(theme, 10), confidence: 0.89, enabled: true, width_threshold: 80, height_threshold: 64 },
+        { id: "12", name: "Taxi", color: getRegionColor(theme, 11), confidence: 0.86, enabled: true, width_threshold: 48, height_threshold: 48 },
+        { id: "13", name: "School Bus", color: getRegionColor(theme, 12), confidence: 0.87, enabled: false, width_threshold: 80, height_threshold: 72 },
+        { id: "14", name: "Delivery Truck", color: getRegionColor(theme, 13), confidence: 0.83, enabled: true, width_threshold: 64, height_threshold: 64 },
+        { id: "15", name: "Scooter", color: getRegionColor(theme, 14), confidence: 0.68, enabled: true, width_threshold: 24, height_threshold: 32 },
+        { id: "16", name: "Construction Vehicle", color: getRegionColor(theme, 15), confidence: 0.76, enabled: false, width_threshold: 96, height_threshold: 80 },
+        { id: "17", name: "Mini Van", color: getRegionColor(theme, 16), confidence: 0.81, enabled: true, width_threshold: 48, height_threshold: 48 },
+        { id: "18", name: "Pickup Truck", color: getRegionColor(theme, 17), confidence: 0.84, enabled: true, width_threshold: 56, height_threshold: 48 },
+        { id: "19", name: "Semi Truck", color: getRegionColor(theme, 18), confidence: 0.86, enabled: true, width_threshold: 96, height_threshold: 80 },
+        { id: "20", name: "Tanker", color: getRegionColor(theme, 19), confidence: 0.79, enabled: false, width_threshold: 96, height_threshold: 72 },
+      ] :
+      // Normal case
+      [
+        {
+          id: "1",
+          name: "Person",
+          color: getRegionColor(theme, 0),
+          confidence: 0.7,
+          enabled: true,
+          width_threshold: 32,
+          height_threshold: 32,
+        },
+        {
+          id: "2",
+          name: "Vehicle",
+          color: getRegionColor(theme, 1),
+          confidence: 0.75,
+          enabled: true,
+          width_threshold: 32,
+          height_threshold: 32,
+        },
+        {
+          id: "3",
+          name: "Truck",
+          color: getRegionColor(theme, 2),
+          confidence: 0.8,
+          enabled: true,
+          width_threshold: 32,
+          height_threshold: 32,
+        },
+        {
+          id: "4",
+          name: "Motorcycle",
+          color: getRegionColor(theme, 3),
+          confidence: 0.65,
+          enabled: false,
+          width_threshold: 32,
+          height_threshold: 32,
+        },
+      ],
   },
 
   // Region configuration based on the API structure
-  regions: [
-    {
-      id: "region-1",
-      name: "A",
+  regions: showOverflow ? 
+    // Generate comprehensive mock data for review
+    Array.from({ length: 12 }, (_, i) => ({
+      id: `region-${i + 1}`,
+      name: String.fromCharCode(65 + (i % 26)) + (Math.floor(i / 26) > 0 ? Math.floor(i / 26) : ''), // A, B, C... then AA, AB, etc.
       type: "areaOfInterest" as const,
-      color: getRegionColor(theme, 0),
+      color: getRegionColor(theme, i),
       points: [
-        { x: 100, y: 300 },
-        { x: 300, y: 300 },
-        { x: 300, y: 500 },
-        { x: 100, y: 500 },
+        { x: 100 + (i * 50), y: 300 },
+        { x: 300 + (i * 50), y: 300 },
+        { x: 300 + (i * 50), y: 500 },
+        { x: 100 + (i * 50), y: 500 },
       ],
-      roadType: "straight" as const,
-    },
-    {
-      id: "region-2",
-      name: "B",
-      type: "areaOfInterest" as const,
-      color: getRegionColor(theme, 1),
-      points: [
-        { x: 400, y: 300 },
-        { x: 600, y: 300 },
-        { x: 600, y: 500 },
-        { x: 400, y: 500 },
-      ],
-      roadType: "straight" as const,
-    },
-  ],
+      roadType: i === 0 ? "straight" : i % 3 === 1 ? "tJunction" : "crossroads" as const,
+    })) :
+    // Normal case with few regions
+    [
+      {
+        id: "region-1",
+        name: "A",
+        type: "areaOfInterest" as const,
+        color: getRegionColor(theme, 0),
+        points: [
+          { x: 100, y: 300 },
+          { x: 300, y: 300 },
+          { x: 300, y: 500 },
+          { x: 100, y: 500 },
+        ],
+        roadType: "straight" as const,
+      },
+      {
+        id: "region-2",
+        name: "B",
+        type: "areaOfInterest" as const,
+        color: getRegionColor(theme, 1),
+        points: [
+          { x: 400, y: 300 },
+          { x: 600, y: 300 },
+          { x: 600, y: 500 },
+          { x: 400, y: 500 },
+        ],
+        roadType: "straight" as const,
+      },
+    ],
 
   // Connections between regions
-  connections: [
-    {
-      id: "conn-1",
-      sourceId: "region-1",
-      destinationId: "region-2",
-    },
-  ],
+  connections: showOverflow ?
+    // Generate realistic connection patterns
+    [
+      // Main routes
+      { id: "conn-1", sourceId: "region-1", destinationId: "region-2" },
+      { id: "conn-2", sourceId: "region-2", destinationId: "region-3" },
+      { id: "conn-3", sourceId: "region-3", destinationId: "region-4" },
+      { id: "conn-4", sourceId: "region-4", destinationId: "region-5" },
+      { id: "conn-5", sourceId: "region-5", destinationId: "region-6" },
+      // Cross connections
+      { id: "conn-6", sourceId: "region-1", destinationId: "region-4" },
+      { id: "conn-7", sourceId: "region-2", destinationId: "region-5" },
+      { id: "conn-8", sourceId: "region-3", destinationId: "region-6" },
+      // Return routes
+      { id: "conn-9", sourceId: "region-6", destinationId: "region-7" },
+      { id: "conn-10", sourceId: "region-7", destinationId: "region-8" },
+      { id: "conn-11", sourceId: "region-8", destinationId: "region-9" },
+      { id: "conn-12", sourceId: "region-9", destinationId: "region-10" },
+      // Additional complex routes
+      { id: "conn-13", sourceId: "region-10", destinationId: "region-11" },
+      { id: "conn-14", sourceId: "region-11", destinationId: "region-12" },
+      { id: "conn-15", sourceId: "region-12", destinationId: "region-1" },
+      // Shortcuts
+      { id: "conn-16", sourceId: "region-7", destinationId: "region-10" },
+      { id: "conn-17", sourceId: "region-8", destinationId: "region-11" },
+      { id: "conn-18", sourceId: "region-9", destinationId: "region-12" },
+    ] :
+    // Normal case
+    [
+      {
+        id: "conn-1",
+        sourceId: "region-1",
+        destinationId: "region-2",
+      },
+    ],
 
   // Sample frame for visualization
   sampleFrame: "/api/placeholder/800/600",
@@ -157,12 +227,13 @@ export function RecipeDetailsPage() {
   const isDark = colorScheme === "dark";
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string | null>("regions");
+  const [showOverflow] = useState(true); // Set to true to see comprehensive mock data
 
   // Get recipe from store
   const { recipes, formValues } = useRecipeStore();
   
   // Generate mock data with theme colors
-  const mockRecipeDetails = generateMockRecipeDetails(theme);
+  const mockRecipeDetails = generateMockRecipeDetails(theme, showOverflow);
   
   // Find recipe in store or use mock data
   const recipeFromStore = recipes.find(r => r.id === recipeId);
@@ -244,7 +315,7 @@ export function RecipeDetailsPage() {
         case "straight":
           return <Icons.ArrowRight size={20} />;
         case "tJunction":
-          return <Icons.GitMerge size={20} />;
+          return <Icons.Route2 size={20} />;
         case "crossroads":
           return <Icons.Plus size={20} />;
         default:
@@ -265,6 +336,11 @@ export function RecipeDetailsPage() {
       }
     };
 
+    // Get the road type from the first region (assuming all regions have the same road type)
+    const roadType = recipe.regions.length > 0 && 'roadType' in recipe.regions[0] 
+      ? (recipe.regions[0] as any).roadType 
+      : undefined;
+
     return (
       <Grid gutter="lg">
         {/* Region Visualization */}
@@ -274,7 +350,7 @@ export function RecipeDetailsPage() {
               <Group justify="space-between">
                 <Title order={4}>Region Configuration</Title>
                 <Badge variant="light" color="blue">
-                  {recipe.regions.length} Regions • {recipe.connections?.length || 0} Connections
+                  {recipe.regions.length} Regions • {recipe.connections?.length || 0} Connections{roadType ? ` • ${getRoadTypeName(roadType)}` : ''}
                 </Badge>
               </Group>
               
@@ -301,41 +377,34 @@ export function RecipeDetailsPage() {
         
         {/* Region Details */}
         <Grid.Col span={{ base: 12, lg: 4 }}>
-          <Stack gap="md" h={500}>
-            {/* Road Type Info */}
-            {recipe.regions.length > 0 && recipe.regions[0] && 'roadType' in recipe.regions[0] && recipe.regions[0].roadType && (
-              <Card p="md" radius="md" withBorder>
-                <Group gap="sm">
-                  {getRoadTypeIcon((recipe.regions[0] as any).roadType)}
-                  <div>
-                    <Text size="sm" fw={500}>Road Type</Text>
-                    <Text size="xs" c="dimmed">{getRoadTypeName((recipe.regions[0] as any).roadType)}</Text>
-                  </div>
-                </Group>
-              </Card>
-            )}
-
-            {/* Region List */}
-            <Card p="lg" radius="md" withBorder style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-              <Title order={5} mb="md">Defined Regions</Title>
+          <Stack gap="md" h={500} style={{ minHeight: 0 }}>
+            {/* Regions Section - Now takes 50% height */}
+            <Card p="lg" radius="md" withBorder style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+              <Group justify="space-between" mb="md">
+                <Title order={5}>Defined Regions</Title>
+                <Badge size="sm" variant="light" color="blue">
+                  {recipe.regions.length} regions
+                </Badge>
+              </Group>
               
-              <ScrollArea style={{ flex: 1 }}>
-                <Stack gap="sm">
-                  {recipe.regions.map((region: Region, index) => (
-                    <Card key={region.id} p="sm" radius="md" withBorder>
+              <ScrollArea h="100%" offsetScrollbars scrollbarSize={6} style={{ flex: 1 }}>
+                <Stack gap="xs" pr="xs">
+                  {recipe.regions.map((region, index) => (
+                    <Card key={region.id} p="xs" radius="md" withBorder>
                       <Group gap="sm" mb="xs">
                         <Box
                           style={{
-                            width: 24,
-                            height: 24,
+                            width: 20,
+                            height: 20,
                             backgroundColor: region.color || getRegionColor(theme, index),
                             borderRadius: "50%",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             color: "white",
-                            fontSize: rem(12),
+                            fontSize: rem(11),
                             fontWeight: 600,
+                            flexShrink: 0,
                           }}
                         >
                           {region.name}
@@ -352,31 +421,104 @@ export function RecipeDetailsPage() {
                       </Text>
                     </Card>
                   ))}
-                  
-                  {/* Connections */}
-                  {recipe.connections && recipe.connections.length > 0 && (
-                    <>
-                      <Divider label="Connections" labelPosition="center" my="sm" />
-                      {recipe.connections.map((conn) => {
-                        const sourceRegion = recipe.regions.find(r => r.id === conn.sourceId);
-                        const destRegion = recipe.regions.find(r => r.id === conn.destinationId);
-                        return (
-                          <Group key={conn.id} gap="xs" px="sm">
-                            <Badge size="sm" variant="dot" color={(sourceRegion as any)?.color || theme.colors.gray[6]}>
-                              {sourceRegion?.name}
-                            </Badge>
-                            <Icons.ArrowRight size={16} />
-                            <Badge size="sm" variant="dot" color={(destRegion as any)?.color || theme.colors.gray[6]}>
-                              {destRegion?.name}
-                            </Badge>
-                          </Group>
-                        );
-                      })}
-                    </>
-                  )}
                 </Stack>
               </ScrollArea>
             </Card>
+            
+            {/* Connections Section - Now takes 50% height */}
+            {recipe.connections && recipe.connections.length > 0 && (
+              <Card p="lg" radius="md" withBorder style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                <Group justify="space-between" mb="md">
+                  <Title order={5}>Connections</Title>
+                  <Badge size="sm" variant="light" color="blue">
+                    {recipe.connections.length} routes
+                  </Badge>
+                </Group>
+                
+                <ScrollArea h="100%" offsetScrollbars scrollbarSize={6} style={{ flex: 1 }}>
+                  <Stack gap={6} pr="xs">
+                    {recipe.connections.map((conn, idx) => {
+                      const sourceRegion = recipe.regions.find(r => r.id === conn.sourceId);
+                      const destRegion = recipe.regions.find(r => r.id === conn.destinationId);
+                      return (
+                        <Paper
+                          key={conn.id}
+                          p="xs"
+                          radius="sm"
+                          withBorder
+                          style={{
+                            backgroundColor: isDark ? mantineTheme.colors.dark?.[7] || mantineTheme.colors.gray[8] : mantineTheme.white,
+                            borderColor: isDark ? mantineTheme.colors.dark?.[4] || mantineTheme.colors.gray[6] : mantineTheme.colors.gray[2],
+                          }}
+                        >
+                          <Group gap="xs" wrap="nowrap" justify="center">
+                            <Group gap={6} wrap="nowrap">
+                              <Box
+                                style={{
+                                  width: 18,
+                                  height: 18,
+                                  backgroundColor: (sourceRegion as any)?.color || theme.colors.gray[6],
+                                  borderRadius: '50%',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: 'white',
+                                  fontSize: rem(10),
+                                  fontWeight: 700,
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {sourceRegion?.name}
+                              </Box>
+                              <Text size="xs" c="dimmed">Region {sourceRegion?.name}</Text>
+                            </Group>
+                            
+                            <Box
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: rem(4),
+                                color: mantineTheme.colors.blue[5],
+                              }}
+                            >
+                              <Box
+                                style={{
+                                  width: 16,
+                                  height: 1,
+                                  backgroundColor: mantineTheme.colors.blue[3],
+                                }}
+                              />
+                              <Icons.ChevronRight size={14} />
+                            </Box>
+                            
+                            <Group gap={6} wrap="nowrap">
+                              <Box
+                                style={{
+                                  width: 18,
+                                  height: 18,
+                                  backgroundColor: (destRegion as any)?.color || theme.colors.gray[6],
+                                  borderRadius: '50%',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: 'white',
+                                  fontSize: rem(10),
+                                  fontWeight: 700,
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {destRegion?.name}
+                              </Box>
+                              <Text size="xs" c="dimmed">Region {destRegion?.name}</Text>
+                            </Group>
+                          </Group>
+                        </Paper>
+                      );
+                    })}
+                  </Stack>
+                </ScrollArea>
+              </Card>
+            )}
           </Stack>
         </Grid.Col>
       </Grid>
@@ -445,48 +587,65 @@ export function RecipeDetailsPage() {
                   </Text>
                 </div>
 
-                <ScrollArea h={400} offsetScrollbars>
-                  <Stack gap="sm">
-                    {recipe.model.labels.map((label, index) => (
-                      <Paper key={label.id} p="md" radius="md" withBorder>
-                        <Group gap="md">
-                          <Box
-                            style={{
-                              width: 40,
-                              height: 40,
-                              backgroundColor: label.color,
-                              borderRadius: mantineTheme.radius.md,
-                              opacity: label.enabled ? 1 : 0.5,
-                            }}
-                          />
-                          <div style={{ flex: 1 }}>
-                            <Group gap="xs" mb={4}>
-                              <Text fw={500}>{label.name}</Text>
-                              {label.enabled ? (
-                                <Badge size="xs" color="green" variant="dot">Enabled</Badge>
-                              ) : (
-                                <Badge size="xs" color="gray" variant="dot">Disabled</Badge>
-                              )}
-                            </Group>
-                            <Group gap="lg">
-                              <Text size="xs" c="dimmed">
-                                Confidence: {label.confidence ? (label.confidence * 100).toFixed(0) : 70}%
-                              </Text>
-                              {label.width_threshold && label.height_threshold && (
+                <Box style={{ position: 'relative' }}>
+                  <ScrollArea h={400} offsetScrollbars scrollbarSize={6}>
+                    <Stack gap="sm" pr="xs">
+                      {recipe.model.labels.map((label, index) => (
+                        <Paper key={label.id} p="md" radius="md" withBorder>
+                          <Group gap="md">
+                            <Box
+                              style={{
+                                width: 40,
+                                height: 40,
+                                backgroundColor: label.color,
+                                borderRadius: mantineTheme.radius.md,
+                                opacity: label.enabled ? 1 : 0.5,
+                              }}
+                            />
+                            <div style={{ flex: 1 }}>
+                              <Group gap="xs" mb={4}>
+                                <Text fw={500}>{label.name}</Text>
+                                {label.enabled ? (
+                                  <Badge size="xs" color="green" variant="dot">Enabled</Badge>
+                                ) : (
+                                  <Badge size="xs" color="gray" variant="dot">Disabled</Badge>
+                                )}
+                              </Group>
+                              <Group gap="lg">
                                 <Text size="xs" c="dimmed">
-                                  Min size: {label.width_threshold}×{label.height_threshold}px
+                                  Confidence: {label.confidence ? (label.confidence * 100).toFixed(0) : 70}%
                                 </Text>
-                              )}
-                            </Group>
-                          </div>
-                          <Text size="sm" c="dimmed">
-                            #{index + 1}
-                          </Text>
-                        </Group>
-                      </Paper>
-                    ))}
-                  </Stack>
-                </ScrollArea>
+                                {label.width_threshold && label.height_threshold && (
+                                  <Text size="xs" c="dimmed">
+                                    Min size: {label.width_threshold}×{label.height_threshold}px
+                                  </Text>
+                                )}
+                              </Group>
+                            </div>
+                            <Text size="sm" c="dimmed">
+                              #{index + 1}
+                            </Text>
+                          </Group>
+                        </Paper>
+                      ))}
+                    </Stack>
+                  </ScrollArea>
+                  
+                  {/* Fade overlay at bottom when scrollable */}
+                  {recipe.model.labels.length > 5 && (
+                    <Box
+                      style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: 40,
+                        background: `linear-gradient(to bottom, transparent, ${isDark ? mantineTheme.colors.dark[8] : 'white'})`,
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  )}
+                </Box>
                 
                 {recipe.model.labels.length === 0 && (
                   <Center style={{ flex: 1 }}>
@@ -569,7 +728,14 @@ export function RecipeDetailsPage() {
                   <Icons.ArrowLeft size={24} />
                 </ActionIcon>
                 <div>
-                  <Title order={2} fw={600} mb="xs">{recipe.name}</Title>
+                  <Group gap="sm" align="center" mb="xs">
+                    <Title order={2} fw={600}>{recipe.name}</Title>
+                    {showOverflow && (
+                      <Badge color="orange" variant="light" size="sm">
+                        Overflow Demo
+                      </Badge>
+                    )}
+                  </Group>
                   {recipe.description && (
                     <Text size="sm" c="dimmed" style={{ maxWidth: '600px' }}>
                       {recipe.description}
