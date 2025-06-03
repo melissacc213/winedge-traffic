@@ -34,6 +34,8 @@ export interface Task {
   taskType: TaskResultType; // Added for compatibility
   videoId?: string;
   videoName?: string;
+  videoUrl?: string; // Video URL
+  localPath?: string; // Local file path
   resultsCount?: number; // Number of objects detected/counted
   thumbnail?: string;
   error?: string;
@@ -79,4 +81,7 @@ export interface TaskUpdate {
   status?: TaskStatus;
   progress?: number;
   error?: string;
+  recipeId?: string;
+  taskType?: TaskResultType;
+  localPath?: string;
 }

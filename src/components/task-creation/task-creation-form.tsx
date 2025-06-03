@@ -1,4 +1,4 @@
-import type { Task } from "@/types/task";
+import type { Task } from "@/lib/validator/task";
 import { TaskForm } from "./task-form";
 
 interface TaskCreationFormProps {

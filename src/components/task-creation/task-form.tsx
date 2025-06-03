@@ -41,9 +41,9 @@ import { Icons } from "@/components/icons";
 import { taskService } from "@/lib/api/task-service";
 import { mockRecipes } from "@/lib/config/mock-recipes";
 import { taskTypeSchema } from "@/lib/validator/recipe";
+import type { Task } from "@/lib/validator/task";
 import type { TaskType } from "@/types/recipe";
 import type { Recipe } from "@/types/recipe";
-import type { Task } from "@/types/task";
 
 // Form validation schema
 const taskFormSchema = z.object({
@@ -260,12 +260,6 @@ export function TaskForm({ mode, task, onSuccess }: TaskFormProps) {
     console.log('TaskForm - handleTaskTypeChange called with:', value);
     console.log('TaskForm - current mode:', mode);
     
-    // Don't allow changes in edit mode
-    if (mode === "edit") {
-      console.log('TaskForm - Ignoring task type change in edit mode');
-      return;
-    }
-    
     form.setFieldValue("taskType", value);
     form.setFieldValue("recipeId", "");
     setSelectedRecipe(null);
@@ -340,9 +334,9 @@ export function TaskForm({ mode, task, onSuccess }: TaskFormProps) {
       if (!task) throw new Error("Task not found");
 
       const updateData = {
+        localPath: values.localPath,
         recipeId: values.recipeId,
         taskType: values.taskType!,
-        // In a real implementation, you might update other fields
       };
 
       return await taskService.updateTask(task.id, updateData);
@@ -409,42 +403,34 @@ export function TaskForm({ mode, task, onSuccess }: TaskFormProps) {
           }}
         >
           <Group grow align="flex-end" gap="md">
-            <div style={{ flex: 1 }}>
-              <Text size="sm" fw={600} mb={4}>
-                {t("tasks:creation.taskConfiguration")}
-              </Text>
-              <Select
-                placeholder={t("tasks:taskType.placeholder")}
-                data={[
-                  {
-                    label: t("tasks:taskType.trafficStatistics"),
-                    value: "trafficStatistics",
-                  },
-                  {
-                    label: t("tasks:taskType.trainDetection"),
-                    value: "trainDetection",
-                  },
-                ]}
-                leftSection={<Icons.Target size={16} />}
-                size="sm"
-                disabled={mode === "edit"}
-                {...form.getInputProps("taskType")}
-                onChange={(value) =>
-                  handleTaskTypeChange(value as TaskType | null)
-                }
-              />
-            </div>
+            <Select
+              label={t("tasks:creation.taskConfiguration")}
+              placeholder={t("tasks:taskType.placeholder")}
+              data={[
+                {
+                  label: t("tasks:taskType.trafficStatistics"),
+                  value: "trafficStatistics",
+                },
+                {
+                  label: t("tasks:taskType.trainDetection"),
+                  value: "trainDetection",
+                },
+              ]}
+              leftSection={<Icons.Target size={16} />}
+              size="sm"
+              {...form.getInputProps("taskType")}
+              onChange={(value) =>
+                handleTaskTypeChange(value as TaskType | null)
+              }
+            />
             
-            {mode === "create" && (
-              <TextInput
-                label={t("tasks:creation.localPath")}
-                placeholder={t("tasks:creation.localPathPlaceholder")}
-                leftSection={<Icons.Folder size={16} />}
-                size="sm"
-                style={{ flex: 2 }}
-                {...form.getInputProps("localPath")}
-              />
-            )}
+            <TextInput
+              label={t("tasks:creation.localPath")}
+              placeholder={t("tasks:creation.localPathPlaceholder")}
+              leftSection={<Icons.Folder size={16} />}
+              size="sm"
+              {...form.getInputProps("localPath")}
+            />
           </Group>
         </Paper>
 
